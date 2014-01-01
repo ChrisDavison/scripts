@@ -13,5 +13,15 @@ braille -f braillefile.txt
 
 braille -m message
 
-## Hello World:
+## Hello World
 
+**helloworld.txt**
+```
+braille -f helloworld.txt
+```
+
+```
+O. O. O. O. O. .O O. O. O. OO
+OO .O O. O. .O OO .O OO O. .O
+.. .. O. O. O. .O O. O. O. ..
+```
