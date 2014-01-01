@@ -15,13 +15,21 @@ braille -m message
 
 ## Hello World
 
-**helloworld.txt**
-```
-braille -f helloworld.txt
-```
+Input of the text file *helloworld.txt*
 
 ```
 O. O. O. O. O. .O O. O. O. OO
 OO .O O. O. .O OO .O OO O. .O
 .. .. O. O. O. .O O. O. O. ..
+```
+
+using command
+
+```
+braille -f helloworld.txt
+```
+
+results in
+```
+helloworld
 ```
