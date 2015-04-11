@@ -102,11 +102,11 @@ func (f *Field) Tick() {
     for i := 0; i < f.row; i++ {
         for j := 0; j < f.col; j++ {
             cur := f.field[i][j].now
-						neighbours := f.Neighbours(i, j)
-						f.field[i][j].next = false
-						if (cur == true && neighbours == 2) || neighbours == 3 {
-								f.field[i][j].next = true
-						}
+            neighbours := f.Neighbours(i, j)
+            f.field[i][j].next = false
+            if (cur == true && neighbours == 2) || neighbours == 3 {
+                f.field[i][j].next = true
+            }
         }
     }
     for i := 0; i < f.row; i++ {
