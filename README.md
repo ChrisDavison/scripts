@@ -9,9 +9,11 @@ Formatted braille uses:
 
 # Usage
 
+```
 braille -f braillefile.txt
 
 braille -m message
+```
 
 ## Braille to Text
 
