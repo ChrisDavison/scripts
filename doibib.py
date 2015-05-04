@@ -12,6 +12,12 @@ rEntr = re.compile('@([a-zA-Z0-9]+)[{]')
 rKeyw = re.compile('@.*?[{](.*?),')
 regex = re.compile('(author|journal|title|year|url)\s?=\s?([{].*?[}][,} ])')
 
+parser = argparse.ArgumentParser()
+parser.add_argument('--search', help='Search within bibliography')
+parser.add_argument('--print', help='Print default bibliography', action='store_true')
+parser.add_argument('--doi', help='Get a bib entry from DOI')
+args = parser.parse_args()
+
 class bibentry:
     keyword = ""
     entrytype = ""
@@ -29,8 +35,7 @@ class bibentry:
         return out
 
 class bibliography:
-    # Entries is a dict of KEYWORD:bibentry
-    entries = {}
+    entries = {}  # Entries is a dict of KEYWORD:bibentry
     def __init__(self, fn):
         self.fn = fn
         try:
@@ -71,12 +76,15 @@ class bibliography:
                     print(entry)
 
     def add(self):
+        print("Fix bibliography.add()")
         pass
 
     def delete(self):
+        print("Fix bibliography.delete()")
         pass
 
     def edit(self):
+        print("Fix bibliography.edit()")
         pass
 
     def __str__(self):
@@ -93,30 +101,25 @@ class bibliography:
         print(bibentry(k, t, v))
 
     def write(self, filename):
+        print("Fix bibliography.write()")
         pass
 
 def main():
     try:
         mybib = bibliography("library.bib")
     except Exception as E:
-        # Fail if we can't read the bib
-        sys.exit(E)
+        sys.exit(E)  # Fail if we can't read the bib
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-s', '--search', help='Search within bibliography')
-    parser.add_argument('-p', '--print', help='Print default bibliography', action='store_true')
-    parser.add_argument('-d', '--doi', help='Get a bib entry from DOI')
-    args = parser.parse_args()
 
     if args.search:
-        mybib.search("lameness")
+        mybib.search(args.search)
     elif args.print:
         print(mybib)
     elif args.doi:
         mybib.from_doi(args.doi)
     else:
         parser.print_help()
-    #mybib.write("library.bib")
+    mybib.write("library.bib")
 
 if __name__ == "__main__":
     main()
