@@ -28,7 +28,7 @@ class bibentry:
         self.details = details
 
     def __str__(self):
-        out = "{} <<{}>>\n".format(self.keyword, self.entrytype)
+        out = "{:<18}<<{}>>\n".format(self.keyword, self.entrytype)
         for key, value in self.details:
             out += "{:>15} - {}\n".format(key, value)
         out += "-"*80
@@ -109,7 +109,6 @@ def main():
         mybib = bibliography("library.bib")
     except Exception as E:
         sys.exit(E)  # Fail if we can't read the bib
-
 
     if args.search:
         mybib.search(args.search)
