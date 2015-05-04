@@ -2,21 +2,14 @@
 import os
 import argparse
 import re
+import requests
 
 # Regex
 # Instead, a list of keywords, which I prepend onto the regex
 # and then search with this?
 rEntr = re.compile('@([a-zA-Z0-9]+)[{]')
 rKeyw = re.compile('@.*?[{](.*?),')
-regex = re.compile('(author|journal|title|year|url) = ([{].*?[}][,} ])')
-
-menu = """Bibliography Tool
-=================
-1) Search for an entry
-2) Add an entry
-3) List a certain detail
-4) Add via DOI number
-"""
+regex = re.compile('(author|journal|title|year|url)\s?=\s?([{].*?[}][,} ])')
 
 class bibliography:
     fn = ""
@@ -61,15 +54,31 @@ class bibliography:
     def edit():
         pass
 
+    def print(self):
+        for keyword, details in self.entries.items():
+            print(keyword)
+            for detail in details:
+                key, value = detail
+                print("{:>15} - {}".format(key, value))
+            print("-"*80)
+
+    def from_doi(self, doi):
+        accept='text/x-bibliography; style=bibtex'
+        if doi.startswith("http://"):
+            url = doi
+        else:
+            url = "http://dx.doi.org/" + doi
+        r = requests.get(url, headers={'accept': accept}).text
+        k, v = self.parse_entry(r.strip(" "))
+        self.entries[k] = v
+
+    def write(self):
+        pass
+
 def main():
     mybib = bibliography("library.bib")
-    for keyword, details in mybib.entries.items():
-        print(keyword)
-        for detail in details:
-            key, value = detail
-            print("{:>15} - {}".format(key, value))
-        print("-"*80)
-        print("-"*80)
+    #mybib.print()
+    mybib.from_doi("10.1002/elan.200900571")
 
 if __name__ == "__main__":
     main()
