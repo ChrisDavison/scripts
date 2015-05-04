@@ -3,6 +3,7 @@ import os
 import argparse
 import re
 import requests
+import sys
 
 # Regex
 # Instead, a list of keywords, which I prepend onto the regex
@@ -11,74 +12,111 @@ rEntr = re.compile('@([a-zA-Z0-9]+)[{]')
 rKeyw = re.compile('@.*?[{](.*?),')
 regex = re.compile('(author|journal|title|year|url)\s?=\s?([{].*?[}][,} ])')
 
+class bibentry:
+    keyword = ""
+    entrytype = ""
+    details = {}
+    def __init__(self, keyword, entrytype, details):
+        self.entrytype = entrytype
+        self.keyword = keyword
+        self.details = details
+
+    def __str__(self):
+        out = "{} <<{}>>\n".format(self.keyword, self.entrytype)
+        for key, value in self.details:
+            out += "{:>15} - {}\n".format(key, value)
+        out += "-"*80
+        return out
+
 class bibliography:
-    fn = ""
+    # Entries is a dict of KEYWORD:bibentry
     entries = {}
     def __init__(self, fn):
         self.fn = fn
-        self.parse_file(fn)
+        try:
+            self.parse_file(fn)
+        except Exception as E:
+            print("Failed parsing.")
+            sys.exit(E)
 
     def parse_file(self, filename):
         lines = [line for line in open(filename)]
-        lines = lines[5:]
+        lines = lines[5:] # Skip Mendeley's stuff...
 
         for line in lines:
             try:
-                k, v = self.parse_entry(line)
+                k, t, v = self.parse_entry(line)
             except:
                 continue
-            self.entries[k] = v
+            if k and t and v:
+                self.entries[k] = bibentry(k, t, v)
 
     def parse_entry(self, line):
         try:
-            type = re.match(rEntr, line).groups()[0]
+            entrytype = re.match(rEntr, line).groups()[0]
             keyword = re.match(rKeyw, line).groups()[0]
 
             matches = re.findall(regex, line) 
             out = [match for match in matches]
-            out.append(('type', type))
 
-            return keyword, out
+            return keyword, entrytype, out
         except:
             return 
 
-    def search(keyword):
-        pass
-
-    def add():
-        pass
-
-    def delete():
-        pass
-
-    def edit():
-        pass
-
-    def print(self):
-        for keyword, details in self.entries.items():
-            print(keyword)
-            for detail in details:
+    def search(self, searchword):
+        for keyword, entry in self.entries.items():
+            for detail in entry.details:
                 key, value = detail
-                print("{:>15} - {}".format(key, value))
-            print("-"*80)
+                if searchword in value:
+                    print(entry)
 
+    def add(self):
+        pass
+
+    def delete(self):
+        pass
+
+    def edit(self):
+        pass
+
+    def __str__(self):
+        out = [entry.__str__() for entry in self.entries.values()]
+        return "\n".join(out)
+       
     def from_doi(self, doi):
         accept='text/x-bibliography; style=bibtex'
-        if doi.startswith("http://"):
-            url = doi
-        else:
-            url = "http://dx.doi.org/" + doi
-        r = requests.get(url, headers={'accept': accept}).text
-        k, v = self.parse_entry(r.strip(" "))
-        self.entries[k] = v
+        if not doi.startswith("http://"):
+            doi = "http://dx.doi.org/" + doi
+        r = requests.get(doi, headers={'accept': accept}).text
+        k, t, v = self.parse_entry(r.strip(" "))
+        self.entries[k] = bibentry(k, t, v)
+        print(bibentry(k, t, v))
 
-    def write(self):
+    def write(self, filename):
         pass
 
 def main():
-    mybib = bibliography("library.bib")
-    #mybib.print()
-    mybib.from_doi("10.1002/elan.200900571")
+    try:
+        mybib = bibliography("library.bib")
+    except Exception as E:
+        # Fail if we can't read the bib
+        sys.exit(E)
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-s', '--search', help='Search within bibliography')
+    parser.add_argument('-p', '--print', help='Print default bibliography', action='store_true')
+    parser.add_argument('-d', '--doi', help='Get a bib entry from DOI')
+    args = parser.parse_args()
+
+    if args.search:
+        mybib.search("lameness")
+    elif args.print:
+        print(mybib)
+    elif args.doi:
+        mybib.from_doi(args.doi)
+    else:
+        parser.print_help()
+    #mybib.write("library.bib")
 
 if __name__ == "__main__":
     main()
