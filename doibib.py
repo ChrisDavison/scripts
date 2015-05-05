@@ -21,8 +21,9 @@ args = parser.parse_args()
 
 
 def main():
+    fn = "library.bib"
     try:
-        mybib = bibliography("library.bib")
+        mybib = bibliography(fn)
     except Exception as E:
         sys.exit(E)  # Fail if we can't read the bib
 
@@ -41,7 +42,7 @@ def main():
     else:
         parser.print_help()
         print("\nPrecedence: Search, print, doi, add, delete, edit\n")
-    mybib.write("library.bib")
+    mybib.write(fn + ".bak")
 
 if __name__ == "__main__":
     main()
