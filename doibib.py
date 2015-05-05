@@ -2,14 +2,14 @@
 import argparse
 import sys
 
-from biblio import *
+from biblio import bibliography
 
 # Regex
-# Instead, a list of keywords, which I prepend onto the regex
-# and then search with this?
 parser = argparse.ArgumentParser()
-parser.add_argument('--search', help='Search within bibliography')
-parser.add_argument('--print', help='Print default bibliography', action='store_true')
+parser.add_argument('--search',
+                    help='Search within bibliography')
+parser.add_argument('--print', action='store_true',
+                    help='Print default bibliography')
 parser.add_argument('--doi', help='Get a bib entry from DOI')
 args = parser.parse_args()
 
@@ -32,3 +32,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+else:
+    parser.print_help()
