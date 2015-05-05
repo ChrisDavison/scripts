@@ -4,7 +4,13 @@ import sys
 
 rEntr = re.compile('@([a-zA-Z0-9]+)[{]')
 rKeyw = re.compile('@.*?[{](.*?),')
-regex = re.compile('(author|journal|title|year|url)\s?=\s?([{].*?[}][,} ])')
+keywords = ['author', 'journal', 'title', 'year', 'url', 'publisher',
+            'series', 'type', 'chapter', 'pages', 'address', 'edition',
+            'month', 'note', 'school', 'howpublished', 'editor',
+            'organization', 'volume', 'institution']
+
+kwJoin = "|".join(keywords)
+regex = re.compile('(' + kwJoin + ')\s?=\s?([{].*?[}][,} ])')
 
 
 class bibentry:
@@ -20,7 +26,7 @@ class bibentry:
     def __str__(self):
         out = "{:<18}<<{}>>\n".format(self.citeCode, self.entrytype)
         for key, value in self.details:
-            out += "{:>15} - {}\n".format(key, value)
+            out += "{:>15} - {}\n".format(key, value.strip(", "))
         out += "-"*80
         return out
 
@@ -93,5 +99,15 @@ class bibliography:
         print(bibentry(k, t, v))
 
     def write(self, filename):
-        print("Fix bibliography.write()")
-        pass
+        with open(filename, 'w') as f:
+            for citecode, bibentry in self.entries.items():
+                articleType = "@{}".format(citecode)
+                out = ""
+
+                for k, v in bibentry.details:
+                    if k and v:
+                        out += "{} = {}, ".format(k, v.strip(", "))
+                out = articleType + "{" + out[:-2] + "}"
+                f.write(out)
+                f.write("\n")
+            f.write("\n")
