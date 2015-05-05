@@ -8,23 +8,26 @@ regex = re.compile('(author|journal|title|year|url)\s?=\s?([{].*?[}][,} ])')
 
 
 class bibentry:
-    keyword = ""
+    citeCode = ""
     entrytype = ""
     details = {}
-    def __init__(self, keyword, entrytype, details):
+
+    def __init__(self, citeCode, entrytype, details):
         self.entrytype = entrytype
-        self.keyword = keyword
+        self.citeCode = citeCode
         self.details = details
 
     def __str__(self):
-        out = "{:<18}<<{}>>\n".format(self.keyword, self.entrytype)
+        out = "{:<18}<<{}>>\n".format(self.citeCode, self.entrytype)
         for key, value in self.details:
             out += "{:>15} - {}\n".format(key, value)
         out += "-"*80
         return out
 
+
 class bibliography:
-    entries = {}  # Entries is a dict of KEYWORD:bibentry
+    entries = {}  # Entries is a dict of citeCode:bibentry
+
     def __init__(self, fn):
         self.fn = fn
         try:
@@ -35,7 +38,7 @@ class bibliography:
 
     def parse_file(self, filename):
         lines = [line for line in open(filename)]
-        lines = lines[5:] # Skip Mendeley's stuff...
+        lines = lines[5:]  # Skip Mendeley's stuff...
 
         for line in lines:
             try:
@@ -48,17 +51,17 @@ class bibliography:
     def parse_entry(self, line):
         try:
             entrytype = re.match(rEntr, line).groups()[0]
-            keyword = re.match(rKeyw, line).groups()[0]
+            citeCode = re.match(rKeyw, line).groups()[0]
 
-            matches = re.findall(regex, line) 
+            matches = re.findall(regex, line)
             out = [match for match in matches]
 
-            return keyword, entrytype, out
+            return citeCode, entrytype, out
         except:
-            return 
+            return
 
     def search(self, searchword):
-        for keyword, entry in self.entries.items():
+        for citeCode, entry in self.entries.items():
             for detail in entry.details:
                 key, value = detail
                 if searchword in value:
@@ -79,9 +82,9 @@ class bibliography:
     def __str__(self):
         out = [entry.__str__() for entry in self.entries.values()]
         return "\n".join(out)
-       
+
     def from_doi(self, doi):
-        accept='text/x-bibliography; style=bibtex'
+        accept = 'text/x-bibliography; style=bibtex'
         if not doi.startswith("http://"):
             doi = "http://dx.doi.org/" + doi
         r = requests.get(doi, headers={'accept': accept}).text
@@ -92,4 +95,3 @@ class bibliography:
     def write(self, filename):
         print("Fix bibliography.write()")
         pass
-
