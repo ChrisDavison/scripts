@@ -29,6 +29,15 @@ class bibentry:
         out += "-"*80
         return out
 
+    def __file_repr__(self):
+        articleType = "@{}".format(self.citeCode)
+        out = ""
+        for k, v in self.details:
+            if k and v:
+                out += "{} = {}, ".format(k, v.strip(", "))
+        out = articleType + "{" + out[:-2] + "}"
+        return out
+
 
 class bibliography:
     entries = {}  # Entries is a dict of citeCode:bibentry
@@ -42,6 +51,9 @@ class bibliography:
             sys.exit(E)
 
     def parse_file(self, filename):
+        # May need to modify this to join all lines in a bib entry.
+        # Right now this presumes that each bib entry is a single line
+        # so make it that way.
         lines = [line for line in open(filename)]
         lines = lines[5:]  # Skip Mendeley's stuff...
 
@@ -56,6 +68,8 @@ class bibliography:
     def parse_entry(self, line):
         try:
             entrytype = re.match(rType, line).groups()[0]
+            if entrytype == "":
+                return
             citeCode = re.match(rCiteCode, line).groups()[0]
 
             matches = re.findall(rTag, line)
@@ -99,14 +113,7 @@ class bibliography:
 
     def write(self, filename):
         with open(filename, 'w') as f:
-            for citecode, bibentry in self.entries.items():
-                articleType = "@{}".format(citecode)
-                out = ""
-
-                for k, v in bibentry.details:
-                    if k and v:
-                        out += "{} = {}, ".format(k, v.strip(", "))
-                out = articleType + "{" + out[:-2] + "}"
-                f.write(out)
-                f.write("\n")
+            for bibentry in self.entries.values():
+                f.write(bibentry.__file_repr__())
+                f.write("\n\n")
             f.write("\n")
