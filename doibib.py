@@ -6,22 +6,28 @@ from biblio import bibliography
 
 # Regex
 parser = argparse.ArgumentParser()
-parser.add_argument('--search',
+parser.add_argument('-s', '--search',
                     help='Search within bibliography')
-parser.add_argument('--print', action='store_true',
+parser.add_argument('-f', '--filename',
+                    help='Bibliography filename')
+parser.add_argument('-p', '--print', action='store_true',
                     help='Print default bibliography')
 parser.add_argument('--doi', help='Get a bib entry from DOI')
-parser.add_argument('--add', action='store_true',
+parser.add_argument('-a', '--add', action='store_true',
                     help='Add an entry to the Bib')
-parser.add_argument('--delete', action='store_true',
+parser.add_argument('-d', '--delete', action='store_true',
                     help='Remove an entry from the Bib')
-parser.add_argument('--edit', action='store_true',
+parser.add_argument('-e', '--edit', action='store_true',
                     help='Edit a Bib entry')
 args = parser.parse_args()
 
 
 def main():
-    fn = "library.bib"
+    if not args.filename:
+        fn = "library.bib"
+    else:
+        fn = args.filename
+
     try:
         mybib = bibliography(fn)
     except Exception as E:
