@@ -2,15 +2,14 @@ import re
 import requests
 import sys
 
-rEntr = re.compile('@([a-zA-Z0-9]+)[{]')
-rKeyw = re.compile('@.*?[{](.*?),')
-keywords = ['author', 'journal', 'title', 'year', 'url', 'publisher',
-            'series', 'type', 'chapter', 'pages', 'address', 'edition',
-            'month', 'note', 'school', 'howpublished', 'editor',
-            'organization', 'volume', 'institution']
+rType = re.compile('@([a-zA-Z0-9]+)[{]')
+rCiteCode = re.compile('@.*?[{](.*?),')
+tags = ['author', 'journal', 'title', 'year', 'url', 'publisher',
+        'series', 'type', 'chapter', 'pages', 'address', 'edition',
+        'month', 'note', 'school', 'howpublished', 'editor',
+        'organization', 'volume', 'institution']
 
-kwJoin = "|".join(keywords)
-regex = re.compile('(' + kwJoin + ')\s?=\s?([{].*?[}][,} ])')
+rTag = re.compile('(' + "|".join(tags) + ')\s?=\s?([{].*?[}][,} ])')
 
 
 class bibentry:
@@ -56,10 +55,10 @@ class bibliography:
 
     def parse_entry(self, line):
         try:
-            entrytype = re.match(rEntr, line).groups()[0]
-            citeCode = re.match(rKeyw, line).groups()[0]
+            entrytype = re.match(rType, line).groups()[0]
+            citeCode = re.match(rCiteCode, line).groups()[0]
 
-            matches = re.findall(regex, line)
+            matches = re.findall(rTag, line)
             out = [match for match in matches]
 
             return citeCode, entrytype, out
