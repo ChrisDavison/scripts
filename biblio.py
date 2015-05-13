@@ -13,17 +13,13 @@ rTag = re.compile('(' + "|".join(tags) + ')\s?=\s?([{].*?[}][,} ])')
 
 
 class bibentry:
-    citeCode = ""
-    entrytype = ""
-    details = {}
-
     def __init__(self, citeCode, entrytype, details):
         self.entrytype = entrytype
         self.citeCode = citeCode
         self.details = details
 
     def __str__(self):
-        out = "{:<18}<<{}>>\n".format(self.citeCode, self.entrytype)
+        out = "{:<18}[{}]\n".format(self.citeCode, self.entrytype)
         for key, value in self.details:
             out += "{:>15} - {}\n".format(key, value.strip(", "))
         out += "-"*80
@@ -40,10 +36,9 @@ class bibentry:
 
 
 class bibliography:
-    entries = {}  # Entries is a dict of citeCode:bibentry
-
     def __init__(self, fn):
         self.fn = fn
+        self.entries = {}
         try:
             self.parse_file(fn)
         except Exception as E:
