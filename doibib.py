@@ -6,19 +6,22 @@ from biblio import bibliography
 
 # Regex
 parser = argparse.ArgumentParser()
-parser.add_argument('-s', '--search',
-                    help='Search within bibliography')
-parser.add_argument('-f', '--filename',
-                    help='Bibliography filename')
-parser.add_argument('-p', '--print', action='store_true',
-                    help='Print default bibliography')
-parser.add_argument('--doi', help='Get a bib entry from DOI')
-parser.add_argument('-a', '--add', action='store_true',
-                    help='Add an entry to the Bib')
-parser.add_argument('-d', '--delete', action='store_true',
-                    help='Remove an entry from the Bib')
-parser.add_argument('-e', '--edit', action='store_true',
-                    help='Edit a Bib entry')
+
+# Prefer this method, as the add_argument function gets ugly and unclear
+args = [['-s', '--search',   'Search within bibliography'],
+        ['-f', '--filename', 'Bibliography filename'],
+        ['-p', '--print',    'Print default bibliography',   'store_true'],
+        ['-i', '--doi',      'Get a bib entry from DOI'],
+        ['-a', '--add',      'Add an entry to the bib',      'store_true'],
+        ['-d', '--delete',   'Remove an entry from the bib', 'store_true'],
+        ['-e', '--edit',     'Edit a bib entry',             'store_true']]
+
+for arg in args:
+    if len(arg) < 3:
+        parser.add_argument(arg[0], arg[1], help=arg[2], action=arg[3])
+    else:
+        parser.add_argument(arg[0], arg[1], help=arg[2])
+
 args = parser.parse_args()
 
 
