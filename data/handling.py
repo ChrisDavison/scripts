@@ -12,27 +12,34 @@ Functions:
 import cdutils.data.info as cddi
 
 
-def subset(dataframe, **kwargs):
+def subset(dataset, **kwargs):
     """Return subset of timestamped dataframe, [start..end]
 
     Args:
-        dataframe *(pandas dataframe): Data to get subset of
+        dataset (pandas DataFrame): Dataset to shorten
 
     Kwargs:
-        start (datetime): Start timestamp
-        end (datetime): End Timestamp
+        start (timestamp): Start date for the shortened dataset
+        end (timestamp): End date for the shortened dataset
 
-    Raises:
-        KeyError (if start or end kwarg is not given)
+    If start < dataset start, use dataset start.
+    If end > dataset end, use dataset end.
     """
-    tk = cddi.timekey(dataframe)
-    try:
-        s, e = str(kwargs['start']), str(kwargs['end'])
-        ix_s = dataframe[dataframe[tk] > s].index[0]
-        ix_e = dataframe[dataframe[tk] > e].index[0]
-        return dataframe[ix_s:ix_e].reset_index()
-    except KeyError as E:
-        raise E
+    start = kwargs.get('start', None)
+    end = kwargs.get('end', None)
+    shift = kwargs.get('shift', dt.timedelta(minutes=0))
+
+    if start == None or end == None:
+        return None
+
+    tk = cddi.timekey(dataset)
+    N = len(dataset)
+    ds_t_zero = dataset[tk][0]
+    ds_t_end = dataset[tk][N-1]
+    s, e = str(start + shift), str(end + shift)
+    ix_s = 0 if (s < ds_t_zero) else  dataset[dataset[tk] > s].index[0]
+    ix_e = (N-1) if (e > ds_t_end) else dataset[dataset[tk] > e].index[0]
+    return dataset[ix_s:ix_e].reset_index(drop=True)
 
 
 def dataframe_hours(dataframe):
