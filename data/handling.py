@@ -9,8 +9,9 @@ Functions:
     hours_from_dataframe: Generator over the hours in a dataframe
     days_from_dataframe: Generator over the days in a dataframe
 """
-import cdutils.data.info as cddi
-
+from . import info as cddi
+import datetime as dt
+import dateutil.parser as dp
 
 def subset(dataset, **kwargs):
     """Return subset of timestamped dataframe, [start..end]
@@ -36,7 +37,7 @@ def subset(dataset, **kwargs):
     N = len(dataset)
     ds_t_zero = dataset[tk][0]
     ds_t_end = dataset[tk][N-1]
-    s, e = str(start + shift), str(end + shift)
+    s, e = str(dp.parse(start )+ shift), str(dp.parse(end )+ shift)
     ix_s = 0 if (s < ds_t_zero) else  dataset[dataset[tk] > s].index[0]
     ix_e = (N-1) if (e > ds_t_end) else dataset[dataset[tk] > e].index[0]
     return dataset[ix_s:ix_e].reset_index(drop=True)
@@ -103,10 +104,11 @@ def days_from_dataframe(dataframe):
         hours (generator): Generator over days in the dataframe
     """
     tk = cddi.timekey(dataframe)
-    days = sorted(set(map(lambda x: x.split(' ')[0], dataframe[tk])))
+    days = dataframe_days(dataframe)
     prev_day = days[0]
     for day in days[1:]:
         after_start = (dataframe[tk] >= prev_day)
         before_end = (dataframe[tk] < day)
         yield prev_day, dataframe[after_start & before_end]
         prev_day = day
+    yield day, dataframe[(dataframe[tk] >= prev_day)]
