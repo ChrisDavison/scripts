@@ -20,17 +20,21 @@ def dated_directory(root, **kwargs):
         root (string): Parent directory
 
     Kwargs:
-        suffix (string): Suffix to append to date [default: 'output']
+        project (string): Prefix to append [default: None]
+        source (string): Origin of the data (script) [default: None]
 
     Return
     ------
         folderpath (string): path of the created folder
     """
-    suffix = kwargs.get('suffix', 'output')
+    project = kwargs.get('project', None)
+    source = kwargs.get('source', None)
     today = datetime.datetime.now()
     today_date_str = today.strftime('%Y%m%d')
 
-    outfn = '{}_{}'.format(today_date_str, suffix)
+    outfn = '{}'.format(today_date_str)
+    outfn = '{}-{}'.format(source, outfn) if source else outfn
+    outfn = '{}-{}'.format(project, outfn) if project else outfn
     folderpath = os.path.join(root, outfn)
 
     if not os.path.exists(folderpath):
