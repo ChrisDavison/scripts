@@ -35,8 +35,8 @@ def subset(dataset, **kwargs):
 
     tk = cddi.timekey(dataset)
     N = len(dataset)
-    ds_t_zero = dataset[tk][0]
-    ds_t_end = dataset[tk][N-1]
+    ds_t_zero = dataset.iloc[0][tk]
+    ds_t_end = dataset.iloc[-1][tk]
     s, e = str(dp.parse(start )+ shift), str(dp.parse(end )+ shift)
     ix_s = 0 if (s < ds_t_zero) else  dataset[dataset[tk] > s].index[0]
     ix_e = (N-1) if (e > ds_t_end) else dataset[dataset[tk] > e].index[0]
