@@ -10,6 +10,30 @@ Functions:
 """
 import dateutil
 import pandas as pd
+import time
+
+
+def epoch_to_time(epoch):
+    """Convert epoch to YY-MM-DD HH:MM:SS."""
+    return time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(epoch))
+
+
+def overlapping_timeperiod(dataframes):
+    """Given a list of dataframes, return overlapping (start, stop)"""
+    min_time = 0
+    max_time = 999999999999
+    for df in dataframes:
+        tk = timekey(df)
+        t0 = dateutil.parser.parse(df[tk][0]).timestamp()
+        tN = dateutil.parser.parse(list(df[tk])[-1]).timestamp()
+        if t0 > min_time:
+            min_time = t0
+        if tN < max_time:
+            max_time = tN
+    if min_time > max_time:
+        raise Exception("One file ends before another begins")
+    else:
+        return (epoch_to_time(min_time), epoch_to_time(max_time))
 
 
 def timekey(dataframe):
