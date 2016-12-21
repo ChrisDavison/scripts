@@ -1,7 +1,7 @@
 import logging
 import os
 
-def create_logger(fn):
+def create_logger(fn, **kwargs):
     """Create a logger to log to a file and console.
 
     Give a filename, and optional logging levels (default DEBUG), log to a file.
