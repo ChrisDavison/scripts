@@ -1,12 +1,9 @@
-# pyscripts
-All my useful python scripts and snippets that don't quite deserve their own full module
+# scripts
 
-I already have `cdutils` and `cddata`, but I may remove these, as it is a bit of a nuisance 
-to have to restart running iPython notebook instances, and much of this code will be updated
-over time, and added to.
+All my useful scripts (of any language) that don't quite deserve their own repo.
 
-As these scripts grow, I may deem it necessary to export functionality back into separate
-modules, but for now, this is good enough.
+If these scripts get expanded, will perhaps get expanded into their own repos/python modules/binaries
+etc as required.
 
 ## Functionality
 
@@ -17,6 +14,9 @@ modules, but for now, this is good enough.
 - `os` to create directories based on date, and filter files
 - `plot` to prettify matplotlib axes
 - `time` to fix buggy timestamps
+- `passive.sh` to check for passive language usage in prose
+- `dups.pl` to find lexical illusions (the the)
+- `weasel.sh` to find words that sound good but don't ultimately provide information.
 
 ### Data
 - `handling` to return subsets of data from pandas dataframes
@@ -26,3 +26,9 @@ modules, but for now, this is good enough.
 - `calculus` for integral and derivative of a signal
 - `fft` to perform the fft of a signal
 - `filter` to do lowpass, highpass and bandpass filtering
+
+## cdutils/cddata
+
+Some of this work was originally split into `cdutils` and `cddata`, but I got sick of restarting
+running iPython notebooks (long-term running notebooks) to allow iPython to pick up the newer installed
+modules.
