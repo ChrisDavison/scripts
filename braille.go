@@ -4,9 +4,10 @@ random package message
 package main
 
 import (
-	"braille/brailleFuncs"
 	"flag"
 	"strings"
+
+	"./brailleFuncs"
 )
 
 func main() {
@@ -22,6 +23,4 @@ func main() {
 	default:
 		flag.Usage()
 	}
-
-	return
 }
