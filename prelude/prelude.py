@@ -26,7 +26,7 @@ import dateutil.parser as dp
 import scipy.fftpack as sfft
 
 # from sarascripts repo
-sys.path.append('/Users/christopherdavison/p/engd-sarascripts/Python/scripts/')
+sys.path.append('/Users/davison/p/engd-sarascripts/Python/scripts/')
 import helpers as hlp
 import hlp_heat as ht
 import hlp_sh

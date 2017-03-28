@@ -33,3 +33,6 @@ def save_dated_fig(fig, *, notebook_name=None, title=None, ext='png'):
     if not os.path.exists(plotdir):
         os.mkdir(plotdir)
     fig.savefig(fn_out)
+
+def another_plot():
+    pass
