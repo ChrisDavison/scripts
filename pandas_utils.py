@@ -3,7 +3,7 @@
 import time
 import datetime
 
-import dateutil # For parsing timestamps easily
+import dateutil  # For parsing timestamps easily
 import pandas
 
 
@@ -39,36 +39,29 @@ def timekey(dataframe):
     return [key for key in dataframe.keys() if 'time' in key][0]
 
 
-def start_and_end(dataframe, **kwargs):
+def start_and_end(dataframe):
     """Return first and last timestamp of a dataframe.
 
     Args:
         dataframe (pandas dataframe)
-
-    Kwargs:
-        parsed (bool): Whether to return datetime or string, [default: False]
     """
     tk = timekey(dataframe)
-    st = dataframe.ix[dataframe.first_valid_index()][tk]
-    end = dataframe.ix[dataframe.last_valid_index()][tk]
-    if kwargs.get('parsed', False):
-        st = dateutil.parser.parse(st)
-        st = dateutil.parser.parse(end)
+    dp = dateutil.parser.parse
+    st = dp(dataframe.ix[dataframe.first_valid_index()][tk])
+    end = dp(dataframe.ix[dataframe.last_valid_index()][tk])
     return st, end
 
 
-def first_last(fn, **kwargs):
+def first_last(fn, *, sep=',', headers=True):
     """First and last element of a file.
 
     Args:
         fn (string): Path to file
 
     Kwargs:
-        sep (char): Separator to split line on, [default: ',']
-        headers (bool): Whether the file has headers or not, [default: True]
+        sep (char): Separator to split line on.
+        headers (bool): Whether the file has headers or not.
     """
-    sep = kwargs.get('sep', ',')
-    headers = kwargs.get('headers', True)
     with open(fn, "rb") as f:
         if headers:
             f.readline()     # Read and skip the first line.
@@ -83,7 +76,7 @@ def first_last(fn, **kwargs):
     return s, e
 
 
-def infer_fs(timestamps, **kwargs):
+def infer_fs(timestamps, N=36000):
     """Infer the samplerate of a set of timestamps.
 
     Args:
@@ -92,7 +85,6 @@ def infer_fs(timestamps, **kwargs):
     Kwargs:
         N (int): Number of timestamps to use to infer the samplerate
     """
-    N = kwargs.get('N', 36000)
     if N > len(timestamps):
         raise EOFError
     times = list(pandas.to_datetime(timestamps[:N]))
@@ -141,34 +133,31 @@ def change_times(dataseries, timestamps):
     return [(timestamps[i], direction) for (i, direction) in ch]
 
 
-def subset(dataset, **kwargs):
+def subset(dataset, *, start=None, end=None, shift=None):
     """Return subset of timestamped dataframe, [start..end]
 
     Args:
         dataset (pandas DataFrame): Dataset to shorten
 
     Kwargs:
-        start (timestamp): Start date for the shortened dataset
-        end (timestamp): End date for the shortened dataset
+        start (datetime): Start date for the shortened dataset
+        end (datetime): End date for the shortened dataset
+        shift (timedelta): Optional timedelta to move dataset.
 
     If start < dataset start, use dataset start.
     If end > dataset end, use dataset end.
     """
-    start = kwargs.get('start', None)
-    end = kwargs.get('end', None)
-    shift = kwargs.get('shift', datetime.timedelta(minutes=0))
-
-    if start == None or end == None:
-        return None
-
-    tk = timekey(dataset)
-    N = len(dataset)
-    ds_t_zero = dataset.iloc[0][tk]
-    ds_t_end = dataset.iloc[-1][tk]
-    s, e = str(dateutil.parser.parse(start )+ shift), str(dateutil.parser.parse(end )+ shift)
-    ix_s = 0 if (s < ds_t_zero) else  dataset[dataset[tk] > s].index[0]
-    ix_e = (N-1) if (e > ds_t_end) else dataset[dataset[tk] > e].index[0]
+    if not shift:
+        shift = datetime.timedelta(minutes=0)
+    if type(start) != datetime.datetime or type(end) != datetime.datetime:
+        raise Exception("Must pass datetime for start and end.")
+    times = dataset[timekey(dataset)]
+    ds_t_zero, ds_t_end = times.iloc[0], times.iloc[-1]
+    s, e = str(start + shift), str(end + shift)
+    ix_s = 0 if s < ds_t_zero else times[times > s].index[0]
+    ix_e = dataset.size if e > ds_t_end else times[times > e].index[0]
     return dataset[ix_s:ix_e].reset_index(drop=True)
+
 
 def dataframe_hours(dataframe):
     """Return a list of all hours in the dataframe.
