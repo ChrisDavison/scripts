@@ -5,14 +5,14 @@ def create_logger(fn, **kwargs):
     """Create a logger to log to a file and console.
 
     Give a filename, and optional logging levels (default DEBUG), log to a file.
-    
+
     KWargs
     - level_file :: logging level (logging.DEBUG etc.)
     - level_console :: as above, but for logging to console."""
     level_file = kwargs.get('level_file', logging.DEBUG)
     level_console = kwargs.get('level_console', logging.DEBUG)
     fmt = '%(asctime)s %(levelname)s -- %(message)s'
-    
+
     project = os.path.splitext(os.path.basename(fn))[0]
     logger = logging.getLogger(project)
     logger.setLevel(level_file)
@@ -35,4 +35,3 @@ def create_logger(fn, **kwargs):
     logger.addHandler(fh)
 
     return logger
-

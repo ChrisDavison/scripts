@@ -156,7 +156,7 @@ def subset(dataset, *, start=None, end=None, shift=None):
     s, e = str(start + shift), str(end + shift)
     ix_s = 0 if s < ds_t_zero else times[times > s].index[0]
     ix_e = dataset.size if e > ds_t_end else times[times > e].index[0]
-    return dataset[ix_s:ix_e].reset_index(drop=True)
+    return dataset[ix_s:ix_e].reset_index()
 
 
 def dataframe_hours(dataframe):

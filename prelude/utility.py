@@ -3,34 +3,33 @@ import dateutil
 import matplotlib.pyplot
 import numpy
 import os
+import re
 
 dt = datetime
 dp = dateutil.parser
 plt = matplotlib.pyplot
 np = numpy
 
-from itertools import chain
 from collections import defaultdict
 
-__utility_help = """functions:
 
-def choose_from_list(ls, msg="?: ", ispath=True)
-def flatten(listOfLists)
-def fromOpen(fn, func)"""
+def choose_from_list(ls, msg="?: "):
+    """Given a list, return a n entry.
 
-def utility_help():
-    print(__utility_help)
-
-def choose_from_list(ls, msg="?: ", ispath=True):
+    Useful to visually select from a large list of complex items."""
+    if len(ls) == 0:
+        return None
     if len(ls) == 1:
         print("Only 1 item.  Chose: {}".format(ls[0]))
         return ls[0]
     for i, v in enumerate(ls):
-        if ispath:
-            v = os.path.split(v)[1]
         print("{:3d}: {}".format(i, v))
     idx = input(msg)
     return ls[int(idx)]
+
+def choose_filtered(ls, condition, msg="?: "):
+    """First filter a list, and then chose an entry from it."""
+    return choose_from_list(list(filter(condition, ls)))
 
 def insert_into_timeseries(ts_host, ts_toEnter, things_toEnter, default=0):
     """Insert -something- at nearest point in timeseries.
@@ -91,3 +90,56 @@ def most_prevalent(ls):
             largest = v
             largest_key = k
     return largest_key
+
+def listdir_matching_regex(directory, regex='.*.csv'):
+    """Given a regex, return matching files.
+
+    By default, return CSVs from a directory."""
+    out = []
+    reg = re.compile(regex)
+    for f in os.listdir(directory):
+        m = reg.match(f)
+        has_group = '(' in regex and ')' in regex
+        if m and has_group:
+            out.append(m.group(1))
+        elif m:
+            out.append(m.group(0))
+    return out
+
+def choose_from_dir(directory, regex='.*.csv', msg='?: '):
+    return choose_from_list(listdir_matching_regex(directory, regex), msg)
+
+def dated_directory(root, suffix=None):
+    """Create a directory with todays date and optional suffix.
+
+    Args:
+        root (string): Parent directory
+
+    Kwargs:
+        suffix (string): Suffix to append [default: None]
+
+    Returns:
+        folderpath (string): path of the created folder
+    """
+    today = datetime.datetime.now()
+    today_date_str = today.strftime('%Y%m%d')
+
+    suff = '{}-'.format(suffix) if suffix else ''
+    outfn = '{}{}'.format(suffix, today_date_str)
+    folderpath = os.path.join(root, outfn)
+
+    if not os.path.exists(folderpath):
+        os.makedirs(folderpath)
+    return folderpath
+
+def from_adc(adc_values, precision=None, sensitivity=None):
+    """Convert a data series from raw values into units
+    given the precision and sensitivy of the sensor.
+
+    adc_values :: 'list-like' object representing ADC values
+    precision :: Number of 'bits'
+    sensitivity :: Range of sensor for this number of 'bits'"""
+    if not all([precision, sensitivity]):
+        raise Exception("Must give a precision and sensitivity.")
+
+    return adc_values * sensitivity / (float(pow(2, precision)) / 2)

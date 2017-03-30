@@ -1,7 +1,12 @@
-from .timerange import TimeRange
+from .timerange import *
 from .listop import *
 from .plottools import *
-# from prelude import
+from .utility import *
+from .indexable_generator import *
+
+from .dsp import calculus as calc
+from .dsp.fft import easy_fft
+from .dsp.filter import high_pass, low_pass
 
 import argparse
 import os
@@ -20,7 +25,7 @@ from toolz.functoolz import *
 from toolz.dicttoolz import *
 from functools import reduce
 from itertools import chain
-from os.path import join
+from os.path import join, expanduser
 
 # installed
 import matplotlib.pyplot as plt
@@ -31,7 +36,9 @@ import dateutil.parser as dp
 import scipy.fftpack as sfft
 
 # from sarascripts repo
-sys.path.append('/Users/christopherdavison/p/engd-sarascripts/Python/scripts/')
+__homedir = expanduser('~'),
+__sarascripts_path = os.path.join(__homedir[0], 'p/engd-sarascripts/Python/scripts')
+sys.path.append(__sarascripts_path)
 import helpers as hlp
 import hlp_heat as ht
 import hlp_sh
@@ -42,26 +49,3 @@ import cdutils.log as cdl
 import cdutils.osutils as cdo
 
 from cdutils.indexable_generator import Indexable
-
-__prelude_help__ = """StdLib Imports:
-
-- argparse, os, re, sys, datetime (dt), json, shutil
-- defaultdict
-- pprint (pp)
-- join (os.path)
-
-External Imports:
-
-- pytoolz itertoolz *, functoolz *, dicttoolz *
-- matplotlib.pyplot (plt), numpy (np), pandas (pd), dateutil.parser (dp)
-    scipy.fftpack (sfft)
-
-My custom scripts (from sarascripts):
-
-- helpers (hlp), hlp_heat (ht), hlp_sh, hlp_hoko, hlp_rw, pandas_utils (pu)
-    cdutils.hmm_params (chmm), cdutils.log (cdl), cdutils.osutils (cdo)
-- indexable_generator (Indexable)
-"""
-
-def prelude_help():
-    print(__prelude_help__)

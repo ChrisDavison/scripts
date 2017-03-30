@@ -21,8 +21,10 @@ def __fn_sanitise(s):
 def dated_fig_dir_and_filename(notebook_name=None, title=None, ext='png'):
     fmtdate = dt.datetime.now().strftime("%Y%m%d-%H%M")
     title = __fn_sanitise(title).replace(" ", "-").lower()
-    plotdir = os.path.join(os.getcwd(), '..', '__PLOTS', __fn_sanitise(notebook_name))
-    out = os.path.join(plotdir, "{}--{}.{}".format(fmtdate, title, ext))
+    curdir = os.getcwd()
+    plotdir = os.path.join(curdir, '..', '__PLOTS', __fn_sanitise(notebook_name))
+    plotdir_abs = os.path.abspath(plotdir)
+    out = os.path.join(plotdir_abs, "{}--{}.{}".format(fmtdate, title, ext))
     return plotdir, out
 
 def save_dated_fig(fig, *, notebook_name=None, title=None, ext='png'):
@@ -33,6 +35,3 @@ def save_dated_fig(fig, *, notebook_name=None, title=None, ext='png'):
     if not os.path.exists(plotdir):
         os.mkdir(plotdir)
     fig.savefig(fn_out)
-
-def another_plot():
-    pass
