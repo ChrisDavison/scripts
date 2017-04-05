@@ -4,6 +4,8 @@ from .plottools import *
 from .utility import *
 from .indexable_generator import *
 
+import pandas_utils as pu
+
 from .dsp import calculus as calc
 from .dsp.fft import easy_fft
 from .dsp.filter import high_pass, low_pass
@@ -37,15 +39,7 @@ import scipy.fftpack as sfft
 
 # from sarascripts repo
 __homedir = expanduser('~'),
-__sarascripts_path = os.path.join(__homedir[0], 'p/engd-sarascripts/Python/scripts')
+__sarascripts_path = os.path.join(__homedir[0], 'cow-analysis')
 sys.path.append(__sarascripts_path)
-import helpers as hlp
-import hlp_heat as ht
-import hlp_sh
-import hlp_hoko
-import hlp_rw
-import pandas_utils as pu
-import cdutils.log as cdl
-import cdutils.osutils as cdo
 
-from cdutils.indexable_generator import Indexable
+from pyscripts.helpers import *
