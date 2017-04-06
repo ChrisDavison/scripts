@@ -1,6 +1,6 @@
 import itertools
 
-class Indexable(object):
+class Indexable:
     """Class to allow for indexable generators."""
     def __init__(self, it):
         self.it = it
