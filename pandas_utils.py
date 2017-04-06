@@ -13,6 +13,19 @@ def epoch_to_time(epoch):
     return time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(epoch))
 
 
+def overlapping_timeperiods_from_filenames(fns):
+    min_time, max_time = first_last(fns[0])
+    for fn in fns[1:]:
+        start, stop = first_last(fn)
+        if start > min_time:
+            min_time = start
+        if stop < max_time:
+            max_timezM = stop
+    if min_time > max_time:
+        raise Exception("One file ends before another begins.")
+    return min_time, max_time
+
+
 def overlapping_timeperiod(dataframes):
     """Given a list of dataframes, return overlapping (start, stop)"""
     min_time = 0
