@@ -2,6 +2,7 @@
 """Utilities for dealing with pandas dataframes."""
 import time
 import datetime
+import csv
 
 import dateutil  # For parsing timestamps easily
 import pandas
@@ -228,3 +229,13 @@ def days_from_dataframe(dataframe):
         yield prev_day, dataframe[after_start & before_end]
         prev_day = day
     yield day, dataframe[(dataframe[tk] >= prev_day)]
+
+
+def dataframe_from_lazy_csv(filename, start, stop):
+    data = []
+    with open(filename) as f:
+        dr = csv.DictReader(f)
+        tk = [k for k in dr.fieldnames if 'time' in k][0]
+        data = [row for row in dr
+                if row[tk] > start and row[tk] < stop]
+    return pandas.DataFrame(data).set_index(tk)
