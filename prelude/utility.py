@@ -55,17 +55,6 @@ def insert_into_timeseries(ts_host, ts_toEnter, things_toEnter, default=0):
         out[i] = b0
     return out
 
-def adc_to_value(adc_values, precision, sensitivity):
-    """Convert a data series from raw values into units
-    given the precision and sensitivy of the sensor.
-
-    adc_values :: 'list-like' object representing ADC values
-    precision :: Number of 'bits'
-    sensitivity :: Range of sensor for this number of 'bits'"""
-    adc_values = pd.Series(adc_values)
-    adc_range = float(pow(2, precision - 1))
-    return adc_values * sensitivity / adc_range
-
 def timestamp_mean_duration(ts):
     """Estimates mean duration from a list of timestamps.
 
