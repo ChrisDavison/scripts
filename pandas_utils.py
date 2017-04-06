@@ -6,6 +6,7 @@ import csv
 
 import dateutil  # For parsing timestamps easily
 import pandas
+from collections import defaultdict
 
 
 def epoch_to_time(epoch):
@@ -147,7 +148,7 @@ def change_times(dataseries, timestamps):
     return [(timestamps[i], direction) for (i, direction) in ch]
 
 
-def subset(dataset, *, start=None, end=None, shift=None):
+def subset(dataset, *, start=None, end=None, shift=None, indexed=True):
     """Return subset of timestamped dataframe, [start..end]
 
     Args:
@@ -165,12 +166,28 @@ def subset(dataset, *, start=None, end=None, shift=None):
         shift = datetime.timedelta(minutes=0)
     if type(start) != datetime.datetime or type(end) != datetime.datetime:
         raise Exception("Must pass datetime for start and end.")
-    times = dataset[timekey(dataset)]
+    if indexed:
+        times = pandas.Series(dataset.index)
+    else:
+        times = dataset[timekey(dataset)]
     ds_t_zero, ds_t_end = times.iloc[0], times.iloc[-1]
     s, e = str(start + shift), str(end + shift)
     ix_s = 0 if s < ds_t_zero else times[times > s].index[0]
     ix_e = dataset.size if e > ds_t_end else times[times > e].index[0]
-    return dataset[ix_s:ix_e].reset_index()
+    return dataset[ix_s:ix_e], (ix_s, ix_e)
+
+
+def approx_subset(dataframe, start, stop):
+    """Approximately pick subset of data using an index jump based on samplerate."""
+    ts = dataframe[timekey(dataframe)]
+    fs = infer_fs(ts)
+    dp = dateutil.parser.parse
+    t0 = dp(ts.iloc[0])
+    seconds_to_start = (dp(start) - t0).total_seconds()
+    seconds_to_stop = (dp(stop) - t0).total_seconds()
+    ix_start = int(seconds_to_start * fs)
+    ix_stop = int(seconds_to_stop * fs)
+    return dataframe[ix_start:ix_stop].reset_index(drop=True), (ix_start, ix_stop)
 
 
 def dataframe_hours(dataframe):
@@ -244,11 +261,22 @@ def days_from_dataframe(dataframe):
     yield day, dataframe[(dataframe[tk] >= prev_day)]
 
 
+def subset_from_csv(fn, start=None, end=None, shift=None):
+    """Read in a dataset and immediately take a subset to save storing in memory."""
+    dat = pandas.read_csv(fn)
+    return subset(dat, start=start, end=end, indexed=False)
+
+
 def dataframe_from_lazy_csv(filename, start, stop):
-    data = []
+    """NEEDS WORK.  Doesn't infer the right data type, so everything stringy."""
+    data = defaultdict(list)
     with open(filename) as f:
         dr = csv.DictReader(f)
+        for fn in dr.fieldnames:
+            data[fn] = []
         tk = [k for k in dr.fieldnames if 'time' in k][0]
-        data = [row for row in dr
-                if row[tk] > start and row[tk] < stop]
-    return pandas.DataFrame(data).set_index(tk)
+        for row in dr:
+            if row[tk] > start and row[tk] < stop:
+                for fn in dr.fieldnames:
+                    data[fn].append(row[fn])
+    return pandas.DataFrame().from_dict(data).set_index(tk)
