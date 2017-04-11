@@ -4,6 +4,8 @@ from .plottools import *
 from .utility import *
 from .indexable_generator import *
 
+from .plots import *
+
 import pandas_utils as pu
 
 from .dsp import calculus as calc
@@ -18,6 +20,7 @@ import datetime as dt
 import json
 import shutil
 import matplotlib
+import logging
 
 from collections import defaultdict
 import pprint as pp
@@ -43,3 +46,9 @@ __sarascripts_path = os.path.join(__homedir[0], 'cow-analysis')
 sys.path.append(__sarascripts_path)
 
 from pyscripts.helpers import *
+
+def create_logger(name, level=logging.DEBUG):
+    """Create a logger for monitoring long-running jobs."""  
+    fmt = '%(asctime)s %(levelname)s -- %(message)s'
+    logging.basicConfig(format=fmt, filename=name, level=level)
+    return os.path.abspath(name)
