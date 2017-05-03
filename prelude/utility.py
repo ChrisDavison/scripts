@@ -132,3 +132,20 @@ def from_adc(adc_values, precision=None, sensitivity=None):
         raise Exception("Must give a precision and sensitivity.")
 
     return adc_values * sensitivity / (float(pow(2, precision)) / 2)
+
+def absjoin(paths):
+    return os.path.abspath(os.path.join(*paths))
+
+def first(iterable):
+    """Return first element from a dataset.  Purely for easier reading"""
+    return Nth(iterable, 1)
+
+def second(iterable):
+    """Return second element from a dataset.  Purely for easier reading"""
+    return Nth(iterable, 2)
+
+def Nth(iterable, N=2):
+    """Return Nth element from a dataset.  Purely for easier reading"""
+    if len(iterable) > (N-1):
+        return iterable[N-1]
+    return []
