@@ -13,6 +13,9 @@ def epoch_to_time(epoch):
     """Convert epoch to YY-MM-DD HH:MM:SS."""
     return time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(epoch))
 
+def ht(df):
+    """Perform both head and tail on dataframe"""
+    return df.iloc[[0, -1]].reset_index(drop=True)
 
 def overlapping_timeperiods_from_filenames(fns):
     min_time, max_time = first_last(fns[0])
