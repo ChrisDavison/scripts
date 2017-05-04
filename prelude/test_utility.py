@@ -1,56 +1,59 @@
-import unittest
-from utility import *
+import pytest
+from prelude.utility import *
 
-class TestUtility(unittest.TestCase):
-    @unittest.skip("Not implemented.")
-    def testChooseValidIndexFromList(self):
-        pass
+@pytest.mark.skip(reason="Not implemented.")
+def testChooseValidIndexFromList():
+    pass
 
-    @unittest.skip("Not implemented.")
-    def testChooseInvalidIndexFromList(self):
-        pass
+@pytest.mark.skip(reason="Not implemented.")
+def testChooseInvalidIndexFromList():
+    pass
 
-    @unittest.skip("Not implemented.")
-    def testChooseFromEmptyList(self):
-        pass
+@pytest.mark.skip(reason="Not implemented.")
+def testChooseFromEmptyList():
+    pass
 
-    @unittest.skip("Not implemented.")
-    def testChooseFiltered(self):
-        pass
+@pytest.mark.skip(reason="Not implemented.")
+def testChooseFiltered():
+    pass
 
-    @unittest.skip("Not implemented.")
-    def testInsertionIntoTimeseries(self):
-        pass
+@pytest.mark.skip(reason="Not implemented.")
+def testInsertionIntoTimeseries():
+    pass
 
-    @unittest.skip("Not implemented.")
-    def testConversionOfADCValues(self):
-        pass
+@pytest.mark.skip(reason="Not implemented.")
+def testConversionOfADCValues():
+    pass
 
-    @unittest.skip("Not implemented.")
-    def testMeanDurationOfTimestamps(self):
-        """Determine the average difference between timestamps."""
-        pass
+@pytest.mark.skip(reason="Not implemented.")
+def testMeanDurationOfTimestamps():
+    """Determine the average difference between timestamps."""
+    pass
 
-    @unittest.skip("Not implemented.")
-    def testMostPrevalentValueInList(self):
-        """Can find the most prevalent value in a list."""
-        self.assertEqual(False, True)
+@pytest.mark.skip(reason="Not implemented.")
+def testMostPrevalentValueInList():
+    """Can find the most prevalent value in a list."""
+    assert False == True
 
-    @unittest.skip("Not implemented.")
-    def testMostPrevalentValueInListWithMulitplePrevalent(self):
-        """Return the 'lesser' value if multiple values are 'most prevalent'"""
-        self.assertEqual(False, True)
+@pytest.mark.skip(reason="Not implemented.")
+def testMostPrevalentValueInListWithMulitplePrevalent():
+    """Return the 'lesser' value if multiple values are 'most prevalent'"""
+    assert False == True
 
-    def testParsingADCValues(self):
-        """Convert a raw ADC value for a given sensitivity and precision."""
-        precision = 8 # 8 bit sensor
-        sensitivity = 1 / 2 # +- 1g
-        self.assertEqual(1.0, from_adc(256, precision, sensitivity))
+def testParsingADCValues():
+    """Convert a raw ADC value for a given sensitivity and precision."""
+    precision = 8 # 8 bit sensor
+    sensitivity = 1 / 2 # +- 1g
+    assert 1.0 == from_adc(256, precision, sensitivity)
 
-    def testParsingADCValuesNoPrecision(self):
-        """Cannot convert ADC value without a precision."""
-        self.assertRaises(Exception, from_adc, 1)
+@pytest.mark.skip(reason="Not implemented.")
+def testParsingADCValuesNoPrecision():
+    """Cannot convert ADC value without a precision."""
+    with pytest.raises(Exception):
+        from_adc(1)
 
-    def testParsingADCValuesNoSensitivity(self):
-        """Cannot convert ADC value without a sensitivity."""
-        self.assertRaises(Exception, from_adc, 1)
+@pytest.mark.skip(reason="Not implemented.")
+def testParsingADCValuesNoSensitivity():
+    """Cannot convert ADC value without a sensitivity."""
+    with pytest.raises(Exception):
+        from_adc(1)

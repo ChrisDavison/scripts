@@ -36,12 +36,20 @@ def stone_to_kg(value):
     return float(full) * 6.350 + (float(fraction) * .6350)
 
 def lb_to_kg(value):
+    if type(value) not in [int, float]:
+        return None
+    if value <= 0:
+        return None
     return value * 0.454
 
+
 def stonelb_to_kg(value):
+    if value <= 0:
+        return None
     st_kg = stone_to_kg(int(value))
     lb_kg = lb_to_kg(10 * (value - int(value)))
     return st_kg + lb_kg
+
 
 if __name__ == "__main__":
     args = docopt(__doc__, version="0.0.1")

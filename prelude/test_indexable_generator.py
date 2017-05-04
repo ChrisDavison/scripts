@@ -1,15 +1,12 @@
-import unittest
+from prelude.indexable_generator import Indexable
 
-from indexable_generator import Indexable
+def test_indexable():
+    """Asking for an index on a generator should return the appropriate value."""
+    i = Indexable(range(1, 10))
+    assert i[0] == 1
 
-class TestIndexable(unittest.TestCase):
-    def testIndex(self):
-        """Asking for an index on a generator should return the appropriate value."""
-        i = Indexable(range(1, 10))
-        self.assertEqual(i[0], 1)
-
-    def testIndexAfterConsume(self):
-        """An IndexableGenerator can be indexed even after 'consuming'."""
-        i = Indexable(range(1, 10))
-        values = list(i)
-        self.assertEqual(i[0], 1)
+def test_indexable_after_consuming():
+    """An IndexableGenerator can be indexed even after 'consuming'."""
+    i = Indexable(range(1, 10))
+    values = list(i)
+    assert i[0] == 1
