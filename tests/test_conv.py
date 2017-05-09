@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 import pytest
-from conv import *
+from ..conv import *
 
 def test_lb_to_kg_negative():
     assert lb_to_kg(-1) == None
