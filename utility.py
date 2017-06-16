@@ -4,6 +4,7 @@ import matplotlib.pyplot
 import numpy
 import os
 import re
+import functools
 
 dt = datetime
 dp = dateutil.parser
@@ -149,3 +150,28 @@ def Nth(iterable, N=2):
     if len(iterable) > (N-1):
         return iterable[N-1]
     return []
+
+def NeedsRefactoring(reason):
+    """Decorate to not allow operation before refactoring."""
+    def actual_decorator(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            # print("{} needs refactoring".format(func.__name__))
+            raise Exception('REFACTOR: {}'.format(reason))
+        return wrapper
+    return actual_decorator
+
+def time_gen(start, stop, step):
+    """Generate timestamps in a range."""
+    def still_in_range(current, end, isBackwards):
+        if isBackwards:
+            return current > end
+        return current < end
+    s, e = dp.parse(start), dp.parse(stop)
+    backwards = True if (s > e) else False
+    step = -1 * step if backwards else step
+    while still_in_range(s, e, backwards):
+        yield s
+        s += step
+    if str(s) != start:
+        yield s
