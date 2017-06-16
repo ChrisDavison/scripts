@@ -9,23 +9,23 @@ class TimeRange:
         self.backwards = self.end < self.start
 
     def days(self):
-        return self.__custom_range(datetime.timedelta(days=1))
+        return self.custom_step(datetime.timedelta(days=1))
 
     def hours(self):
-        return self.__custom_range(datetime.timedelta(hours=1))
+        return self.custom_step(datetime.timedelta(hours=1))
 
     def minutes(self):
-        return self.__custom_range(datetime.timedelta(minutes=1))
+        return self.custom_step(datetime.timedelta(minutes=1))
 
     def seconds(self):
-        return self.__custom_range(datetime.timedelta(seconds=1))
+        return self.custom_step(datetime.timedelta(seconds=1))
 
     def still_in_range(self, current):
         if self.backwards:
             return current > self.end
         return current < self.end
 
-    def __custom_range(self, step):
+    def custom_step(self, step):
         start = self.start
         step = -1 * step if self.backwards else step
         while self.still_in_range(start):
