@@ -1,19 +1,21 @@
+"""Useful utilities for working with lists."""
 from itertools import chain
 
-def flatten(listOfLists):
-    return list(chain.from_iterable(listOfLists))
+def flatten(list_of_lists):
+    """Flatten a chan of iterables into a single list"""
+    return list(chain.from_iterable(list_of_lists))
 
-def lmap(f, seq):
+def lmap(func, seq):
     """Map a function over a sequence, returning a list."""
-    return list(map(f, seq))
+    return list(map(func, seq))
 
-def flatmap(f, seq):
+def flatmap(func, seq):
     """Map a function over a sequence, then flatten."""
-    return flatten(lmap(f, seq))
+    return flatten(lmap(func, seq))
 
-def chunks(ls, stride):
+def chunks(lst, stride):
     """Return size STRIDE chunks of a list."""
-    return [ls[i:i+stride] for i in range(0, len(ls), stride)]
+    return [lst[i:i+stride] for i in range(0, len(lst), stride)]
 
 def ichunks(itr, stride):
     """Iterate with size STRIDE over an iterator"""
