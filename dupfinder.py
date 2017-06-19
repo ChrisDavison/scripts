@@ -6,18 +6,20 @@ Usage:
 Options:
     -v --verbose   Show verbose output. [default: False]."""
 # dupFinder.py
-import os, sys
+import os
+import sys
 import hashlib
-from docopt import docopt
 from collections import defaultdict
+from docopt import docopt
 
-def findDup(parentFolder, verbose=False):
+def find_duplicates(parent, verbose=False):
+    """Find all duplicates within a parent folder."""
     dups = defaultdict(list) # {hash: filename}
-    for dirName, subdirs, fileList in os.walk(parentFolder):
+    for directory, _, file_list in os.walk(parent):
         if verbose:
-            print('Scanning {}...'.format(dirName))
-        for filename in fileList:
-            path = os.path.join(dirName, filename) # Get the path to the file
+            print('Scanning {}...'.format(directory))
+        for filename in file_list:
+            path = os.path.join(directory, filename) # Get the path to the file
             if 'git' in path:
                 if verbose:
                     print("Skipping {}".format(path))
@@ -26,24 +28,27 @@ def findDup(parentFolder, verbose=False):
             dups[file_hash].append(path)
     return dups
 
-def joinDicts(dict1, dict2):
+def join_dicts(dict1, dict2):
+    """Join two dictionaries."""
     for key in dict2.keys():
         if key in dict1:
             dict1[key] = dict1[key] + dict2[key]
         else:
             dict1[key] = dict2[key]
 
-def hashfile(path, blocksize = 65536):
+def hashfile(path, blocksize=65536):
+    """Get the hash digest of a file, using md5."""
     afile = open(path, 'rb')
     hasher = hashlib.md5()
     buf = afile.read(blocksize)
-    while len(buf) > 0:
+    while buf:
         hasher.update(buf)
         buf = afile.read(blocksize)
     afile.close()
     return hasher.hexdigest()
 
-def printResults(dict1):
+def show_results(dict1):
+    """Show the duplicates found."""
     results = list(filter(lambda x: len(x) > 1, dict1.values()))
     if results:
         print('Duplicates Found.  These files have identical CONTENTS.')
@@ -53,10 +58,8 @@ def printResults(dict1):
                 print('\t\t%s' % subresult)
             print('-' * 20)
 
-if __name__ == '__main__':
-    args = docopt(__doc__, version='0.0.1')
-    folders = args['<folders>']
-    verbose = args['--verbose']
+
+def __main(folders, verbose):
     if not folders:
         print("Must provide at least 1 folder to check.")
     if not os.path.isdir(folders[0]):
@@ -64,8 +67,13 @@ if __name__ == '__main__':
     dups = {}
     for folder in folders:
         if os.path.exists(folder):
-            joinDicts(dups, findDup(folder, verbose))
+            join_dicts(dups, find_duplicates(folder, verbose))
         else:
             print('{} is not a valid path, please verify'.format(folder))
             sys.exit()
-    printResults(dups)
+    show_results(dups)
+
+
+if __name__ == '__main__':
+    ARGS = docopt(__doc__, version='0.0.1')
+    __main(ARGS['<folders>'], ARGS['--verbose'])
