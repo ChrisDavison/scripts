@@ -3,28 +3,31 @@
 import time
 import datetime
 import csv
+from collections import defaultdict
 
 import dateutil  # For parsing timestamps easily
 import pandas
-from collections import defaultdict
 
 
 def epoch_to_time(epoch):
     """Convert epoch to YY-MM-DD HH:MM:SS."""
     return time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(epoch))
 
-def ht(df):
-    """Perform both head and tail on dataframe"""
-    return df.iloc[[0, -1]].reset_index(drop=True)
 
-def overlapping_timeperiods_from_filenames(fns):
+def headtail(dataframe):
+    """Perform both head and tail on dataframe"""
+    return dataframe.iloc[[0, -1]].reset_index(drop=True)
+
+
+def overlapping_timeperiods(fns):
+    """Find the largest overlapping time period from a bunch of files with a time key"""
     min_time, max_time = first_last(fns[0])
-    for fn in fns[1:]:
-        start, stop = first_last(fn)
+    for filename in fns[1:]:
+        start, stop = first_last(filename)
         if start > min_time:
             min_time = start
         if stop < max_time:
-            max_timezM = stop
+            max_time = stop
     if min_time > max_time:
         raise Exception("One file ends before another begins.")
     return min_time, max_time
@@ -34,14 +37,15 @@ def overlapping_timeperiod(dataframes):
     """Given a list of dataframes, return overlapping (start, stop)"""
     min_time = 0
     max_time = 999999999999
-    for df in dataframes:
-        tk = timekey(df)
-        t0 = dateutil.parser.parse(df[tk][0]).timestamp()
-        tN = dateutil.parser.parse(list(df[tk])[-1]).timestamp()
-        if t0 > min_time:
-            min_time = t0
-        if tN < max_time:
-            max_time = tN
+    t_to_timestamp = lambda x: dateutil.parser.parse(x).timestamp()
+    for dataframe in dataframes:
+        t_key = timekey(dataframe)
+        time_0 = t_to_timestamp(dataframe.iloc[0][t_key])
+        time_end = t_to_timestamp(dataframe.iloc[-1][t_key])
+        if time_0 > min_time:
+            min_time = time_0
+        if time_end < max_time:
+            max_time = time_end
     if min_time > max_time:
         raise Exception("One file ends before another begins")
     else:
@@ -63,56 +67,55 @@ def start_and_end(dataframe):
     Args:
         dataframe (pandas dataframe)
     """
-    tk = timekey(dataframe)
-    dp = dateutil.parser.parse
-    st = dp(dataframe.ix[dataframe.first_valid_index()][tk])
-    end = dp(dataframe.ix[dataframe.last_valid_index()][tk])
-    return st, end
+    t_key = timekey(dataframe)
+    start = dateutil.parser.parse(dataframe.iloc[0][t_key])
+    end = dateutil.parser.parse(dataframe.iloc[-1][t_key])
+    return start, end
 
 
-def first_last(fn, *, sep=',', headers=True):
+def first_last(filename, *, sep=',', headers=True):
     """First and last element of a file.
 
     Args:
-        fn (string): Path to file
+        filename (string): Path to file
 
     Kwargs:
         sep (char): Separator to split line on.
         headers (bool): Whether the file has headers or not.
     """
-    with open(fn, "rb") as f:
+    with open(filename, "rb") as f_in:
         if headers:
-            f.readline()     # Read and skip the first line.
+            f_in.readline()     # Read and skip the first line.
 
-        first = f.readline()     # Read the second line.
-        f.seek(-2, 2)            # Jump to the second last byte.
-        while f.read(1) != b"\n":   # Until EOL is found...
-            f.seek(-2, 1)        # ...jump back the read byte plus one more.
-        last = f.readline()
-    s = first.decode('ascii').split(sep)[0]
-    e = last.decode('ascii').split(sep)[0]
-    return s, e
+        first = f_in.readline()     # Read the second line.
+        f_in.seek(-2, 2)            # Jump to the second last byte.
+        while f_in.read(1) != b"\num":   # Until EOL is found...
+            f_in.seek(-2, 1)        # ...jump back the read byte plus one more.
+        last = f_in.readline()
+    start = first.decode('ascii').split(sep)[0]
+    end = last.decode('ascii').split(sep)[0]
+    return start, end
 
 
-def infer_fs(timestamps, N=36000):
+def infer_fs(timestamps, num=36000):
     """Infer the samplerate of a set of timestamps.
 
     Args:
         timestamps ([timestamp strings]): List of timestamps
 
     Kwargs:
-        N (int): Number of timestamps to use to infer the samplerate
+        num (int): Number of timestamps to use to infer the samplerate
     """
-    if N > len(timestamps):
+    if num > len(timestamps):
         raise EOFError
-    times = list(pandas.to_datetime(timestamps[:N]))
+    times = list(pandas.to_datetime(timestamps[:num]))
     times2 = times[1:]
     pairs = zip(times, times2)
     diffs = list(map(lambda p: p[1]-p[0], pairs))
     tot = diffs[0]
     for dif in diffs[1:]:
         tot += dif
-    return N / tot.total_seconds()
+    return num / tot.total_seconds()
 
 
 def change_points(dataseries):
@@ -125,13 +128,13 @@ def change_points(dataseries):
         [(index, duration)]: Duration is either -1 or +1
                              indicating fall or rise.
     """
-    change_points = []
-    for i, val in enumerate(dataseries[1:]):
+    changes = []
+    for i in range(dataseries.size - 1):
         if dataseries[i] > dataseries[i-1]:
-            change_points.append((i, 1))
+            changes.append((i, 1))
         elif dataseries[i] < dataseries[i-1]:
-            change_points.append((i, -1))
-    return change_points
+            changes.append((i, -1))
+    return changes
 
 
 def change_times(dataseries, timestamps):
@@ -147,8 +150,8 @@ def change_times(dataseries, timestamps):
     Returns:
         [(timestamp, direction)]: Direction -1/+1 represents fall or rise
     """
-    ch = change_points(dataseries)
-    return [(timestamps[i], direction) for (i, direction) in ch]
+    return [(timestamps[i], direction)
+            for (i, direction) in change_points(dataseries)]
 
 
 def subset(dataset, *, start=None, end=None, shift=None, indexed=True):
@@ -167,29 +170,28 @@ def subset(dataset, *, start=None, end=None, shift=None, indexed=True):
     """
     if not shift:
         shift = datetime.timedelta(minutes=0)
-    if type(start) != datetime.datetime or type(end) != datetime.datetime:
+    if not all([isinstance(start, datetime.datetime), isinstance(end, datetime.datetime)]):
         raise Exception("Must pass datetime for start and end.")
     if indexed:
         times = pandas.Series(dataset.index)
     else:
         times = dataset[timekey(dataset)]
     ds_t_zero, ds_t_end = times.iloc[0], times.iloc[-1]
-    s, e = str(start + shift), str(end + shift)
-    ix_s = 0 if s < ds_t_zero else times[times > s].index[0]
-    ix_e = dataset.size if e > ds_t_end else times[times > e].index[0]
+    start, end = str(start + shift), str(end + shift)
+    ix_s = 0 if start < ds_t_zero else times[times > start].index[0]
+    ix_e = dataset.size if end > ds_t_end else times[times > end].index[0]
     return dataset[ix_s:ix_e], (ix_s, ix_e)
 
 
 def approx_subset(dataframe, start, stop):
     """Approximately pick subset of data using an index jump based on samplerate."""
-    ts = dataframe[timekey(dataframe)]
-    fs = infer_fs(ts)
-    dp = dateutil.parser.parse
-    t0 = dp(ts.iloc[0])
-    seconds_to_start = (dp(start) - t0).total_seconds()
-    seconds_to_stop = (dp(stop) - t0).total_seconds()
-    ix_start = int(seconds_to_start * fs)
-    ix_stop = int(seconds_to_stop * fs)
+    times = dataframe[timekey(dataframe)]
+    samplerate = infer_fs(times)
+    time_0 = dateutil.parser.parse(times.iloc[0])
+    seconds_to_start = (dateutil.parser.parse(start) - time_0).total_seconds()
+    seconds_to_stop = (dateutil.parser.parse(stop) - time_0).total_seconds()
+    ix_start = int(seconds_to_start * samplerate)
+    ix_stop = int(seconds_to_stop * samplerate)
     return dataframe[ix_start:ix_stop].reset_index(drop=True), (ix_start, ix_stop)
 
 
@@ -202,8 +204,8 @@ def dataframe_hours(dataframe):
     Returns:
         times ([string]): Times from the dataframe
     """
-    tk = timekey(dataframe)
-    return tk, sorted(set(map(lambda x: x.split(':')[0], dataframe[tk])))
+    t_key = timekey(dataframe)
+    return t_key, sorted(set(map(lambda x: x.split(':')[0], dataframe[t_key])))
 
 
 def dataframe_days(dataframe):
@@ -215,10 +217,9 @@ def dataframe_days(dataframe):
     Returns:
         days ([string]): List of days in the dataframe, sorted
     """
-    tk = timekey(dataframe)
-    return sorted(set(map(lambda x: x.split(' ')[0],
-                  dataframe[tk])))
-
+    t_key = timekey(dataframe)
+    dates = dataframe[t_key].apply(lambda x: x.split(' ')).unique().sort_values()
+    return dates
 
 def hours_from_dataframe(dataframe):
     """Yield each hours worth of data from a dataframe.
@@ -232,11 +233,11 @@ def hours_from_dataframe(dataframe):
     Returns:
         hours (generator): Generator over hours in the dataframe
     """
-    tk, hours = dataframe_hours(dataframe)
+    t_key, hours = dataframe_hours(dataframe)
     prev_hour = hours[0]
     for hour in hours[1:]:
-        after_start = (dataframe[tk] >= prev_hour)
-        before_end = (dataframe[tk] < hour)
+        after_start = (dataframe[t_key] >= prev_hour)
+        before_end = (dataframe[t_key] < hour)
         yield prev_hour, dataframe[after_start & before_end]
         prev_hour = hour
 
@@ -253,33 +254,33 @@ def days_from_dataframe(dataframe):
     Returns:
         hours (generator): Generator over days in the dataframe
     """
-    tk = timekey(dataframe)
+    t_key = timekey(dataframe)
     days = dataframe_days(dataframe)
-    prev_day = days[0]
+    prev_day, day = days[0], days[0]
     for day in days[1:]:
-        after_start = (dataframe[tk] >= prev_day)
-        before_end = (dataframe[tk] < day)
+        after_start = (dataframe[t_key] >= prev_day)
+        before_end = (dataframe[t_key] < day)
         yield prev_day, dataframe[after_start & before_end]
         prev_day = day
-    yield day, dataframe[(dataframe[tk] >= prev_day)]
+    yield day, dataframe[(dataframe[t_key] >= prev_day)]
 
 
-def subset_from_csv(fn, start=None, end=None, shift=None):
+def subset_from_csv(filename, start=None, end=None):
     """Read in a dataset and immediately take a subset to save storing in memory."""
-    dat = pandas.read_csv(fn)
+    dat = pandas.read_csv(filename)
     return subset(dat, start=start, end=end, indexed=False)
 
 
 def dataframe_from_lazy_csv(filename, start, stop):
     """NEEDS WORK.  Doesn't infer the right data type, so everything stringy."""
     data = defaultdict(list)
-    with open(filename) as f:
-        dr = csv.DictReader(f)
-        for fn in dr.fieldnames:
-            data[fn] = []
-        tk = [k for k in dr.fieldnames if 'time' in k][0]
-        for row in dr:
-            if row[tk] > start and row[tk] < stop:
-                for fn in dr.fieldnames:
-                    data[fn].append(row[fn])
-    return pandas.DataFrame().from_dict(data).set_index(tk)
+    with open(filename) as f_in:
+        dictreader = csv.DictReader(f_in)
+        for fname in dictreader.fieldnames:
+            data[fname] = []
+        t_key = [k for k in dictreader.fieldnames if 'time' in k][0]
+        for row in dictreader:
+            if row[t_key] > start and row[t_key] < stop:
+                for fname in dictreader.fieldnames:
+                    data[fname].append(row[fname])
+    return pandas.DataFrame().from_dict(data).set_index(t_key)
