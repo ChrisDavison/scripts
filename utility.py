@@ -3,7 +3,7 @@ import os
 import re
 import functools
 import datetime
-from collections import defaultdict
+from collections import defaultdict, Counter
 
 import dateutil.parser
 import numpy
@@ -65,16 +65,7 @@ def timestamp_mean_duration(timeseries):
 
 def most_prevalent(lst):
     """Return the most prevalent element in a list."""
-    seen = defaultdict(int)
-    for value in lst:
-        seen[value] += 1
-    largest = 0
-    largest_key = ''
-    for key, value in seen.items():
-        if value > largest:
-            largest = value
-            largest_key = key
-    return largest_key
+    return Counter(lst).most_common(1)[0][0]
 
 def listdir_matching_regex(directory, regex='.*.csv'):
     """Given a regex, return matching files.
