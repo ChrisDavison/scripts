@@ -1,7 +1,7 @@
 #! /usr/bin/env python3
 """Weight converter.
 
-Given a weight in either Kg, Lb, or St, or StLb,
+Given a weight in either kilogram, pound, or St, or StLb,
 show weight in all other units.
 
 Usage:
@@ -13,22 +13,23 @@ Options:
 
 Examples:
     conv.py 17.4stlb =>
-    conv.py 99.2kg =>
+    conv.py 99.2kilogram =>
 """
-from docopt import docopt
 import re
+from docopt import docopt
+
 
 def from_kg(value):
-    kg = '{:.2f}kg'.format(value)
-    lb = '{:.2f}lb'.format(value * 2.205)
-    kg_int = int(value)
-    kg_frac = (value - int(value))
+    """Convert a weight from kilogram to other options"""
+    kilogram = '{:.2f}kg'.format(value)
+    pound = '{:.2f}lb'.format(value * 2.205)
     stone_int = int(value * 0.157)
     lb_after_stone = int(((value * 0.157) - stone_int)*14)
     stone_lb = '{}st{}lb'.format(stone_int, lb_after_stone)
-    print("{} {} {}".format(kg, lb, stone_lb))
+    print("{} {} {}".format(kilogram, pound, stone_lb))
 
 def stone_to_kg(value):
+    """Convert a weight from stone to kilogram"""
     full = value
     fraction = 0
     if '.' in str(value):
@@ -36,7 +37,8 @@ def stone_to_kg(value):
     return float(full) * 6.350 + (float(fraction) * .6350)
 
 def lb_to_kg(value):
-    if type(value) not in [int, float]:
+    """Convert a weight from pound to kilogram"""
+    if not isinstance(value, (int, float)):
         return None
     if value <= 0:
         return None
@@ -44,6 +46,7 @@ def lb_to_kg(value):
 
 
 def stonelb_to_kg(value):
+    """Convert a weight from stone+pound to kilogram"""
     if value <= 0:
         return None
     st_kg = stone_to_kg(int(value))
@@ -51,11 +54,9 @@ def stonelb_to_kg(value):
     return st_kg + lb_kg
 
 
-if __name__ == "__main__":
-    args = docopt(__doc__, version="0.0.1")
-
-    units = ['kg', 'lb', 'st', 'stlb']
-    value, unit = re.match('([.0-9]+)(\D+)', args['WEIGHT']).groups()
+def main(weight):
+    """Run the weight conversion program"""
+    value, unit = re.match(r'([.0-9]+)(\D+)', weight.groups())
     unit = unit.lower()
     value = float(value)
     if unit == 'kg':
@@ -68,3 +69,8 @@ if __name__ == "__main__":
         stonelb_to_kg(value)
     else:
         print("Unit not supported")
+
+
+if __name__ == "__main__":
+    ARGS = docopt(__doc__, version="0.0.1")
+    main(ARGS['WEIGHT'])
