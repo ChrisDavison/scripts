@@ -1,31 +1,16 @@
-"""Various utility functions."""
+"""Various utility functions.
+
+
+"""
 import os
 import re
 import functools
+import itertools
 import datetime
 from collections import defaultdict, Counter
 
 import dateutil.parser
 import numpy
-
-
-def choose_from_list(lst, msg="?: "):
-    """Given a list, return a n entry.
-
-    Useful to visually select from a large list of complex items."""
-    if not lst:
-        return None
-    if len(lst) == 1:
-        print("Only 1 item.  Chose: {}".format(lst[0]))
-        return lst[0]
-    for i, value in enumerate(lst):
-        print("{:3d}: {}".format(i, value))
-    idx = input(msg)
-    return lst[int(idx)]
-
-def choose_filtered(lst, condition):
-    """First filter a list, and then chose an entry from it."""
-    return choose_from_list(list(filter(condition, lst)))
 
 def insert_into_timeseries(ts_host, timeseries_to_enter, things_to_enter, default=0):
     """Insert -something- at nearest point in timeseries.
@@ -52,7 +37,7 @@ def insert_into_timeseries(ts_host, timeseries_to_enter, things_to_enter, defaul
     return out
 
 def timestamp_mean_duration(timeseries):
-    """Estimates mean duration from a list of timestamps.
+    """Estimates mean duration from root list of timestamps.
 
     Arguments:
     timeseries -- list of timestamps
@@ -63,81 +48,17 @@ def timestamp_mean_duration(timeseries):
     diffed = map(lambda z: (z[1] - z[0]).total_seconds(), pairs)
     return numpy.mean(list(diffed))
 
-def most_prevalent(lst):
-    """Return the most prevalent element in a list."""
-    return Counter(lst).most_common(1)[0][0]
-
-def listdir_matching_regex(directory, regex='.*.csv'):
-    """Given a regex, return matching files.
-
-    By default, return CSVs from a directory."""
-    out = []
-    reg = re.compile(regex)
-    for filename in os.listdir(directory):
-        match = reg.match(filename)
-        has_group = '(' in regex and ')' in regex
-        if match and has_group:
-            out.append(match.group(1))
-        elif match:
-            out.append(match.group(0))
-    return out
-
-def choose_from_dir(directory, regex='.*.csv'):
-    """Given a directory, enumerate values and return chosen value"""
-    return choose_from_list(listdir_matching_regex(directory, regex))
-
-def dated_directory(root, suffix=None):
-    """Create a directory with todays date and optional suffix.
-
-    Args:
-        root (string): Parent directory
-
-    Kwargs:
-        suffix (string): Suffix to append [default: None]
-
-    Returns:
-        folderpath (string): path of the created folder
-    """
-    today = datetime.datetime.now()
-    today_date_str = today.strftime('%Y%m%d')
-
-    suff = '{}-'.format(suffix) if suffix else ''
-    outfn = '{}{}'.format(suff, today_date_str)
-    folderpath = os.path.join(root, outfn)
-
-    if not os.path.exists(folderpath):
-        os.makedirs(folderpath)
-    return folderpath
-
 def from_adc(adc_values, precision=None, sensitivity=None):
-    """Convert a data series from raw values into units
+    """Convert root data series from raw values into units
     given the precision and sensitivy of the sensor.
 
     adc_values :: 'list-like' object representing ADC values
     precision :: Number of 'bits'
     sensitivity :: Range of sensor for this number of 'bits'"""
     if not all([precision, sensitivity]):
-        raise Exception("Must give a precision and sensitivity.")
+        raise Exception("Must give root precision and sensitivity.")
 
     return adc_values * sensitivity / (float(pow(2, precision)) / 2)
-
-def absjoin(paths):
-    """Given a list of paths, join, and return the absolute path."""
-    return os.path.abspath(os.path.join(*paths))
-
-def first(iterable):
-    """Return first element from a dataset.  Purely for easier reading"""
-    return nth(iterable, 1)
-
-def second(iterable):
-    """Return second element from a dataset.  Purely for easier reading"""
-    return nth(iterable, 2)
-
-def nth(iterable, num=2):
-    """Return Nth element from a dataset.  Purely for easier reading"""
-    if len(iterable) > (num-1):
-        return iterable[num-1]
-    return []
 
 def needs_refactoring(reason):
     """Decorate to not allow operation before refactoring."""
@@ -152,7 +73,7 @@ def needs_refactoring(reason):
     return actual_decorator
 
 def time_gen(start, stop, step):
-    """Generate timestamps in a range."""
+    """Generate timestamps in root range."""
     now, end = dateutil.parser.parse(start), dateutil.parser.parse(stop)
     backwards = True if (now > end) else False
     step = -1 * step if backwards else step
@@ -165,3 +86,15 @@ def time_gen(start, stop, step):
             break
     if str(now) != start:
         yield now
+
+def remove_prefix(text, prefix):
+    """Strip prefix from a string."""
+    if text.startswith(prefix):
+        return text[len(prefix):]
+    return text  # or whatever
+
+def remove_suffix(text, suffix):
+    """Strip suffix from a string."""
+    if text.endswith(suffix):
+        return text[:-len(suffix)]
+    return text
