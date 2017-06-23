@@ -10,7 +10,7 @@ def list_recur(root):
     normalFiles = (f for f in entries() if os.path.isfile(f))
     for f in folders: 
         normalFiles = itertools.chain(normalFiles, list_recur(f))
-    return normalFiles
+    return list(normalFiles)
 
 def list_recur_regex(root, regex='.*csv$'):
     rx = re.compile(regex)
