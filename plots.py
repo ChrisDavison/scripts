@@ -1,5 +1,6 @@
 import pandas
 import scipy.fftpack
+import matplotlib.pyplot as plt
 
 sfft = scipy.fftpack
 
@@ -11,3 +12,7 @@ def plot_fft(window, fs, axis, FFTLEN=512, label=None):
     N = int(len(spec) / 2)
     axis.plot(freqs[:N], spec[:N], label=label)
     return axis, spec
+
+
+def rotate_xaxis_labels(ax, rotation):
+    plt.setp(ax.xaxis.get_majorticklabels(), rotation=rotation)
