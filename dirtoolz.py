@@ -12,9 +12,16 @@ def list_recur(root):
         normalFiles = itertools.chain(normalFiles, list_recur(f))
     return list(normalFiles)
 
-def list_recur_regex(root, regex='.*csv$'):
+def list_recur_regex(root, regex='csv$'):
     rx = re.compile(regex)
-    return list(filter(lambda x: rx.match(x), list_recur(root)))
+    return list(filter(lambda x: rx.search(x), list_recur(root)))
+
+
+def list_recur_regexs(root, regexs=None):
+    if not isinstance(regexs, (list, set)):
+        raise Exception("Must provide an iterable (list or set) of regexs")
+    rxs = [re.compile(rx) for rx in regexs]
+    return [f for f in list_recur(root) if all([rx.search(f) for rx in rxs])]
 
 def create_dated(root, suffix=None):
     """Create root directory with todays date and optional suffix.
