@@ -41,3 +41,12 @@ def savefig(figure, *, project_and_trial='', task='', title=None, ext='png', **k
     filename_saved = os.path.join(dir_saved, dated_title(title, ext))
     figure.savefig(filename_saved, **kwargs)
     return filename_saved
+
+
+def plot_projects():
+    dir_figures = os.environ['RESEARCHFIGURES']
+    if dir_figures == '' or not os.path.exists(dir_figures):
+        raise Exception("No directory at RESEARCHFIGURES environment variable")
+    for f in os.listdir(dir_figures):
+        if os.path.isdir(os.path.join(dir_figures, f)):
+            print(f)
