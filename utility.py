@@ -98,3 +98,10 @@ def remove_suffix(text, suffix):
     if text.endswith(suffix):
         return text[:-len(suffix)]
     return text
+
+def ukid_finder(string):
+    rx = re.compile('(UK|UKID)(\d+)')
+    m = rx.search(string)
+    if m:
+        return 'UKID' + m.groups()[1]
+    return None
