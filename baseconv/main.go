@@ -3,27 +3,32 @@ package main
 import (
 	"fmt"
 	"log"
-	"os"
 	"strconv"
 	"strings"
+
+	kingpin "gopkg.in/alecthomas/kingpin.v2"
 )
 
-const BIN_PREFIX = "0b"
-const HEX_PREFIX = "0x"
+const (
+	binPrefix = "0b"
+	hexPrefix = "0x"
+)
 
 func main() {
-	val := os.Args[1]
-	// Assume converting from decimal by default
+	val := kingpin.Arg("VALUE", "Decimal, binary, or hex value (with appropriate prefix)").Required().String()
+	mode := kingpin.Flag("mode", "Which format to print [all, hex, bin, dec]").
+		Short('m').Default("all").String()
+	kingpin.Parse()
 	prefix := ""
 	base := 10
-	if strings.HasPrefix(val, HEX_PREFIX) {
-		prefix = HEX_PREFIX
+	if strings.HasPrefix(*val, hexPrefix) {
+		prefix = hexPrefix
 		base = 16
-	} else if strings.HasPrefix(val, BIN_PREFIX) {
-		prefix = BIN_PREFIX
+	} else if strings.HasPrefix(*val, binPrefix) {
+		prefix = binPrefix
 		base = 2
 	}
-	printHexBinDec(parse(val, prefix, base))
+	printHexBinDec(parse(*val, prefix, base), *mode)
 }
 
 func parse(val, prefix string, base int) int64 {
@@ -35,6 +40,14 @@ func parse(val, prefix string, base int) int64 {
 	return dec
 }
 
-func printHexBinDec(dec int64) {
-	fmt.Printf("%d %s%x %s%b\n", dec, HEX_PREFIX, dec, BIN_PREFIX, dec)
+func printHexBinDec(dec int64, mode string) {
+	if mode == "all" {
+		fmt.Printf("%d %s%x %s%b\n", dec, hexPrefix, dec, binPrefix, dec)
+	} else if mode == "hex" {
+		fmt.Printf("%s%x\n", hexPrefix, dec)
+	} else if mode == "bin" {
+		fmt.Printf("%s%b\n", binPrefix, dec)
+	} else {
+		fmt.Printf("%d\n", dec)
+	}
 }
