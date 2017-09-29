@@ -6,24 +6,18 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	"strconv"
+
+	kingpin "gopkg.in/alecthomas/kingpin.v2"
 )
 
 func main() {
-	if len(os.Args) == 1 {
-		fmt.Println("usage: shortsha <file>")
-		return
-	}
-	f, err := os.Open(os.Args[1])
+	file := kingpin.Arg("file", "File to generate hash for").Required().String()
+	n := kingpin.Flag("chars", "Number of hash characters to return").
+		Short('n').Default("8").Int()
+	kingpin.Parse()
+	f, err := os.Open(*file)
 	if err != nil {
 		log.Fatalf("Couldn't open file: %v\n", err)
-	}
-	var n int64 = 8
-	if len(os.Args) > 2 {
-		n, err = strconv.ParseInt(os.Args[2], 10, 8)
-		if err != nil {
-			log.Fatalf("Error parsing number of chars: %v\n", err)
-		}
 	}
 	data, err := ioutil.ReadAll(f)
 	if err != nil {
@@ -31,5 +25,5 @@ func main() {
 	}
 	sum := sha1.Sum(data)
 	shaStr := fmt.Sprintf("%x", sum)
-	fmt.Println(shaStr[:n])
+	fmt.Println(shaStr[:*n])
 }
