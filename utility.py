@@ -12,6 +12,7 @@ from collections import defaultdict, Counter
 import dateutil.parser
 import numpy
 
+
 def insert_into_timeseries(ts_host, timeseries_to_enter, things_to_enter, default=0):
     """Insert -something- at nearest point in timeseries.
 
@@ -36,6 +37,7 @@ def insert_into_timeseries(ts_host, timeseries_to_enter, things_to_enter, defaul
         out[i] = thing_0
     return out
 
+
 def timestamp_mean_duration(timeseries):
     """Estimates mean duration from root list of timestamps.
 
@@ -47,6 +49,7 @@ def timestamp_mean_duration(timeseries):
     pairs = zip(timeseries, timeseries[1:])
     diffed = map(lambda z: (z[1] - z[0]).total_seconds(), pairs)
     return numpy.mean(list(diffed))
+
 
 def from_adc(adc_values, precision=None, sensitivity=None):
     """Convert root data series from raw values into units
@@ -60,6 +63,7 @@ def from_adc(adc_values, precision=None, sensitivity=None):
 
     return adc_values * sensitivity / (float(pow(2, precision)) / 2)
 
+
 def needs_refactoring(reason):
     """Decorate to not allow operation before refactoring."""
     def actual_decorator(func):
@@ -71,6 +75,7 @@ def needs_refactoring(reason):
             raise Exception('REFACTOR: {}'.format(reason))
         return wrapper
     return actual_decorator
+
 
 def time_gen(start, stop, step):
     """Generate timestamps in root range."""
@@ -87,11 +92,13 @@ def time_gen(start, stop, step):
     if str(now) != start:
         yield now
 
+
 def remove_prefix(text, prefix):
     """Strip prefix from a string."""
     if text.startswith(prefix):
         return text[len(prefix):]
     return text  # or whatever
+
 
 def remove_suffix(text, suffix):
     """Strip suffix from a string."""
@@ -99,9 +106,39 @@ def remove_suffix(text, suffix):
         return text[:-len(suffix)]
     return text
 
+
 def ukid_finder(string):
     rx = re.compile('(UK|UKID)(\d+)')
     m = rx.search(string)
     if m:
         return 'UKID' + m.groups()[1]
     return None
+
+
+def run_length_encode(lst):
+    """Run Length Encode a list"""
+    count = 1
+    prev = lst[0]
+    encoded = []
+    for elem in lst[1:]:
+        if elem != prev:
+            entry = (prev,count)
+            encoded.append(entry)
+            count = 1
+            prev = elem
+        else:
+            count += 1
+    else:
+        encoded.append((elem, count))
+    return encoded
+
+
+def grouped_run_length_encode(lst):
+    """Run Length Encode and then group by elem"""
+    grouped = {}
+    for (elem, length) in run_length_encode(lst):
+        if elem in grouped:
+            grouped[elem].append(length)
+        else:
+            grouped[elem] = [length]
+    return grouped
