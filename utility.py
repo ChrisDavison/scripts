@@ -1,7 +1,4 @@
-"""Various utility functions.
-
-
-"""
+"""Various utility functions"""
 import os
 import re
 import functools
@@ -142,3 +139,9 @@ def grouped_run_length_encode(lst):
         else:
             grouped[elem] = [length]
     return grouped
+
+
+def r_squared(x, y):
+    from scipy.stats.stats import pearsonr
+    r = pearsonr(x, y)[0]
+    return r*r
