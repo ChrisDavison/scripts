@@ -18,11 +18,20 @@
 function pre-repomerge(){
     PREFIX=$1
     echo $PREFIX
-
-    git filter-branch --index-filter '
-        git ls-files -s |
-        sed "s,	,&'"$PREFIX"'/," |
-        GIT_INDEX_FILE=$GIT_INDEX_FILE.new git update-index --index-info &&
-        mv $GIT_INDEX_FILE.new $GIT_INDEX_FILE
-    ' HEAD
+    unamestr=`uname`
+    if [[ "$unamestr" == 'Linux' ]]; then
+        git filter-branch --index-filter '
+            git ls-files -s |
+            sed "s,\t,&'"$PREFIX"'/," |
+            GIT_INDEX_FILE=$GIT_INDEX_FILE.new git update-index --index-info &&
+            mv $GIT_INDEX_FILE.new $GIT_INDEX_FILE
+        ' HEAD
+    elif [[ "$unamestr" == 'Darwin' ]]; then
+        git filter-branch --index-filter \
+            'git ls-files -s | sed "s,	,&'"$PREFIX"'/," |
+                GIT_INDEX_FILE=$GIT_INDEX_FILE.new git update-index --index-info &&
+            mv $GIT_INDEX_FILE.new $GIT_INDEX_FILE' HEAD
+    fi
 }
+
+
