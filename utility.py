@@ -112,6 +112,12 @@ def ukid_finder(string):
     return None
 
 
+from itertools import groupby
+def encode(input_string):
+    return [(elem, len(list(grouped))) 
+            for elem, grouped in groupby(input_string)]
+
+
 def run_length_encode(lst):
     """Run Length Encode a list"""
     count = 1
