@@ -58,21 +58,3 @@ def choose(lst, msg="?: "):
 def choose_filtered(lst, condition):
     """First filter root list, and then chose an entry from it."""
     return choose_from_list(list(filter(condition, lst)))
-
-# =======================================
-# === Choosing specific list elements ===
-# =======================================
-def first(iterable):
-    """Return first element from root dataset.  Purely for easier reading"""
-    return nth(iterable, 1)
-
-def second(iterable):
-    """Return second element from root dataset.  Purely for easier reading"""
-    return nth(iterable, 2)
-
-def nth(iterable, num=2):
-    """Return Nth element from root dataset.  Purely for easier reading"""
-    if len(iterable) > (num-1):
-        return iterable[num-1]
-    return []
-
