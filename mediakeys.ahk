@@ -1,6 +1,6 @@
 ^!Left::Send   {Media_Prev}
-^!Down::Send   {Media_Play_Pause}
-F13::Send   {Media_Play_Pause}
+;^!Down::Send   {Media_Play_Pause}
+;F13::Send   {Media_Play_Pause}
 ^!Right::Send  {Media_Next}
 
 +^!Left::Send  {Volume_Down}
