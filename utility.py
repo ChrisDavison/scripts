@@ -4,10 +4,13 @@ import re
 import functools
 import itertools
 import datetime
+import time
+
 from collections import defaultdict, Counter
 
 import dateutil.parser
 import numpy
+import pandas
 
 
 def insert_into_timeseries(ts_host, timeseries_to_enter, things_to_enter, default=0):
@@ -151,3 +154,29 @@ def r_squared(x, y):
     from scipy.stats.stats import pearsonr
     r = pearsonr(x, y)[0]
     return r*r
+
+
+def infer_fs(timestamps, num=36000):
+    """Infer the samplerate of a set of timestamps.
+
+    Args:
+        timestamps ([timestamp strings]): List of timestamps
+
+    Kwargs:
+        num (int): Number of timestamps to use to infer the samplerate
+    """
+    if num > len(timestamps):
+        raise EOFError
+    times = list(pandas.to_datetime(timestamps[:num]))
+    times2 = times[1:]
+    pairs = zip(times, times2)
+    diffs = list(map(lambda p: p[1]-p[0], pairs))
+    tot = diffs[0]
+    for dif in diffs[1:]:
+        tot += dif
+    return num / tot.total_seconds()
+
+
+def epoch_to_time(epoch):
+    """Convert epoch to YY-MM-DD HH:MM:SS."""
+    return time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(epoch))
