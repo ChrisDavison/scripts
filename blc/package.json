@@ -1,13 +1,12 @@
 {
   "name": "blc",
   "version": "1.0.0",
-  "description": "",
+  "description": "Check for broken links in markdown files",
   "main": "blc.js",
   "dependencies": {
     "chalk": "^2.3.0",
     "commander": "^2.12.2",
-    "markdown-link-check": "^3.1.5",
-    "request": "^2.83.0"
+    "markdown-link-check": "^3.1.5"
   },
   "devDependencies": {},
   "scripts": {
