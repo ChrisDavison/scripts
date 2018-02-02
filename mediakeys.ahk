@@ -1,10 +1,7 @@
-^!Left::Send   {Media_Prev}
-;^!Down::Send   {Media_Play_Pause}
-;F13::Send   {Media_Play_Pause}
-^!Right::Send  {Media_Next}
-
-+^!Left::Send  {Volume_Down}
-+^!Down::Send  {Volume_Mute}
-+^!Right::Send {Volume_Up}
++^PgDn::Send  {Volume_Down}
++^PgUp::Send {Volume_Up}
++^Del::Send {Media_Prev}
++^End::Send {Media_Next}
++^Home::Send  {Media_Play_Pause}
 
 break::Send {Volume_Mute} ; Break key mutes
