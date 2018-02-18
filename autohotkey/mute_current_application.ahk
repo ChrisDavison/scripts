@@ -1,23 +1,25 @@
 ; #Include E:\ahk\VA.ahk
 #Include VA.ahk
 
-
-
-F1::  ; F1 hotkey - toggle mute state of active window
+MuteCurrentApp()
+{
   WinGet, ActivePid, PID, A
   if !(Volume := GetVolumeObject(ActivePid))
+  {
     MsgBox, There was a problem retrieving the application volume interface
+  }
+    
   VA_ISimpleAudioVolume_GetMasterVolume(Volume, fLevel)
   if (fLevel != 1.0)
   {
-  VA_ISimpleAudioVolume_SetMasterVolume(Volume, 1.0) ;Toggle mute state
+    VA_ISimpleAudioVolume_SetMasterVolume(Volume, 1.0) ;Toggle mute state
   }
   if (fLevel == 1.0)
   {
-  VA_ISimpleAudioVolume_SetMasterVolume(Volume, 0.2) ;Toggle mute state
+    VA_ISimpleAudioVolume_SetMasterVolume(Volume, 0.2) ;Toggle mute state
   }  
   ObjRelease(Volume)
-return
+}
 
 ;Required for app specific mute
 GetVolumeObject(Param = 0)
