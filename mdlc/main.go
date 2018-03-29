@@ -8,6 +8,7 @@ import (
 	"os"
 	"regexp"
 	"strings"
+	"sync"
 )
 
 func main() {
@@ -15,6 +16,11 @@ func main() {
 	if len(os.Args) == 1 {
 		fmt.Printf("usage:\n\t%v <dir>\n", os.Args[0])
 	}
+	c := make(<-chan checkedLine)
+	var wg sync.WaitGroup
+	go checkDoc(os.Args[1], c, wg)
+	doc := <-c
+	fmt.Printf("%v\n", doc)
 	// Set off a goroutine for every file
 	// ...for each goroutine, set off a goroutine for every link
 
@@ -23,25 +29,38 @@ func main() {
 	// ...if the channel or file open had issue, return an error
 }
 
-func checkDoc(fn string, c <-chan string) error {
+type checkedLine struct {
+	linum      int
+	brokenLink string
+}
+
+func checkDoc(fn string, c <-chan checkedLine, wg sync.WaitGroup) error {
 	contents, err := ioutil.ReadFile(fn)
 	if err != nil {
 		return err
 	}
 	buf := bytes.NewBuffer(contents)
 	lines := strings.Split(buf.String(), "\n")
-	// out := make([]string, 0, len(lines))
-	for _, line := range lines {
+	out := make([]checkedLine, 0, len(lines))
+	wg.Add(1)
+	for i, line := range lines {
 		for _, link := range linksInLine(line) {
-			fmt.Println(link)
+			checker := linkIsFineWeb
+			if isLocalLink(link) {
+				checker = linkIsFineLocal
+			}
+			if !checker(link) {
+				out = append(out, checkedLine{i, link})
+			}
 		}
 
 	}
+	wg.Done()
 	return nil
 }
 
 func linksInLine(l string) []string {
-	rx := regexp.MustCompile(`[.+]\((.+)\)|[]: (.+)`)
+	rx := regexp.MustCompile(`\[.+\]\((.+)\)|\[.+\]: (.+)`)
 	return rx.FindAllString(l, -1)
 }
 
