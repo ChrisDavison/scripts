@@ -24,11 +24,11 @@ F9::SaveWindowAndGoSpotify()
 F10::WinActivate ahk_id %beforeSpotify%
 
 ; Ctrl-alt
-^!c::CopyTextAsMarkdownLink() ;Ctrl Alt C
+^!c::CopyTextAsMarkdownLink()
 ^!i::Run https://inbox.google.com
-^!t::Run https://trello.com
 ^!s::Run https://www.youtube.com/feed/subscriptions
 ^!w::Run https://www.youtube.com/playlist?list=WL
+^!a::RUN https://www.youtube.com/playlist?list=PLHCsA_6Hf0ebZEZrdTkL5IwizYOYmLnNc
 
 ; Ctrl-alt-win
 ^!#p::Run https://pubgmap.io/
