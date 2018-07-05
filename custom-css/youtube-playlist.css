@@ -1,0 +1,19 @@
+ytd-playlist-sidebar-renderer.ytd-browse {
+	position: unset !important;
+	height: unset !important;
+	width: 100% !important;
+	
+	
+}
+
+ytd-playlist-sidebar-secondary-info-renderer {
+	display: none !important;
+} 
+
+ytd-browse[page-subtype="playlist"] ytd-two-column-browse-results-renderer.ytd-browse {
+	padding-left: 0 !important;
+}
+
+ytd-playlist-thumbnail.ytd-playlist-sidebar-primary-info-renderer {
+	display: none !important; 
+}
