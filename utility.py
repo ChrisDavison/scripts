@@ -108,7 +108,7 @@ def remove_suffix(text, suffix):
 
 
 def ukid_finder(string):
-    rx = re.compile('(UK|UKID)(\d+)')
+    rx = re.compile(r'(UK|UKID)(\d+)')
     m = rx.search(string)
     if m:
         return 'UKID' + m.groups()[1]
