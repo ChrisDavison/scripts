@@ -1,8 +1,14 @@
-SaveWindowAndGoSpotify(){
+ToggleSpotifyVisibility(){
       global beforeSpotify
+      global spotifyVisible
       WinGetTitle, title, A
-      if !RegExMatch(title, "Spotify"){
-            WinGet, beforeSpotify, , A
+      if(!spotifyVisible) {
+            WinActivate ahk_id %beforeSpotify%
+      } else {
+            if !RegExMatch(title, "Spotify"){
+                  WinGet, beforeSpotify, , A
+            }
+            WinActivate, Spotify
       }
-      WinActivate, Spotify
+      spotifyVisible := !spotifyVisible
 }
