@@ -1,17 +1,15 @@
-LoopASMRWindows(action){
-    ; If action = 0; hide
-    ; If action = 1; show
-    WinGet windows, List, .*(ASMR|ACMP|Tingle|Mouth Sounds|Whisper).*
+LoopASMRWindows(){
+    global asmrVisible
+    WinGet windows, List, .*(ASMR|ACMP|Tingle|Mouth Sounds|Whisper|Role Play).*
     Loop %windows% {
         id := windows%A_Index%
-        if (action = "show"){
-            WinShow ahk_id %id%
-        }
-        else if (action = "hide") {
+        if (asmrVisible){
             WinHide ahk_id %id%
         }
         else {
-            MsgBox "Don't understand the action..."
+            WinShow ahk_id %id%
+            WinActivate ahk_id %id%
         }
     }
+    asmrVisible := !asmrVisible
 }
