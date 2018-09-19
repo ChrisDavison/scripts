@@ -15,8 +15,8 @@ DetectHiddenWindows, On
 +^Home::Send  {Media_Play_Pause}
 
 ; Functionkey binds
-F1::MuteCurrentApp()
-^#F9::LoopASMRWindows()
+; F1::MuteCurrentApp()
+^F9::LoopASMRWindows()
 #F9::ToggleSpotifyVisibility()
 
 ; Ctrl-alt
@@ -30,3 +30,21 @@ F1::MuteCurrentApp()
 
 ; Lock active window always on top
 ^!#SPACE:: Winset, Alwaysontop, , A
+
+; Spanish input...
+:*?:`a::{Asc 0225}
+:*?:`e::{Asc 0233}
+:*?:`i::{Asc 0237}
+:*?:`o::{Asc 0243}
+:*?:`u::{Asc 0250}
+:*?:`n::{Asc 0241}
+:*?:`A::{Asc 0193}
+:*?:`E::{Asc 0201}
+:*?:`I::{Asc 0205}
+:*?:`O::{Asc 0211}
+:*?:`U::{Asc 0218}
+:*?:`N::{Asc 0209}
+:*?:invq::{Asc 0191}
+:*?:invex::{Asc 0161}
+:*?:@@h::c.jr.davison@gmail.com
+:*?:@@w::christopher.davison@strath.ac.uk
