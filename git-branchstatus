@@ -1,6 +1,6 @@
 #!/bin/bash
 git for-each-ref --format="%(refname:short) %(upstream:track)" refs/heads
 n_modified=$(git diff --stat | wc -l | tr -d "[:space:]")
-[ "$n_modified" -gt 0 ] && echo "HEAD [modified $n_modified]"
+[ "$n_modified" -gt 0 ] && echo "HEAD [modified $(echo $n_modified-1 | bc)]"
 n_untracked=$(git ls-files --others --exclude-standard | wc -l | tr -d "[:space:]")
 [ "$n_untracked" -gt 0 ] && echo "HEAD [untracked $n_untracked]"
