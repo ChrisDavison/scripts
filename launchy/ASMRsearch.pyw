@@ -54,10 +54,16 @@ class ASMRSearch(QtWidgets.QMainWindow):
         self.update_dropdown()
 
     def get_contents(self):
+        """Get the contents of the ASMR file"""
+        def tidy(line):
+            """Tidy a markdown link into (path, url)"""
+            stripped = line.strip()
+            no_lead = stripped.strip('- [')
+            no_tail = no_lead.strip(')')
+            return no_tail.split('](')
         data = open(F_IN, 'r', encoding='utf-8').read().split('\n')
         matching = [line for line in data if line.startswith('- [')]
-        return [line.strip().lstrip('- [').rstrip(')').split('](')
-                for line in matching]
+        return sorted(map(tidy, matching))
 
     def filter(self):
         self.filtered = self.get_contents()
