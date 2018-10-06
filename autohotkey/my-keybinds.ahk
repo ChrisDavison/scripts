@@ -15,8 +15,7 @@ DetectHiddenWindows, On
 +^Home::Send  {Media_Play_Pause}
 
 ; Functionkey binds
-; F1::MuteCurrentApp()
-^F9::LoopASMRWindows()
+^#F9::Run e:\home\devel\scripts\launchy\ASMRsearch.pyw
 #F9::ToggleSpotifyVisibility()
 
 ; Ctrl-alt
@@ -26,7 +25,6 @@ DetectHiddenWindows, On
 ^!t::Run https://todoist.com/app?lang=en#agenda%2Fp%3AInbox%2C%20Overdue%2C%20Today
 ^!a::RUN https://www.youtube.com/playlist?list=PLHCsA_6Hf0ebZEZrdTkL5IwizYOYmLnNc
 ^!n::RUN https://www.netflix.com/browse/my-list
-^!d::DuckDuckGoSearch()
 
 ; Lock active window always on top
 ^!#SPACE:: Winset, Alwaysontop, , A
