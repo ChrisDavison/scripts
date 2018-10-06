@@ -18,7 +18,7 @@ class Dupfinder:
 
     def run(self):
         path_and_hash = Pool().map(self.hash, set(self.files))
-        hashes = defaultdict(lambda: [])
+        hashes = defaultdict(list)
         for path, hash in path_and_hash:
             hashes[hash].append(path)
         self.hasdups = [ls for _, ls in hashes.items() if len(ls) > 1]
