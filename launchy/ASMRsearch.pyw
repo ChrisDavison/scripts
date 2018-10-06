@@ -1,37 +1,46 @@
 #!/usr/bin/env python
 import sys
 import webbrowser
+import requests
 from PyQt5 import QtCore, QtGui, QtWidgets
 
-F_IN = 'E:\\Dropbox\\automation\\asmr.md'
+GIST = "https://gist.githubusercontent.com/ChrisDavison/ffe8159d49b0a9c490375db7fcb9df3f/raw/d0f4b6a025b1d002082e5c0ddd328daa7e7035a9/asmr.md"
 
-WIDTH, HEIGHT = 300, 90
+
+WIDTH, HEIGHT = 300, 30  # Element geometry
+B_WIDTH, B_HEIGHT = 60, HEIGHT  # Button geometry
+W_WIDTH, W_HEIGHT = WIDTH + B_WIDTH, HEIGHT * 2  # Window geometry
 
 
 class Ui_ASMRSearch(object):
     def setupUi(self, ASMRSearch):
         ASMRSearch.setObjectName("ASMRSearch")
-        ASMRSearch.setFixedSize(WIDTH, HEIGHT)
+        ASMRSearch.setFixedSize(W_WIDTH, W_HEIGHT)
         ASMRSearch.setUnifiedTitleAndToolBarOnMac(True)
         self.centralwidget = QtWidgets.QWidget(ASMRSearch)
         self.centralwidget.setObjectName("centralwidget")
+        # ===== Query and Search button
         self.query = QtWidgets.QLineEdit(self.centralwidget)
-        self.query.setGeometry(QtCore.QRect(0, 0, WIDTH, 31))
+        self.query.setGeometry(QtCore.QRect(0, 0, WIDTH, HEIGHT))
         self.query.setObjectName("query")
-        self.dropdown = QtWidgets.QComboBox(self.centralwidget)
-        self.dropdown.setGeometry(QtCore.QRect(0, 30, WIDTH, 30))
-        self.dropdown.setFixedSize(QtCore.QSize(WIDTH, 30))
-        self.dropdown.setObjectName("dropdown")
-        self.buttonGo = QtWidgets.QPushButton(self.centralwidget)
-        self.buttonGo.setGeometry(0, 60, WIDTH/2, 30)
-        self.buttonGo.setFixedSize(QtCore.QSize(WIDTH/2, 30))
-        self.buttonGo.setObjectName("open")
-        self.buttonGo.setText("Open")
+        # ----------
         self.buttonSearch = QtWidgets.QPushButton(self.centralwidget)
-        self.buttonSearch.setGeometry(WIDTH/2, 60, WIDTH/2, 30)
-        self.buttonSearch.setFixedSize(QtCore.QSize(WIDTH/2, 30))
+        self.buttonSearch.setGeometry(WIDTH, 0, B_WIDTH, B_HEIGHT)
+        self.buttonSearch.setFixedSize(QtCore.QSize(B_WIDTH, B_HEIGHT))
         self.buttonSearch.setObjectName("dosearch")
         self.buttonSearch.setText("Search")
+        # ===== Dropdown and Go button
+        self.dropdown = QtWidgets.QComboBox(self.centralwidget)
+        self.dropdown.setGeometry(QtCore.QRect(0, HEIGHT, WIDTH, HEIGHT))
+        self.dropdown.setFixedSize(QtCore.QSize(WIDTH, HEIGHT))
+        self.dropdown.setObjectName("dropdown")
+        # ----------
+        self.buttonGo = QtWidgets.QPushButton(self.centralwidget)
+        self.buttonGo.setGeometry(WIDTH, HEIGHT, B_WIDTH, B_HEIGHT)
+        self.buttonGo.setFixedSize(QtCore.QSize(B_WIDTH, B_HEIGHT))
+        self.buttonGo.setObjectName("open")
+        self.buttonGo.setText("Open")
+        
         ASMRSearch.setCentralWidget(self.centralwidget)
 
         self.retranslateUi(ASMRSearch)
@@ -50,6 +59,7 @@ class ASMRSearch(QtWidgets.QMainWindow):
         self.ui.query.textChanged.connect(self.filter)
         self.ui.buttonSearch.clicked.connect(self.search)
         self.ui.buttonGo.clicked.connect(self.open)
+        self.contents = self.get_contents()
         self.filter()
         self.update_dropdown()
 
@@ -61,24 +71,26 @@ class ASMRSearch(QtWidgets.QMainWindow):
             no_lead = stripped.strip('- [')
             no_tail = no_lead.strip(')')
             return no_tail.split('](')
-        data = open(F_IN, 'r', encoding='utf-8').read().split('\n')
-        matching = [line for line in data if line.startswith('- [')]
-        return sorted(map(tidy, matching))
+        contents = []
+        for line in requests.get(GIST).text.split('\n'):
+            if not line.startswith('- ['):
+                continue
+            tidied = tidy(line)
+            contents.append({"title": tidied[0], "url": tidied[1]})
+        return sorted(contents, key=lambda x: x["title"])
 
     def filter(self):
-        self.filtered = self.get_contents()
-        if self.ui.query.text():
-            self.filtered = [f for f in self.filtered
-                             if self.ui.query.text().lower() in f[0].lower()]
+        query = self.ui.query.text().lower()
+        self.filtered = [f for f in self.contents
+                         if query in f["title"].lower()]
         self.update_dropdown()
 
     def update_dropdown(self):
         self.ui.dropdown.clear()
-        for line in self.filtered:
-            self.ui.dropdown.addItem(line[0])
+        self.ui.dropdown.addItems(x["title"] for x in self.filtered)
 
     def open(self):
-        choice = self.filtered[self.ui.dropdown.currentIndex()][1]
+        choice = self.filtered[self.ui.dropdown.currentIndex()]["url"]
         webbrowser.open(choice)
         app.quit()
 
