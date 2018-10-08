@@ -1,19 +1,18 @@
-import sys
+#!/usr/bin/env python3
+"""List all files for a dropbox account (token)"""
+import os
 import dropbox
 
 
-__TOKEN = ""
-dbx = dropbox.Dropbox(__TOKEN)
-
-
-def get_folders_under_path(path, ignores):
-    response = dbx.files_list_folder(path)
+def get_folders(token, path, ignore):
+    """List all folders, recursively"""
+    response = dropbox.Dropbox(token).files_list_folder(path)
     out = [path]
-    isFolder = lambda x: isinstance(x, dropbox.files.FolderMetadata)
-    for f in filter(isFolder, response.entries):
-        p = f.path_lower
-        if len(p.split("/")) < 5 and not any(i.lower() in p for i in ignores):
-            out.extend(get_folders_under_path(f.path_lower, ignores))
+    is_folder = lambda x: isinstance(x, dropbox.files.FolderMetadata)
+    for folder in filter(is_folder, response.entries):
+        path = folder.path_lower
+        if len(path.split("/")) < 5 and not any(i.lower() in path for i in ignore):
+            out.extend(get_folders(token, folder.path_lower, ignore))
     return out
 
 
@@ -30,9 +29,8 @@ def indented_str(path, max_level):
 
 
 if __name__ == "__main__":
-    paths = [
-        p for p in get_folders_under_path("", ["Apps", "Camera Uploads"]) if p is not ""
-    ]
+    TOKEN = open(os.path.expanduser('~/.dropbox-token')).read().split('\n')[0]
+    NON_EMPTY_PATHS = filter(lambda x: x != "", get_folders(TOKEN, "", ["Camera Uploads"]))
     with open("contents-tree.md", "w") as f_out:
-        for p in sorted(paths):
-            print(indented_str(p, max_level=10), file=f_out)
+        for path in sorted(NON_EMPTY_PATHS):
+            print(indented_str(path, max_level=10), file=f_out)
