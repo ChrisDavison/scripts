@@ -27,8 +27,6 @@ def fetch(repo):
             for line in status.split("\n")
             if not line.startswith("Fetching") and not line == ""
         ]
-
-    """Count number of untracked and modified files in repo"""
     os.chdir(repo)
     out = subprocess.run(
         ["git", "fetch", "--all"], stdout=subprocess.PIPE
