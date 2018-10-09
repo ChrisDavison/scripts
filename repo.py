@@ -26,45 +26,35 @@ def run_on_git(*args):
 
 
 def fetch(repo):
-    """Fetch all repos."""
-
-    def filtered(status):
-        """Filter only repos that have fetched something"""
-        return [
-            line
-            for line in status.split("\n")
-            if not line.startswith("Fetching") and not line == ""
-        ]
+    """Fetch all repos, showing only if something has fetched."""
     os.chdir(repo)
     output = run_on_git("fetch", "--all")
-    return repo, filtered(output)
+    filtered = [
+        line
+        for line in output.split("\n")
+        if not line.startswith("Fetching") and not line == ""
+    ]
+    return repo, filtered
 
 
 def stat(repo):
-    """Get long status of current branch."""
-
-    def filtered(status):
-        """Filter only branches with changes"""
-        return status if len(status.split("\n")) > 2 else None
-
+    """Get long status of current branch, only showing if unclean."""
     os.chdir(repo)
     output = run_on_git("status", "-s", "-b")
-    return repo, filtered(output)
+    filtered = output if len(output.split("\n")) > 2 else None
+    return repo, filtered
 
 
 def bstat(repo):
-    """Get short status of all branches."""
-
-    def filtered(status):
-        """Filter only branches not up to date"""
-        for word in ["ahead", "behind", "modified", "untracked"]:
-            if word in status:
-                return status
-        return None
-
+    """Get short status of all branches, only showing if unclean."""
     os.chdir(repo)
     output = run_on_git("branchstat")
-    return repo, filtered(output)
+    filtered = None
+    for word in ["ahead", "behind", "modified", "untracked"]:
+        if word in output:
+            filtered = output
+            break
+    return repo, filtered
 
 
 def for_each_repo(repos, function):
