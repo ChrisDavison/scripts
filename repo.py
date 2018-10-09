@@ -17,6 +17,14 @@ from multiprocessing import Pool
 from docopt import docopt
 
 
+def run_on_git(*args):
+    """Run a git subprocess with the given args"""
+    git_args = ["git"]
+    git_args.extend(args)
+    return subprocess.run(git_args, stdout=subprocess.PIPE
+    ).stdout.decode(encoding="UTF-8") 
+
+
 def fetch(repo):
     """Fetch all repos."""
 
@@ -28,10 +36,8 @@ def fetch(repo):
             if not line.startswith("Fetching") and not line == ""
         ]
     os.chdir(repo)
-    out = subprocess.run(
-        ["git", "fetch", "--all"], stdout=subprocess.PIPE
-    ).stdout.decode(encoding="UTF-8")
-    return repo, filtered(out)
+    output = run_on_git("fetch", "--all")
+    return repo, filtered(output)
 
 
 def stat(repo):
@@ -42,9 +48,7 @@ def stat(repo):
         return status if len(status.split("\n")) > 2 else None
 
     os.chdir(repo)
-    output = subprocess.run(
-        ["git", "status", "-s", "-b"], stdout=subprocess.PIPE
-    ).stdout.decode(encoding="UTF-8")
+    output = run_on_git("status", "-s", "-b")
     return repo, filtered(output)
 
 
@@ -59,9 +63,7 @@ def bstat(repo):
         return None
 
     os.chdir(repo)
-    output = subprocess.run(
-        ["git", "branchstat"], stdout=subprocess.PIPE
-    ).stdout.decode(encoding="UTF-8")
+    output = run_on_git("branchstat")
     return repo, filtered(output)
 
 
@@ -78,7 +80,7 @@ def for_each_repo(repos, function):
 def main():
     """Run a function under all repos in ~/devel."""
     args = docopt(__doc__)
-    repo_functions = {"fetch": fetch, "stat": stat, "bstat": bstat}
+    repo_functions = { "fetch": fetch, "stat": stat, "bstat": bstat }
     commands = [command for command, status in args.items() if status]
     assert (
         len(commands) == 1
