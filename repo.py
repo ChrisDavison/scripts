@@ -19,6 +19,7 @@ from docopt import docopt
 
 def fetch(repo):
     """Fetch all repos."""
+
     def filtered(status):
         """Filter only repos that have fetched something"""
         return [
@@ -26,6 +27,7 @@ def fetch(repo):
             for line in status.split("\n")
             if not line.startswith("Fetching") and not line == ""
         ]
+
     """Count number of untracked and modified files in repo"""
     os.chdir(repo)
     out = subprocess.run(
@@ -36,9 +38,11 @@ def fetch(repo):
 
 def stat(repo):
     """Get long status of current branch."""
+
     def filtered(status):
         """Filter only branches with changes"""
         return status if len(status.split("\n")) > 2 else None
+
     os.chdir(repo)
     output = subprocess.run(
         ["git", "status", "-s", "-b"], stdout=subprocess.PIPE
@@ -48,12 +52,14 @@ def stat(repo):
 
 def bstat(repo):
     """Get short status of all branches."""
+
     def filtered(status):
         """Filter only branches not up to date"""
         for word in ["ahead", "behind", "modified", "untracked"]:
             if word in status:
                 return status
         return None
+
     os.chdir(repo)
     output = subprocess.run(
         ["git", "branchstat"], stdout=subprocess.PIPE
@@ -74,13 +80,11 @@ def for_each_repo(repos, function):
 def main():
     """Run a function under all repos in ~/devel."""
     args = docopt(__doc__)
-    repo_functions = {
-        'fetch': fetch,
-        'stat': stat,
-        'bstat': bstat
-    }
+    repo_functions = {"fetch": fetch, "stat": stat, "bstat": bstat}
     commands = [command for command, status in args.items() if status]
-    assert len(commands) == 1, f"Ambiguous command.  Must be one of {repo_functions.keys()}"
+    assert (
+        len(commands) == 1
+    ), f"Ambiguous command.  Must be one of {repo_functions.keys()}"
     function = repo_functions[commands[0]]
     repo_dir = os.path.expanduser("~/devel")
     contents = [os.path.join(repo_dir, f) for f in os.listdir(repo_dir)]

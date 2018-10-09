@@ -6,7 +6,7 @@ import os
 import sys
 from multiprocessing.pool import Pool
 from collections import defaultdict
-   
+
 
 class Dupfinder:
     def __init__(self, folders, blocksize):
@@ -28,10 +28,10 @@ class Dupfinder:
 
     def display(self):
         for paths in self.hasdups:
-            print('=' * 40)
+            print("=" * 40)
             for p in sorted(paths):
                 print(f"\t{p}")
-    
+
     def hash(self, filename):
         """Get MD5 hash of a file"""
         hasher = hashlib.md5()

@@ -29,8 +29,10 @@ def indented_str(path, max_level):
 
 
 if __name__ == "__main__":
-    TOKEN = open(os.path.expanduser('~/.dropbox-token')).read().split('\n')[0]
-    NON_EMPTY_PATHS = filter(lambda x: x != "", get_folders(TOKEN, "", ["Camera Uploads"]))
+    TOKEN = open(os.path.expanduser("~/.dropbox-token")).read().split("\n")[0]
+    NON_EMPTY_PATHS = filter(
+        lambda x: x != "", get_folders(TOKEN, "", ["Camera Uploads"])
+    )
     with open("contents-tree.md", "w") as f_out:
         for path in sorted(NON_EMPTY_PATHS):
             print(indented_str(path, max_level=10), file=f_out)

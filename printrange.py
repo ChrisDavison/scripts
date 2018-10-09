@@ -11,13 +11,14 @@ class LinePrinter:
     LinePrinter uses a builder pattern, to incrementally build the instance
     and avoid confusion of function parameter order.
     """
+
     def __init__(self):
         self.start, self.end = None, None
 
     def start_date(self, date):
         self.start = date
         return self
-    
+
     def end_date(self, date):
         self.end = date
         return self
@@ -28,7 +29,7 @@ class LinePrinter:
 
     def run(self):
         printing = not self.start
-        for line in open(self.fname, 'r'):
+        for line in open(self.fname, "r"):
             if self.start and self.start in line:
                 printing = True
             if printing:
@@ -37,13 +38,16 @@ class LinePrinter:
                 break
 
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser('printrange')
-    parser.add_argument('filename')
-    parser.add_argument('--after', type=str)
-    parser.add_argument('--before', type=str)
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser("printrange")
+    parser.add_argument("filename")
+    parser.add_argument("--after", type=str)
+    parser.add_argument("--before", type=str)
     args = parser.parse_args()
-    lp = LinePrinter().start_date(args.after)\
-                      .end_date(args.before)\
-                      .filename(args.filename)
+    lp = (
+        LinePrinter()
+        .start_date(args.after)
+        .end_date(args.before)
+        .filename(args.filename)
+    )
     lp.run()
