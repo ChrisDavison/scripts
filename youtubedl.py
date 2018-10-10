@@ -19,7 +19,7 @@ def trim_url_to_video_only(url):
     return no_t_or_list_or_index
 
 
-def download(url, *, audio_only=False, prefix=None):
+def download(url, *, audio_only=False, prefix=None, filename=None):
     """Download video or audio from YouTube.
 
     Arguments:
@@ -31,6 +31,9 @@ def download(url, *, audio_only=False, prefix=None):
     """
     tidied_url = trim_url_to_video_only(url)
     prefix = f"{prefix}--" if prefix else ""
+    filename_out = f"{prefix}%(title)s-%(id)s-%(format_id)s.%(ext)s"
+    if filename:
+        filename_out = f"{filename}.%(ext)s"
     arglists = {
         "audio": [
             "youtube-dl",
@@ -42,6 +45,8 @@ def download(url, *, audio_only=False, prefix=None):
             "mp3",
             "--audio-quality",
             "0",
+            "-o",
+            filename_out,
         ],
         "video": [
             "youtube-dl",
@@ -50,7 +55,7 @@ def download(url, *, audio_only=False, prefix=None):
             "--merge-output-format",
             "mp4",
             "-o",
-            f"{prefix}%(title)s-%(id)s-%(format_id)s.%(ext)s",
+            filename_out,
         ],
     }
     args = arglists["audio"] if audio_only else arglists["video"]
@@ -63,9 +68,10 @@ def main():
     parser = argparse.ArgumentParser("youtubedl")
     parser.add_argument("--audio-only", required=False, action="store_true")
     parser.add_argument("--prefix", required=False)
+    parser.add_argument("--filename", required=False)
     parser.add_argument("URL")
     args = parser.parse_args()
-    download(args.URL, audio_only=args.audio_only, prefix=args.prefix)
+    download(args.URL, audio_only=args.audio_only, prefix=args.prefix, filename=args.filename)
 
 
 if __name__ == "__main__":
