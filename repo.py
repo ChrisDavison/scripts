@@ -17,6 +17,11 @@ from multiprocessing import Pool
 from docopt import docopt
 
 
+def print_with_underline(message, underline_char="="):
+    """Print a message with a underline of equal length"""
+    print(f"{message}\n{underline_char * len(message)}")
+
+
 def run_on_git(*args):
     """Run a git subprocess with the given args"""
     git_args = ["git"]
@@ -62,8 +67,7 @@ def for_each_repo(repos, function):
     outputs = Pool().map(function, repos)
     for path, status in sorted(outputs):
         if status:
-            print(os.path.basename(path))
-            print("=" * len(os.path.basename(path)))
+            print_with_underline(os.path.basename(path))
             print(status)
 
 
