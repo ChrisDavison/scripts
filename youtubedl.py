@@ -69,9 +69,10 @@ def main():
     parser.add_argument("--audio-only", required=False, action="store_true")
     parser.add_argument("--prefix", required=False)
     parser.add_argument("--filename", required=False)
-    parser.add_argument("URL")
+    parser.add_argument("URL", nargs='+')
     args = parser.parse_args()
-    download(args.URL, audio_only=args.audio_only, prefix=args.prefix, filename=args.filename)
+    for url in args.URL:
+        download(url, audio_only=args.audio_only, prefix=args.prefix, filename=args.filename)
 
 
 if __name__ == "__main__":
