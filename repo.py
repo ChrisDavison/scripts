@@ -71,6 +71,11 @@ def for_each_repo(repos, function):
             print(status)
 
 
+def is_git_repo(path):
+    """Check if a path is a directory AND contains a .git subdir."""
+    return os.path.isdir(path) and os.path.exists(os.path.join(path, ".git"))
+
+
 def main():
     """Run a function under all repos in ~/devel."""
     args = docopt(__doc__)
@@ -82,7 +87,7 @@ def main():
     function = repo_functions[commands[0]]
     repo_dir = os.path.expanduser("~/devel")
     contents = [os.path.join(repo_dir, f) for f in os.listdir(repo_dir)]
-    repos = [f for f in contents if os.path.isdir(f)]
+    repos = [f for f in contents if is_git_repo(f)]
     curdir = os.getcwd()
     for_each_repo(repos, function)
     os.chdir(curdir)
