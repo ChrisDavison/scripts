@@ -31,8 +31,8 @@ def get_num_modified_and_untracked():
 
     out = subprocess.run(
         ["git", "ls-files", "--others", "--exclude-standard"], stdout=subprocess.PIPE
-    ).stdout.decode(encoding="UTF-8").strip()
-    n_untracked = len(out.split("\n")) - 1
+    ).stdout.decode(encoding="UTF-8").strip().split("\n")
+    n_untracked = len(out) if out != [""] else 0
 
     if n_untracked and n_modified:
         return f"HEAD [modified {n_modified}, untracked {n_untracked}]"
