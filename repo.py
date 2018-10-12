@@ -4,7 +4,10 @@
 Run repo functions across multiple repos in parallel.
 
 Usage:
-    repo fetch|stat|bstat
+    repo <command> [-h|--help]
+
+Options:
+    -h --help     Show this help message
 
 Commands:
     fetch   Fetch all repos
@@ -13,13 +16,9 @@ Commands:
 """
 import os
 import subprocess
+from collections import namedtuple
 from multiprocessing import Pool
 from docopt import docopt
-
-
-def print_with_underline(message, underline_char="="):
-    """Print a message with a underline of equal length"""
-    print(f"{message}\n{underline_char * len(message)}")
 
 
 def run_on_git(*args):
@@ -39,7 +38,7 @@ def fetch(repo):
         for line in output.split("\n")
         if not line.startswith("Fetching") and not line == ""
     ]
-    return repo, filtered
+    return os.path.basename(repo), filtered
 
 
 def stat(repo):
@@ -47,28 +46,17 @@ def stat(repo):
     os.chdir(repo)
     output = run_on_git("status", "-s", "-b")
     filtered = output if len(output.split("\n")) > 2 else None
-    return repo, filtered
+    return os.path.basename(repo), filtered
 
 
 def bstat(repo):
     """Get short status of all branches, only showing if unclean."""
     os.chdir(repo)
     output = run_on_git("branchstat")
-    filtered = None
     for word in ["ahead", "behind", "modified", "untracked"]:
         if word in output:
-            filtered = output
-            break
-    return repo, filtered
-
-
-def for_each_repo(repos, function):
-    """Run a function across every repo."""
-    outputs = Pool().map(function, repos)
-    for path, status in sorted(outputs):
-        if status:
-            print_with_underline(os.path.basename(path))
-            print(status)
+            return os.path.basename(repo), output
+    return None, None
 
 
 def is_git_repo(path):
@@ -79,17 +67,23 @@ def is_git_repo(path):
 def main():
     """Run a function under all repos in ~/devel."""
     args = docopt(__doc__)
-    repo_functions = { "fetch": fetch, "stat": stat, "bstat": bstat }
-    commands = [command for command, status in args.items() if status]
-    assert (
-        len(commands) == 1
-    ), f"Ambiguous command.  Must be one of {repo_functions.keys()}"
-    function = repo_functions[commands[0]]
-    repo_dir = os.path.expanduser("~/devel")
-    contents = [os.path.join(repo_dir, f) for f in os.listdir(repo_dir)]
-    repos = [f for f in contents if is_git_repo(f)]
+    Command = namedtuple("Command", ["function", "short"])
+    command = {
+        "fetch": Command(function=fetch, short=False),
+        "bstat": Command(function=bstat, short=True),
+        "stat": Command(function=stat, short=False)
+    }[args["<command>"]]
     curdir = os.getcwd()
-    for_each_repo(repos, function)
+    os.chdir(os.path.expanduser("~/devel"))
+    repos = [os.path.join(os.getcwd(), f) for f in os.listdir() if is_git_repo(f)]
+    outputs = Pool().map(command.function, repos)
+    with_status = list(filter(lambda x: x[1], outputs))
+    path_lens = list(map(lambda output: len(output[0]), with_status))
+    longest_path = max(path_lens) if path_lens else 0
+    # If we want short output, replace newline with pipe (i.e. shunt status right)
+    spacing = " | " if command.short else "\n"
+    for path, status in sorted(with_status):
+        print(f"{path:{longest_path}}{spacing}{status.strip()}{spacing}")
     os.chdir(curdir)
 
 
