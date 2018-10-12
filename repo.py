@@ -79,11 +79,13 @@ def main():
     outputs = Pool().map(command.function, repos)
     with_status = list(filter(lambda x: x[1], outputs))
     path_lens = list(map(lambda output: len(output[0]), with_status))
-    longest_path = max(path_lens) if path_lens else 0
+    stat_lens = list(map(lambda output: len(output[1]), with_status))
+    longest_path = max(path_lens) if path_lens else 1
+    longest_stat = max(stat_lens)-1 if stat_lens and command.short else 1
     # If we want short output, replace newline with pipe (i.e. shunt status right)
     spacing = " | " if command.short else "\n"
     for path, status in sorted(with_status):
-        print(f"{path:{longest_path}}{spacing}{status.strip()}{spacing}")
+        print(f"{path:{longest_path}}{spacing}{status.strip():{longest_stat}}{spacing}")
     os.chdir(curdir)
 
 
