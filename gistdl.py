@@ -3,6 +3,7 @@ import re
 import os
 from argparse import ArgumentParser
 import requests
+import youtubedl
 
 
 RX_LINK_MATCHER = re.compile(r"\[(.*?)\]\((.*?)\)")
@@ -24,25 +25,29 @@ def get_markdown_links_from_gist(gist_url):
     return {l[0]: l[1] for l in link_groups}
 
 
-def check_files_needing_downloaded(download_dir, gist_url):
-    entries = get_markdown_links_from_gist(gist_url)
-    in_gist = {slugify(entry).lower() for entry in entries}
-    filenames = {os.path.splitext(f)[0] for f in os.listdir(download_dir)}
-    in_dir = {slugify(fname).lower() for fname in filenames}
-    # Find files in the gist, but not yet downloaded
-    needing_downloaded = in_gist - in_dir
+def get_directory_contents(directory):
+    filenames = {os.path.splitext(f)[0] for f in os.listdir(directory)}
+    return {slugify(fname).lower() for fname in filenames}
+
+
+def compare_links_and_directory(links, directory):
+    links_as_filenames = {slugify(title).lower(): title for title in links}
+    filenames = get_directory_contents(directory)
+    needing_downloaded = set(links_as_filenames.keys()) - filenames
     if needing_downloaded:
         print("Need to download:")
         for entry in needing_downloaded:
             print("\t", entry)
     # Find files in the directory, but not in the gist
     # (if you want to keep the contents mirrored)
-    needing_added_to_gist = in_dir - in_gist
+    needing_added_to_gist = filenames - set(links_as_filenames.keys())
     if needing_added_to_gist:
         print("Need to update gist (potentially):")
         for entry in needing_added_to_gist:
             print("\t", entry)
-    return 
+    return {title:url for title, url in links.items() if
+            slugify(title).lower() in needing_downloaded}
+
 
 
 if __name__ == '__main__':
@@ -51,6 +56,9 @@ if __name__ == '__main__':
     parser.add_argument("DIRECTORY")
     parser.add_argument("--dl", help="Actually download missing files", action="store_true")
     args = parser.parse_args()
-    check_files_needing_downloaded(args.DIRECTORY, args.GIST)
+    links = get_markdown_links_from_gist(args.GIST)
+    needing_downloaded = compare_links_and_directory(links, args.DIRECTORY)
     if args.dl:
-        print("IMPLEMENT DOWNLOAD")
+        for title, url in needing_downloaded.items():
+            fn_out = os.path.join(args.DIRECTORY, slugify(title))
+            youtubedl.download(url, filename=fn_out)
