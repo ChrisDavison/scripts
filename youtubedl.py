@@ -7,6 +7,7 @@ import re
 
 
 DOWNLOAD_DIR = os.path.expanduser("~/Downloads")
+DEFAULT_FILENAME = "%(title)s-%(id)s-%(format_id)s.%(ext)s"
 
 
 def trim_url_to_video_only(url):
@@ -20,46 +21,51 @@ def trim_url_to_video_only(url):
     return no_t_or_list_or_index
 
 
-def download(url, *, audio_only=False, filename=None):
-    """Download video or audio from YouTube.
+def download_video(url, filename=DEFAULT_FILENAME):
+    """Download video from YouTube.
+    The url will be cleaned of timestamp, playlist, and playlist index.
 
     Arguments:
-        URL -- link to a youtube video.  Playlist hash & index, and timestamp, will be removed.
-
-    Keyword Arguments:
-        audio_only -- only download the audio
-        prefix -- string prefix to prepend to filename (e.g. if you want the video author)
+        URL -- link to a youtube video.
+        Filename -- Filename to save the video to.
     """
-    filename_out = "%(title)s-%(id)s-%(format_id)s.%(ext)s"
-    if filename:
-        filename_out = f"{filename}.%(ext)s"
-    arglists = {
-        "audio": [
-            "youtube-dl",
-            "--prefer-ffmpeg",
-            "-f",
-            "171/251/140/bestaudio",
-            "--extract-audio",
-            "--audio-format",
-            "mp3",
-            "--audio-quality",
-            "0",
-            "-o",
-            filename_out,
-        ],
-        "video": [
-            "youtube-dl",
-            "-f",
-            "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best",
-            "--merge-output-format",
-            "mp4",
-            "-o",
-            filename_out,
-        ],
-    }
-    args = arglists["audio"] if audio_only else arglists["video"]
-    args.append(trim_url_to_video_only(url))
-    subprocess.check_call(args)
+    args = [
+        "youtube-dl",
+        "-f",
+        "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best",
+        "--merge-output-format",
+        "mp4",
+        "-o",
+        filename,
+        trim_url_to_video_only(url),
+    ]
+    return subprocess.check_call(args)
+
+
+def download_audio(url, filename=DEFAULT_FILENAME):
+    """Download audio from a YouTube video.
+
+    The url will be cleaned of timestamp, playlist, and playlist index.
+
+    Arguments:
+        URL -- Link to a youtube video.
+        Filename -- Filename to save the audio to.
+    """
+    args = [
+        "youtube-dl",
+        "--prefer-ffmpeg",
+        "-f",
+        "171/251/140/bestaudio",
+        "--extract-audio",
+        "--audio-format",
+        "mp3",
+        "--audio-quality",
+        "0",
+        "-o",
+        filename,
+        trim_url_to_video_only(url)
+    ]
+    return subprocess.check_call(args)
 
 
 def main():
@@ -69,8 +75,14 @@ def main():
     parser.add_argument("--filename", required=False)
     parser.add_argument("URL", nargs='+')
     args = parser.parse_args()
+    downloader = download_video
+    if args.audio_only:
+        downloader = download_audio
+    filename = DEFAULT_FILENAME
+    if args.filename:
+        filename = f"{args.filename}.%(ext)s"
     for url in args.URL:
-        download(url, audio_only=args.audio_only, filename=args.filename)
+        downloader(url, filename)
 
 
 if __name__ == "__main__":
