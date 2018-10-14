@@ -1,17 +1,17 @@
 #!/usr/bin/env python
+"""Simple wrapper to remove file extension.
+
+Mainly to avoid using bash for removing file extensions.
+
+usage: noext <filename>...
+"""
 import os
 import sys
 
 
-def main(filenames):
-    for filename in filenames:
-        fn, _ = os.path.splitext(filename)
-        print(fn)
-    
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("usage: noext <filename>...")
     else:
-        filenames = sys.argv[1:]
-        main(filenames)
+        for filename in sys.argv[1:]:
+            print(os.path.splitext(filename)[0])

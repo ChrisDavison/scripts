@@ -16,7 +16,7 @@ def get_branch_aheadbehind():
     decoded = cmd.stdout.decode(encoding="UTF-8").strip()
     branches_with_changes = []
     for line in decoded.split("\n"):
-        tidied = line.strip("\"").strip()
+        tidied = line.strip('"').strip()
         if len(tidied.split(" ")) > 1:
             branches_with_changes.append(tidied)
     return ", ".join(branches_with_changes)
@@ -24,14 +24,22 @@ def get_branch_aheadbehind():
 
 def get_num_modified_and_untracked():
     """Count number of untracked and modified files in repo"""
-    out = subprocess.run(
-        ["git", "diff", "--stat"], stdout=subprocess.PIPE
-    ).stdout.decode(encoding="UTF-8").strip()
+    out = (
+        subprocess.run(["git", "diff", "--stat"], stdout=subprocess.PIPE)
+        .stdout.decode(encoding="UTF-8")
+        .strip()
+    )
     n_modified = len(out.split("\n")) - 1
 
-    out = subprocess.run(
-        ["git", "ls-files", "--others", "--exclude-standard"], stdout=subprocess.PIPE
-    ).stdout.decode(encoding="UTF-8").strip().split("\n")
+    out = (
+        subprocess.run(
+            ["git", "ls-files", "--others", "--exclude-standard"],
+            stdout=subprocess.PIPE,
+        )
+        .stdout.decode(encoding="UTF-8")
+        .strip()
+        .split("\n")
+    )
     n_untracked = len(out) if out != [""] else 0
 
     if n_untracked and n_modified:
