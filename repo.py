@@ -25,8 +25,9 @@ def run_on_git(*args):
     """Run a git subprocess with the given args"""
     git_args = ["git"]
     git_args.extend(args)
-    return subprocess.run(git_args, stdout=subprocess.PIPE
-    ).stdout.decode(encoding="UTF-8") 
+    return subprocess.run(git_args, stdout=subprocess.PIPE).stdout.decode(
+        encoding="UTF-8"
+    )
 
 
 def fetch(repo):
@@ -71,7 +72,7 @@ def main():
     command = {
         "fetch": Command(function=fetch, short=False),
         "bstat": Command(function=bstat, short=True),
-        "stat": Command(function=stat, short=False)
+        "stat": Command(function=stat, short=False),
     }[args["<command>"]]
     curdir = os.getcwd()
     os.chdir(os.path.expanduser("~/devel"))
@@ -81,7 +82,7 @@ def main():
     path_lens = list(map(lambda output: len(output[0]), with_status))
     stat_lens = list(map(lambda output: len(output[1]), with_status))
     longest_path = max(path_lens) if path_lens else 1
-    longest_stat = max(stat_lens)-1 if stat_lens and command.short else 1
+    longest_stat = max(stat_lens) - 1 if stat_lens and command.short else 1
     # If we want short output, replace newline with pipe (i.e. shunt status right)
     spacing = " | " if command.short else "\n"
     for path, status in sorted(with_status):

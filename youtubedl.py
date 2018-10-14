@@ -63,7 +63,7 @@ def download_audio(url, filename=DEFAULT_FILENAME):
         "0",
         "-o",
         filename,
-        trim_url_to_video_only(url)
+        trim_url_to_video_only(url),
     ]
     return subprocess.check_call(args)
 
@@ -73,7 +73,7 @@ def main():
     parser = argparse.ArgumentParser("youtubedl")
     parser.add_argument("--audio-only", required=False, action="store_true")
     parser.add_argument("--filename", required=False)
-    parser.add_argument("URL", nargs='+')
+    parser.add_argument("URL", nargs="+")
     args = parser.parse_args()
     downloader = download_video
     if args.audio_only:

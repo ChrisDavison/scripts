@@ -9,13 +9,13 @@ import youtubedl
 RX_LINK_MATCHER = re.compile(r"\[(.*?)\]\((.*?)\)")
 
 
-def slugify(filename, keepcharacters=' ._-'):
+def slugify(filename, keepcharacters=" ._-"):
     fn_out = ""
-    for letter in filename.replace(' ', '-'):
+    for letter in filename.replace(" ", "-"):
         if letter.isalnum() or letter in keepcharacters:
             fn_out += letter
         else:
-            fn_out += '-'    
+            fn_out += "-"
     return re.sub("-+", "-", fn_out)
 
 
@@ -45,16 +45,20 @@ def compare_links_and_directory(links, directory):
         print("Need to update gist (potentially):")
         for entry in needing_added_to_gist:
             print("\t", entry)
-    return {title:url for title, url in links.items() if
-            slugify(title).lower() in needing_downloaded}
+    return {
+        title: url
+        for title, url in links.items()
+        if slugify(title).lower() in needing_downloaded
+    }
 
 
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     parser = ArgumentParser("gistdl", description="GIST markdown link downloader")
     parser.add_argument("GIST")
     parser.add_argument("DIRECTORY")
-    parser.add_argument("--dl", help="Actually download missing files", action="store_true")
+    parser.add_argument(
+        "--dl", help="Actually download missing files", action="store_true"
+    )
     args = parser.parse_args()
     links = get_markdown_links_from_gist(args.GIST)
     needing_downloaded = compare_links_and_directory(links, args.DIRECTORY)
