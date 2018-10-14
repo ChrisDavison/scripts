@@ -5,13 +5,14 @@ import os
 import argparse
 import re
 
+
 DOWNLOAD_DIR = os.path.expanduser("~/Downloads")
 
 
 def trim_url_to_video_only(url):
     """Remove any timestamping, indexing, and playlist info from youtube URL."""
     re_timestamp = re.compile(r"&t=\d+s")
-    re_playlist = re.compile(r"&list=[a-zA-Z0-9_]{34}")
+    re_playlist = re.compile(r"&list=[a-zA-Z0-9_]+")
     re_index = re.compile(r"&index=\d+")
     no_t = re_timestamp.sub("", url)
     no_t_or_list = re_playlist.sub("", no_t)
@@ -29,7 +30,6 @@ def download(url, *, audio_only=False, filename=None):
         audio_only -- only download the audio
         prefix -- string prefix to prepend to filename (e.g. if you want the video author)
     """
-    tidied_url = trim_url_to_video_only(url)
     filename_out = "%(title)s-%(id)s-%(format_id)s.%(ext)s"
     if filename:
         filename_out = f"{filename}.%(ext)s"
@@ -58,7 +58,7 @@ def download(url, *, audio_only=False, filename=None):
         ],
     }
     args = arglists["audio"] if audio_only else arglists["video"]
-    args.append(tidied_url)
+    args.append(trim_url_to_video_only(url))
     subprocess.check_call(args)
 
 
