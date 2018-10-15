@@ -36,6 +36,20 @@ def get_modified_status():
     return ""
 
 
+def get_staged_status():
+    """Count number of staged files in repo."""
+    out = (
+        subprocess.run(["git", "diff", "--stat", "--cached"], stdout=subprocess.PIPE)
+        .stdout.decode(encoding="UTF-8")
+        .strip()
+    )
+    n_staged = len(out.split("\n")) - 1
+    if n_staged:
+        return f"staged {n_staged}"
+    return ""
+
+
+
 def get_untracked_status():
     """Count number of untracked files in repo."""
     out = (
@@ -58,4 +72,5 @@ if __name__ == "__main__":
         get_branches_aheadbehind_status(),
         get_modified_status(),
         get_untracked_status(),
+        get_staged_status(),
     ]).strip(", "))

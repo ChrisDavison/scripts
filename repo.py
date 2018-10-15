@@ -94,7 +94,7 @@ def bstat(repo):
     """Get short status of all branches, only showing if unclean."""
     os.chdir(repo)
     output = run_on_git("branchstat")
-    for word in ["ahead", "behind", "modified", "untracked"]:
+    for word in ["ahead", "behind", "modified", "untracked", "staged"]:
         if word in output:
             return GitBstatOutput(os.path.basename(repo), output.strip())
     return GitBstatOutput()
