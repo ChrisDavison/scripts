@@ -18,19 +18,19 @@ import os
 import sys
 import subprocess
 import contextlib
-from dataclasses import dataclass
 from multiprocessing import Pool
 from docopt import docopt
 
 
-@dataclass
 class GitOutput:
     """GitOutput represents the output of a command ran on a repo."""
-    repo: str = None
-    status: str = None
-    path_width: int = 1
-    status_width: int = 1
-    def __str__(self):
+    def __init__(self, *, repo=None, status=None):
+        self.repo = repo
+        self.status = status
+        self.path_width = 1
+        self.status_width = 1
+
+    def __repr__(self):
         """Return string representation of a Git command output"""
         return f"{self.repo}\n{self.status}\n"
 
@@ -40,10 +40,9 @@ class GitOutput:
         self.status_width = status
 
 
-@dataclass
 class GitBstatOutput(GitOutput):
     """GitBstatOutput represents the output of a branchstat command ran on a repo."""
-    def __str__(self):
+    def __repr__(self):
         """Overload the __str__ function to provide inline output."""
         return f"{self.repo:{self.path_width}} | {self.status:{self.status_width}} |"
 
@@ -78,7 +77,7 @@ def fetch(repo):
         for line in output.split("\n")
         if not line.startswith("Fetching") and not line == ""
     ]
-    return GitOutput(os.path.basename(repo), "\n".join(filtered).strip())
+    return GitOutput(repo=os.path.basename(repo), status="\n".join(filtered).strip())
 
 
 def stat(repo):
@@ -86,7 +85,7 @@ def stat(repo):
     os.chdir(repo)
     output = run_on_git("status", "-s", "-b")
     if len(output.split("\n")) > 2:
-        return GitOutput(repo, output.strip())
+        return GitOutput(repo=repo, status=output.strip())
     return GitOutput()
 
 
@@ -96,7 +95,7 @@ def bstat(repo):
     output = run_on_git("branchstat")
     for word in ["ahead", "behind", "modified", "untracked", "staged"]:
         if word in output:
-            return GitBstatOutput(os.path.basename(repo), output.strip())
+            return GitBstatOutput(repo=os.path.basename(repo), status=output.strip())
     return GitBstatOutput()
 
 
