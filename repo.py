@@ -78,7 +78,7 @@ def fetch(repo):
         for line in output.split("\n")
         if not line.startswith("Fetching") and not line == ""
     ]
-    return GitOutput(os.path.basename(repo), filtered.strip())
+    return GitOutput(os.path.basename(repo), "\n".join(filtered).strip())
 
 
 def stat(repo):
