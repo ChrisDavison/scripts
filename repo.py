@@ -18,6 +18,7 @@ import os
 import sys
 import subprocess
 import contextlib
+from pathlib import Path
 from multiprocessing import Pool
 from docopt import docopt
 
@@ -70,38 +71,38 @@ def run_on_git(*args):
 
 def fetch(repo):
     """Fetch all repos, showing only if something has fetched."""
-    os.chdir(repo)
-    output = run_on_git("fetch", "--all")
-    filtered = [
-        line
-        for line in output.split("\n")
-        if not line.startswith("Fetching") and not line == ""
-    ]
-    return GitOutput(repo=os.path.basename(repo), status="\n".join(filtered).strip())
+    with working_directory(repo):
+        output = run_on_git("fetch", "--all")
+        filtered = [
+            line
+            for line in output.split("\n")
+            if not line.startswith("Fetching") and not line == ""
+        ]
+        return GitOutput(repo=repo.name, status="\n".join(filtered).strip())
 
 
 def stat(repo):
     """Get long status of current branch, only showing if unclean."""
-    os.chdir(repo)
-    output = run_on_git("status", "-s", "-b")
-    if len(output.split("\n")) > 2:
-        return GitOutput(repo=repo, status=output.strip())
-    return GitOutput()
+    with working_directory(repo):
+        output = run_on_git("status", "-s", "-b")
+        if len(output.split("\n")) > 2:
+            return GitOutput(repo=repo, status=output.strip())
+        return GitOutput()
 
 
 def bstat(repo):
     """Get short status of all branches, only showing if unclean."""
-    os.chdir(repo)
-    output = run_on_git("branchstat")
-    for word in ["ahead", "behind", "modified", "untracked", "staged"]:
-        if word in output:
-            return GitBstatOutput(repo=os.path.basename(repo), status=output.strip())
-    return GitBstatOutput()
+    with working_directory(repo):
+        output = run_on_git("branchstat")
+        for word in ["ahead", "behind", "modified", "untracked", "staged"]:
+            if word in output:
+                return GitBstatOutput(repo=os.path.basename(repo), status=output.strip())
+        return GitBstatOutput()
 
 
 def is_git_repo(path):
     """Check if a path is a directory AND contains a .git subdir."""
-    return os.path.isdir(path) and os.path.exists(os.path.join(path, ".git"))
+    return path.is_dir() and (path / ".git").exists()
 
 
 def main():
@@ -117,8 +118,8 @@ def main():
         print(__doc__)
         sys.exit(1)
     command = commands[args["<command>"]]
-    with working_directory(os.path.expanduser("~/devel")):
-        repos = [os.path.join(os.getcwd(), f) for f in os.listdir() if is_git_repo(f)]
+    with working_directory(Path.home() / "devel"):
+        repos = list(filter(is_git_repo, Path.cwd().glob('*')))
         outputs = Pool().map(command, repos)
         with_status = list(filter(lambda x: x.status, outputs))
         longest_path, longest_stat = 1, 1
