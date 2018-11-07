@@ -16,11 +16,16 @@ contents = p.read_text().splitlines()
 quotes = [l for l in contents if not l.startswith('---')]
 
 quote = random.choice(quotes)
+author = ""
+if ' -- ' in quote:
+    quote, author = quote.split(' -- ')
 
 border = '+%s+\n| %-60s |' % (('-'*62), '')
 
 print(border)
 for line in textwrap.wrap(quote, 60):
     print('| %-60s |' % line)
+if author:
+    print('| %-60s |' % ('-- ' + author))
 print(border[::-1])
 
