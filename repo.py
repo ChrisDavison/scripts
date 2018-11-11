@@ -14,17 +14,19 @@ Commands:
     stat    Show long status of current branch
     bstat   Show short branch status of all branches
 """
-import os
-import sys
-import subprocess
 import contextlib
-from pathlib import Path
+import os
+import subprocess
+import sys
 from multiprocessing import Pool
+from pathlib import Path
+
 from docopt import docopt
 
 
 class GitOutput:
     """GitOutput represents the output of a command ran on a repo."""
+
     def __init__(self, *, repo=None, status=None):
         self.repo = repo
         self.status = status
@@ -43,6 +45,7 @@ class GitOutput:
 
 class GitBstatOutput(GitOutput):
     """GitBstatOutput represents the output of a branchstat command ran on a repo."""
+
     def __repr__(self):
         """Overload the __str__ function to provide inline output."""
         return f"{self.repo:{self.path_width}} | {self.status:{self.status_width}} |"
@@ -64,9 +67,7 @@ def run_on_git(*args):
     """Run a git subprocess with the given args"""
     git_args = ["git"]
     git_args.extend(args)
-    return subprocess.run(git_args, stdout=subprocess.PIPE).stdout.decode(
-        encoding="UTF-8"
-    )
+    return subprocess.run(git_args, stdout=subprocess.PIPE).stdout.decode(encoding="UTF-8")
 
 
 def fetch(repo):
@@ -108,18 +109,14 @@ def is_git_repo(path):
 def main():
     """Run a function under all repos in ~/devel."""
     args = docopt(__doc__)
-    commands = {
-        "fetch": fetch,
-        "bstat": bstat,
-        "stat": stat,
-    }
+    commands = {"fetch": fetch, "bstat": bstat, "stat": stat}
     if args["<command>"] not in commands.keys():
         print(f"Invalid command `{args['<command>']}`\n")
         print(__doc__)
         sys.exit(1)
     command = commands[args["<command>"]]
     with working_directory(Path.home() / "devel"):
-        repos = list(filter(is_git_repo, Path.cwd().glob('*')))
+        repos = list(filter(is_git_repo, Path.cwd().glob("*")))
         outputs = Pool().map(command, repos)
         with_status = list(filter(lambda x: x.status, outputs))
         longest_path, longest_stat = 1, 1
