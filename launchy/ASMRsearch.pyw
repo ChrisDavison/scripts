@@ -1,10 +1,12 @@
 #!/usr/bin/env python
 import sys
 import webbrowser
+from pathlib import Path
+
 import requests
 from PyQt5 import QtCore, QtGui, QtWidgets
 
-GIST = "https://gist.githubusercontent.com/ChrisDavison/ffe8159d49b0a9c490375db7fcb9df3f/raw/d0f4b6a025b1d002082e5c0ddd328daa7e7035a9/asmr.md"
+FNAME = Path("E:\\Dropbox\\.asmr.md").resolve()
 
 
 WIDTH, HEIGHT = 300, 30  # Element geometry
@@ -40,7 +42,7 @@ class Ui_ASMRSearch(object):
         self.buttonGo.setFixedSize(QtCore.QSize(B_WIDTH, B_HEIGHT))
         self.buttonGo.setObjectName("open")
         self.buttonGo.setText("Open")
-        
+
         ASMRSearch.setCentralWidget(self.centralwidget)
 
         self.retranslateUi(ASMRSearch)
@@ -72,7 +74,7 @@ class ASMRSearch(QtWidgets.QMainWindow):
             no_tail = no_lead.strip(')')
             return no_tail.split('](')
         contents = []
-        for line in requests.get(GIST).text.split('\n'):
+        for line in FNAME.read_bytes().decode('utf8').splitlines():
             if not line.startswith('- ['):
                 continue
             tidied = tidy(line)
