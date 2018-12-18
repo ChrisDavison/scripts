@@ -15,5 +15,3 @@ filetype = Path(sys.argv[1]).suffix
 if filetype in by_filetype:
     template = by_filetype[filetype]
     print(template.read_text())
-else:
-    print("No template found...")
