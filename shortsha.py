@@ -2,14 +2,12 @@
 """Get the sha256 hash of a file, up to a certain number of bytes."""
 import hashlib
 import sys
-from argparse import ArgumentParser
 
-if __name__ == "__main__":
-    parser = ArgumentParser("shortsha")
-    parser.add_argument("filename")
-    parser.add_argument("-n", help="Number of bytes", required=False, type=int)
-    args = parser.parse_args()
-    digest = hashlib.md5(open(args.filename, "rb").read()).hexdigest()
-    if args.n:
-        digest = digest[: args.n]
-    print(digest)
+if len(sys.argv) < 2:
+    print("usage: shortsha <file> [<N>]")
+    sys.exit(-1) 
+
+digest = hashlib.md5(open(sys.argv[1], "rb").read()).hexdigest()
+if len(sys.argv) > 2:
+    digest = digest[:int(sys.argv[2])]
+print(digest)
