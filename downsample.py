@@ -1,16 +1,32 @@
-from argparse import ArgumentParser
+"""Downsample a file
+
+usage:
+    downsample file col freq [--skipfirst]
+
+arguments:
+    file    File to downsample
+    col     Column with timestamps (0-indexed)
+    freq    New samplerate
+
+options:
+    --skipfirst   Skip the first row (e.g. header)
+"""
 from pathlib import Path
 
+from docopt import docopt
 import pandas as pd
 
-parser = ArgumentParser("downsample")
-parser.add_argument("file", help="File to downsample")
-parser.add_argument("col", help="Column with timestamps (0-indexed int)", type=int)
-parser.add_argument("freq", help="New samplerate")
-parser.add_argument("--skipfirst", action="store_true")
-args = parser.parse_args()
+args = docopt(__doc__)
 
-df = pd.read_csv(args.file, skiprows=1 if args.skipfirst else 0,  parse_dates=[args.col], nrows=300)
+df = pd.read_csv(args['file'],
+                 skiprows=1 if args['--skipfirst'] else 0,
+                 parse_dates=[args['col']],
+                 index_col=args['col'],
+                 nrows=300)
 print(df.head())
-resampled = df.set_index(df.columns[args.col]).resample(args.freq).agg(lambda x: x.iloc[0]).reset_index()
+
+resampled = df.columns[args['col']]
+    .resample(args['freq'])
+    .agg(lambda x: x.iloc[0])
+    .reset_index()
 print(resampled.head())
