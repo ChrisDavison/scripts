@@ -3,15 +3,8 @@ import os
 import sys
 from pathlib import Path
 
-direc = os.path.expanduser('~/.vim_file_templates')
-by_filetype = {Path(temp).suffix: temp
-        for temp in Path(direc).rglob('*')}
-
-if len(sys.argv) < 2:
-    sys.exit(-1)
-
-filetype = Path(sys.argv[1]).suffix
-
-if filetype in by_filetype:
-    template = by_filetype[filetype]
+ext = Path(sys.argv[1]).suffix
+templates = list(Path(os.path.expanduser("~/.vim_file_templates")).glob(f"*{ext}"))
+if templates:
+    template = templates[0]
     print(template.read_text())
