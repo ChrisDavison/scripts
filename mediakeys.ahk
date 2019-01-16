@@ -10,6 +10,7 @@
 +^Del::Send {Media_Prev}
 +^End::Send {Media_Next}
 +^Home::Send  {Media_Play_Pause}
+CapsLock::Esc
 
 ; UTILITY
 ^#!SPACE::WinSet, Alwaysontop, , A
