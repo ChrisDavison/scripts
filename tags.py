@@ -19,9 +19,13 @@ def get_tags_and_filenames(files):
     keyword = re.compile(b'#[a-zA-Z0-9]+')
 
     for filepath in files:
-        data = filepath.read_bytes()
-        m = keyword.findall(data)
-        if m:
+        data = filepath.read_bytes().splitlines()
+        if len(data) < 2:
+            print(filepath)
+            print(data)
+            continue
+        m = keyword.findall(data[-1])
+        if m and data[-1].startswith(b'`'):
             for word in m:
                 tags[word.decode('utf-8')[1:]].append(filepath)
 
