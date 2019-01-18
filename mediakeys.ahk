@@ -25,6 +25,7 @@ CapsLock::Esc
 return
 
 ; TEXT SUBSTITUTION
+::]pbd::https://pinboard.in/u:davison/<LEFT>
 ::]dd::   ; Insert 2019-01-01 16:40 (e.g. current date/time)
     FormatTime, Now,, yyyy-MM-dd HH:mm
     SendInput %Now%
@@ -36,22 +37,22 @@ return
 
 ; Move and resize windows
 ; (usually for shoving youtube into a bottom corner)
-^#Left::
-    Resize(480, 320)
-    Move("left", "bottom")
-return
-^#Right::
-    Resize(480, 320)
-    Move("right", "bottom")
-return
 ^#!Left::
-    Resize(320, 240)
+    Resize(480, 320)
     Move("left", "bottom")
 return
 ^#!Right::
-    Resize(320, 240)
+    Resize(480, 320)
     Move("right", "bottom")
 return
+; ^#!Left::
+;     Resize(320, 240)
+;     Move("left", "bottom")
+; return
+; ^#!Right::
+;     Resize(320, 240)
+;     Move("right", "bottom")
+; return
 ^SPACE::
     Resize(1024,768) 
     Center()
