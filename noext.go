@@ -3,6 +3,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"path"
 	"strings"
@@ -12,8 +13,7 @@ const usage = `"usage: noext <FILE>"`
 
 func main() {
 	if len(os.Args) < 2 {
-		fmt.Fprintln(os.Stderr, usage)
-		os.Exit(1)
+		log.Fatal(usage)
 	}
 	filename := os.Args[1]
 	fmt.Fprintln(os.Stdout, strings.TrimSuffix(filename, path.Ext(filename)))
