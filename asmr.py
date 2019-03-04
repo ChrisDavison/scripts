@@ -47,10 +47,9 @@ def add_to(entries, filename):
     fav = input("Fav [y/n]: ").lower()
     vid = input("Video ID: ")
     if len(vid) < 11:
-        print("Video hash must be >= 11 characters")
-        raise Errors.short_vid_hash
+        raise Exception("VidAddException: Video hash must be >= 11 characters")
     if any(True for e in entries if e["hash"] == vid):
-        raise Errors.vid_already_exists
+        raise Exception("VidAddException: Video already exists")
     new_vid = {
         "artist": artist,
         "title": title,
@@ -58,7 +57,7 @@ def add_to(entries, filename):
         "hash": vid,
     }
     entries.append(new_vid)
-    yaml.dump(entries, open(filename, "w", encoding="utf8"), indent=2)
+    json.dump(entries, open(filename, "w", encoding="utf8"), indent=2)
 
 
 def filter(query, entries):
@@ -67,7 +66,7 @@ def filter(query, entries):
         e for e in entries if q in e["title"].lower() or q in e["artist"].lower()
     ]
     if not matches:
-        raise Errors.no_vid
+        raise Exception("FilterException: No videos remain after filtering")
     return matches
 
 
