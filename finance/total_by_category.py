@@ -4,8 +4,20 @@ import datetime
 import os
 import sys
 
+usage = """usage: total_by_category.py [date]
+
+Date can be anything `YYYY-MM-DD`-like (will just search for this
+prefix on the line, rather than anything fancy)
+"""
+
+if '-h' in sys.argv[1:]:
+    print(usage)
+    sys.exit(0)
+
 fn = os.environ['FINANCEFILE']
-data = [line.strip().split(',') for line in open(fn) if line.startswith(sys.argv[1])]
+query = sys.argv[1] if len(sys.argv) > 1 else ''
+data = [line.strip().split(',') for line in open(fn)][1:]
+data = [line for line in data if line[0].startswith(query)]
 
 grouped_by_category = defaultdict(list)
 for row in data:
@@ -13,7 +25,7 @@ for row in data:
 
 widest_str = max(len(s[0]) for s in grouped_by_category.keys())
 
-print("{}".format(sys.argv[1]))
+print("{}".format(query))
 grand_tot, num_items = 0, 0
 for category, items in grouped_by_category.items():
     tot = sum(float(item[1]) for item in items)
