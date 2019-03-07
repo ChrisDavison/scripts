@@ -92,7 +92,7 @@ def open_in_browser(e):
 
 
 try:
-    parser = argparse.ArgumentParser("Open or add an asmr video")
+    parser = argparse.ArgumentParser("asmr")
     group = parser.add_mutually_exclusive_group()
     group.add_argument("-r", help="Open a random video", action="store_true")
     group.add_argument("-a", help="Add a video", action="store_true")
