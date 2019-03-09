@@ -1,0 +1,13 @@
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+        <meta http-equiv="content-type" content="text/html; charset=utf-8">
+        <title>Finances</title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    </head>
+    <body>
+        <h1 class='centered'><a href="/help">Finances</a></h1>
+        {{ content | safe }}
+    </body>
+</html>
+
