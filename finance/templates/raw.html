@@ -6,8 +6,9 @@
         <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     </head>
     <body>
-        <h1 class='centered'><a href="/help">Finances</a></h1>
-        {{ content | safe }}
+        <h1 id="grid-head" class='centered'><a href="/help">{{ title | title }}</a></h1>
+        <div id="grid-body">{{ content | safe }}</div>
+        <div id="grid-foot"><a href="/help">HELP</a></div>
     </body>
 </html>
 

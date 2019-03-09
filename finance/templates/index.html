@@ -6,29 +6,32 @@
         <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     </head>
     <body>
-        <h1 class='centered'><a href="/help">Finances</a></h1>
-        <div class='centered'>{{ extra_pre | safe }}</div>
-        <br>
-        <table>
-            <tr>
-                <th class='padd'>Y</th>
-                <th class='padd'>M</th>
-                <th class='padd border-right'>£</th>
-                <th>Category</th>
-                <th>Description</th>
-            </tr>
-        {% for _, row in finances.iterrows() %}
-            <tr>
-                <td class='padd'>{{ row.year }}</td>
-                <td class='padd'>{{ row.month }}</td>
-                <td class='padd border-right'>{{ row.cost }}</td>
-                <td>{{ row.category }}</td>
-                <td>{{ row.description | truncate(40) }}</td>
-            </tr>
-        {% endfor %}
-        </table>
-        <br>
-        <div class='centered'>{{ extra_post | safe }}</div>
+        <h1 id="grid-head" class='centered'><a href="/help">Finances</a></h1>
+        <div id="grid-body">
+            <div class='centered'>{{ extra_pre | safe }}</div>
+            <br>
+            <table>
+                <tr>
+                    <th class='padd'>Y</th>
+                    <th class='padd'>M</th>
+                    <th class='padd border-right'>£</th>
+                    <th>Category</th>
+                    <th>Description</th>
+                </tr>
+            {% for _, row in finances.iterrows() %}
+                <tr>
+                    <td class='padd'>{{ row.year }}</td>
+                    <td class='padd'>{{ row.month }}</td>
+                    <td class='padd border-right'>{{ row.cost }}</td>
+                    <td>{{ row.category }}</td>
+                    <td>{{ row.description | truncate(40) }}</td>
+                </tr>
+            {% endfor %}
+            </table>
+            <br>
+            <div class='centered'>{{ extra_post | safe }}</div>
+        </div>
+        <div id="grid-foot"><a href="/help">HELP</a></div>
     </body>
 </html>
 

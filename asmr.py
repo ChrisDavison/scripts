@@ -86,9 +86,11 @@ def format_entry(e):
     return f"{s}{e['artist']:20}{e['title']}{style.END}"
 
 
+def urlize(e):
+    return f"https://www.youtube.com/watch?v={e['hash']}"
+
 def open_in_browser(e):
-    url = f"https://www.youtube.com/watch?v={e['hash']}"
-    webbrowser.open(url)
+    webbrowser.open(urlize(e))
 
 
 try:
@@ -112,6 +114,7 @@ try:
     else:
         choice = choose(vids, args.r == True)
         print(format_entry(choice))
+        print(urlize(choice))
         open_in_browser(choice)
 except (EOFError, KeyboardInterrupt):
     print("\nNo video selected. Exiting...")

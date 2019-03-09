@@ -4,15 +4,31 @@ html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockq
 body {
     max-width: 800px;
     margin: 0 auto;
-    padding-top: 1em;
     font-size: 1.25em;
     background: rgba(249,249,249);
     color: rgba(55,55,55);
-}
+    display: grid;
+    grid-gap: 10px;
+    height: 100%;
+    grid-template-columns:1fr;
+    grid-template-areas: "nav" "main" "footer";
+    grid-template-rows: 80px 1fr 80px;}
+
+#grid-head { grid-area: nav; }
+#grid-body { grid-area: main; }
+#grid-foot { grid-area: footer; }
+
+
 h1 {
     font-size: 2em;
     font-weight: bold;
-    padding-bottom: 0.5em;
+    padding: 0.5em 0;
+}
+
+h2 {
+    padding: 0.5em 0;
+    font-weight: bold;
+    font-size: 1.5em;
 }
 strong {
     font-weight: bold;
@@ -47,9 +63,10 @@ tr:nth-child(even) {
 }
 ul {
     list-style: inside;
+    margin-left: 1em;
 }
 li li {
-    padding-left: 2em;
+    padding-left: 1em;
 }
 li {
     line-height: 1.5em;
@@ -60,11 +77,15 @@ code {
     font-weight: bold;
     font-size: 1.25em;
 }
+a code:hover {
+    color: #ffc000;
+}
 a {
     text-decoration: none;
     border-bottom: 1px dashed #00c0ff;
 }
 a:hover {
     text-decoration: none;
-    border-bottom: 1px solid #00c0ff;
+    color: #ffc000;
+    border-bottom: 1px solid #ffc000;
 }
