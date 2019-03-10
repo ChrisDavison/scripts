@@ -1,11 +1,31 @@
+"""
+## Views
+
+- `/` - view finances (with optional query params)
+    - `y=YYYY` e.g. [`/?y=2019`](/?y=2019)
+    - `m=MM` e.g. [`/?m=01`](/?m=01)
+    - `q=QUERY` e.g. [`/?q=twitch`](/?q=twitch)
+    - `cat=<CATEGORY>` (case-insensitive) e.g. [`/?cat=service`](/?cat=service)
+    - `json=1` - return the json representation of the main table
+- [`/categories`](/categories) - links to each unique category
+- [`/uniques`](/uniques) - links to each unique purchase
+- `/help` - this view
+
+## Modification
+
+- [`/add`](/add) - Add a new purchase
+
+---
+
+Like usual, GET queries can be chained together with `&` (e.g. [2019 services](/?cat=service&y=2019))
+"""
 import json
 import os
 import pandas as pd
 import sys
 from textwrap import dedent
 
-from flask import Flask, render_template, render_template_string, request
-from jinja2 import Template
+from flask import Flask, render_template, request
 from markdown import markdown
 
 app = Flask(__name__)
@@ -15,27 +35,7 @@ fn = os.environ['FINANCEFILE']
 @app.route("/h")
 @app.route("/help")
 def help():
-    content = markdown(dedent("""
-        ## Views
-
-        - `/` - view finances (with optional query params)
-            - `y=YYYY` e.g. [`/?y=2019`](/?y=2019)
-            - `m=MM` e.g. [`/?m=01`](/?m=01)
-            - `q=QUERY` e.g. [`/?q=twitch`](/?q=twitch)
-            - `cat=<CATEGORY>` (case-insensitive) e.g. [`/?cat=service`](/?cat=service)
-            - `json=1` - return the json representation of the main table
-        - [`/categories`](/categories) - links to each unique category
-        - [`/uniques`](/uniques) - links to each unique purchase
-        - `/help` - this view
-
-        ## Modification
-
-        - [`/add`](/add) - Add a new purchase
-
-        ---
-
-        Like usual, GET queries can be chained together with `&` (e.g. [2019 services](/?cat=service&y=2019))
-    """))
+    content = markdown(dedent(__doc__))
     return render_template("raw.html", content=content, title="Help")
 
 @app.route("/categories")
@@ -65,7 +65,6 @@ def filter():
     mm=request.args.get('m')
     cat=request.args.get('cat')
     query=request.args.get('q')
-    finances = finances
     if cat:
         cat_low = cat.lower()
         filter_cat_low = finances.category.apply(lambda x: x.lower())
@@ -77,12 +76,6 @@ def filter():
     if query:
         lowdesc = finances.description.apply(lambda x: x.lower())
         finances = finances[lowdesc.str.contains(query.lower())]
-
-    grouped = finances.groupby('category').agg('sum').sort_values(by='cost', ascending=False)
-    output = """
-    <br>{}<br>{}
-    """.format(finances.set_index('date').to_html(), grouped.to_html())
-
     total = markdown(f"**Total: £{grouped.cost.sum():.0f}**")
     if request.args.get('json'):
         ord=['date', 'cost', 'category', 'description']
