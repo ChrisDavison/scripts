@@ -4,6 +4,7 @@ import argparse
 import json
 import os
 import random
+import re
 import sys
 import webbrowser
 
@@ -36,6 +37,13 @@ class style:
     BG_White = "\033[47m"
 
 
+def parse_youtube_video(s):
+    m = re.search(".*?v=(.{11})", s)
+    if m:
+        return m.group(1)
+    return None
+
+
 def display(entries):
     for i, entry in enumerate(entries):
         print(f"{i:4} {format_entry(entry)}")
@@ -46,6 +54,8 @@ def add_to(entries, filename):
     title = input("Title: ")
     fav = input("Fav [y/n]: ").lower()
     vid = input("Video ID: ")
+    if vid.startswith('www.') or vid.startswith('http'):
+        vid = parse_youtube_video(vid)
     if len(vid) < 11:
         raise Exception("VidAddException: Video hash must be >= 11 characters")
     if any(True for e in entries if e["hash"] == vid):
