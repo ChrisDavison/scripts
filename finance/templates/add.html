@@ -7,7 +7,7 @@
     </head>
     <body>
         <h1 id="grid-head" class='centered'><a href="/help">{{ title | title }}</a></h1>
-        <form id="grid-body" action="{{ url_for('add') }}" method="post">
+        <form id="grid-body" action="{{ url_for('new') }}" method="post">
             <strong>Date: </strong><input type="text" name="date"></br>
             <strong>Cost: </strong><input type="number" name="cost" min="0" step="0.5"></br>
             <strong>Description: </strong><input type="text" name="description"></br>

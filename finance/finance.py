@@ -76,7 +76,7 @@ def filter():
     if query:
         lowdesc = finances.description.apply(lambda x: x.lower())
         finances = finances[lowdesc.str.contains(query.lower())]
-    total = markdown(f"**Total: £{grouped.cost.sum():.0f}**")
+    total = markdown(f"**Total: £{finances.cost.sum():.0f}**")
     if request.args.get('json'):
         ord=['date', 'cost', 'category', 'description']
         js = finances[ord].to_json(orient='records')
