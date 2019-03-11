@@ -109,10 +109,11 @@ try:
     group.add_argument("-r", help="Open a random video", action="store_true")
     group.add_argument("-a", help="Add a video", action="store_true")
     group.add_argument("-l", help="List videos", action="store_true")
+    group.add_argument("-f", help="List favourite videos", action="store_true")
     parser.add_argument("query", help="Query to filter by", nargs="?", default="")
     args = parser.parse_args()
 
-    filename = os.path.expanduser("~/Dropbox/asmr.json")
+    filename = os.path.expanduser("~/Dropbox/data/asmr.json")
     vids = json.load(open(filename, encoding="utf8"))
     vids = sorted(vids, key=lambda x: x["artist"])
     vids = filter(args.query, vids)
@@ -121,6 +122,8 @@ try:
         add_to(vids, filename)
     elif args.l:
         display(vids)
+    elif args.f:
+        display([v for v in vids if v['fav']])
     else:
         choice = choose(vids, args.r == True)
         print(format_entry(choice))
