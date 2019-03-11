@@ -2,27 +2,27 @@
     <head>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
         <meta http-equiv="content-type" content="text/html; charset=utf-8">
-        <title>Finances</title>
+        <title>Dashboard</title>
         <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     </head>
     <body>
-        <h1 id="grid-head" class='centered'><a href="/help">Finances</a></h1>
+        <h1 id="grid-head" class='centered'>Finances</h1>
         <div id="grid-body">
             <div class='centered'>{{ extra_pre | safe }}</div>
             <br>
             <table>
                 <tr>
-                    <th class='padd'>Y</th>
-                    <th class='padd'>M</th>
-                    <th class='padd border-right'>£</th>
+                    <th>Y</th>
+                    <th>M</th>
+                    <th class='border-right'>£</th>
                     <th>Category</th>
                     <th>Description</th>
                 </tr>
             {% for _, row in finances.iterrows() %}
                 <tr>
-                    <td class='padd'>{{ row.year }}</td>
-                    <td class='padd'>{{ row.month }}</td>
-                    <td class='padd border-right'>{{ row.cost }}</td>
+                    <td>{{ row.year }}</td>
+                    <td>{{ row.month }}</td>
+                    <td class='border-right'>{{ row.cost }}</td>
                     <td>{{ row.category }}</td>
                     <td>{{ row.description | truncate(40) }}</td>
                 </tr>

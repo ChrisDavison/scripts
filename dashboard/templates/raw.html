@@ -2,11 +2,11 @@
     <head>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
         <meta http-equiv="content-type" content="text/html; charset=utf-8">
-        <title>Finances</title>
+        <title>Dashboard</title>
         <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     </head>
     <body>
-        <h1 id="grid-head" class='centered'><a href="/help">{{ title | title }}</a></h1>
+        <h1 id="grid-head" class='centered'>{{ title | title }}</h1>
         <div id="grid-body">{{ content | safe }}</div>
         <div id="grid-foot"><a href="/help">HELP</a></div>
     </body>

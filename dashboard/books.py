@@ -1,26 +1,18 @@
-"""
-## Views
+"""## Books
 
-- [`/` - view books (with optional query params)](/)
+- [`/books/` (with optional query params)](/books/)
     - `r=0|1` Books that have been read
     - `genre=<GENRE>`
     - `s=<STATUS>`
     - `query=<QUERY>` - Search in title and author
-- [`/read`](/read)
-- [`/genres`](/genres)
-- [`/buy`](/buy)
-- [`/wip`](/wip)
-- [Next books?](/?status=Unread)
-
-## Utility categories
-
-- [Books to revisit/re-read](/?status=Re-Read)
-- [Possible statuses of books](/statuses)
-- `/help` - this view
-
-## Modification
-
-- [`/add`](/add) - Add a new purchase
+- [`/books/read`](/books/read)
+- [`/books/genres`](/books/genres)
+- [`/books/buy`](/books/buy)
+- [`/books/wip`](/books/wip)
+- [Books unread](/books/?status=Unread)
+- [Books to revisit/re-read](/books/?status=Re-Read)
+- [`/books/statuses` (reading)](/books/statuses)
+- [`/books/help`](/books/help) for this view
 """
 import json
 import os
@@ -31,12 +23,12 @@ from itertools import groupby
 from textwrap import dedent
 
 import dateutil
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, Blueprint
 from markdown import markdown
 
-app = Flask(__name__)
+books = Blueprint('books', __name__, template_folder='templates')
 
-fn = "/Users/davison/Dropbox/data/reading-list.json"
+fn = os.path.join(os.environ["DATADIR"], "reading-list.json")
 
 def get_books():
     books = json.load(open(fn))
@@ -62,47 +54,46 @@ def get_filtered_books(request):
         books = [b for b in books if b['Status'].lower() == status]
     if query:
         books = [b for b in books if any(query in b['Author'], query in b['Title'])]
-    return books
+    return sorted(books, key=lambda x: x['Read'])
 
 
-@app.route("/h")
-@app.route("/help")
-def help():
+@books.route("/books/help")
+def bookhelp():
     content = markdown(dedent(__doc__))
     return render_template("raw.html", content=content, title="Help")
 
 
-@app.route("/genres")
+@books.route("/books/genres")
 def genres():
     genres = sorted(set(b['Genre'] for b in get_books()))
     no_space = lambda x: x.replace(' ', '%20')
-    genres_as_list = "\n".join([f"- [{c}](/?genre={no_space(c)})" for c in genres])
+    genres_as_list = "\n".join([f"- [{c}](/books/?genre={no_space(c)})" for c in genres])
     formatted = markdown(dedent(genres_as_list))
     return render_template("raw.html", content=formatted, title="genres")
 
 
-@app.route("/statuses")
+@books.route("/books/statuses")
 def statuses():
     statuses = sorted(set(b['Status'] for b in get_books()))
     no_space = lambda x: x.replace(' ', '%20')
-    statuses_as_list = "\n".join([f"- [{c}](/?status={no_space(c)})" for c in statuses])
+    statuses_as_list = "\n".join([f"- [{c}](/books/?status={no_space(c)})" for c in statuses])
     formatted = markdown(dedent(statuses_as_list))
     return render_template("raw.html", content=formatted, title="Statuses")
 
 
-@app.route("/buy")
+@books.route("/books/buy")
 def buy():
     books = [b for b in get_filtered_books(request) if b['Status'] == 'Buy']
-    return render_template("index.html", books=books)
+    return render_template("books.html", books=books)
 
 
-@app.route("/wip")
+@books.route("/books/wip")
 def wip():
     books = [b for b in get_filtered_books(request) if b['Status'] == 'WIP']
-    return render_template("index.html", books=books)
+    return render_template("books.html", books=books)
 
 
-@app.route("/read")
+@books.route("/books/read")
 def read():
     books_by_date = defaultdict(list)
     for b in get_books():
@@ -115,7 +106,7 @@ def read():
     for date in sorted(books_by_date.keys()):
         books = books_by_date[date]
         out += f"\n\n## {date}\n"
-        out += "\n".join(f"- **{book['Title']}** by *{book['Author']}* ({book['Genre']}))"
+        out += "\n".join(f"- **{book['Title']}** by *{book['Author']}* ({book['Genre']})"
                 for book in sorted(books, key=lambda x: x['Title']))
         out += "<br>"
     print(out)
@@ -123,12 +114,12 @@ def read():
     return render_template("raw.html", content=formatted, title="Books read")
 
 
-@app.route("/")
+@books.route("/books/")
 def filter():
-    return render_template("index.html", books=get_filtered_books(request))
+    return render_template("books.html", books=get_filtered_books(request))
 
 
-@app.route("/new", methods=['POST'])
+@books.route("/books/new", methods=['POST'])
 def new():
     books = get_books()
     books.append({
@@ -139,9 +130,9 @@ def new():
         'Read': request.form['read']
     })
     json.dump(books, open(fn, 'w'), indent=2)
-    return render_template("index.html", books=books[-10:], extra_pre=f"Added: {request.form['title']} by {request.form['author']}")
+    return render_template("books.html", books=books[-10:], extra_pre=f"Added: {request.form['title']} by {request.form['author']}")
 
 
-@app.route("/add")
+@books.route("/books/add")
 def add():
     return render_template("add.html", title="Add a book")
