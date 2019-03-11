@@ -1,0 +1,37 @@
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+        <meta http-equiv="content-type" content="text/html; charset=utf-8">
+        <title>Finances</title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    </head>
+    <body>
+        <h1 id="grid-head" class='centered'><a href="/help">Books</a></h1>
+        <div id="grid-body">
+            <div class='centered'>{{ extra_pre | safe }}</div>
+            <br>
+            <table>
+                <tr>
+                    <th class='padd'>Title</th>
+                    <th class='padd'>Author</th>
+                    <th class='padd'>Genre</th>
+                    <th class='padd'>Status</th>
+                    <th class='padd'>Read</th>
+                </tr>
+            {% for book in books %}
+                <tr>
+                    <td class='padd'>{{ book['Title'] }}</td>
+                    <td class='padd'>{{ book['Author'] }}</td>
+                    <td class='padd'>{{ book['Genre'] }}</td>
+                    <td class='padd'>{{ book['Status'] }}</td>
+                    <td class='padd'>{{ book['Read'] }}</td>
+                </tr>
+            {% endfor %}
+            </table>
+            <br>
+            <div class='centered'>{{ extra_post | safe }}</div>
+        </div>
+        <div id="grid-foot"><a href="/help">HELP</a></div>
+    </body>
+</html>
+
