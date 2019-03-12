@@ -135,4 +135,4 @@ def new():
 
 @books.route("/books/add")
 def add():
-    return render_template("add.html", title="Add a book")
+    return render_template("add_book.html", title="Add a book")

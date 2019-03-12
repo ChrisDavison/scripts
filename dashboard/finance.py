@@ -96,4 +96,4 @@ def new():
 
 @finance.route("/finance/add")
 def add():
-    return render_template("add.html", title="Add a new purchase")
+    return render_template("add_expense.html", title="Add a new purchase")
