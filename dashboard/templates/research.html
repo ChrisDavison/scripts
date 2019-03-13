@@ -1,0 +1,33 @@
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+        <meta http-equiv="content-type" content="text/html; charset=utf-8">
+        <title>Dashboard</title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    </head>
+    <body>
+        <h1 id="grid-head" class='centered'>Research</h1>
+        <div id="grid-body">
+        {% for project in research %}
+        <div class='card'>
+            <div class='card-head'>
+                <strong>{{ project['Topic'] }}</strong>, by <em>{{ project['Lead Author'] }}</em> <span class='de-emph'>({{ project['Date'] }})</span>
+            </div>
+            <ul>
+            {% for note in project['Outline'] %}
+            <li>{{ note }}</li>
+            {% endfor %}
+            {% if project['Co-authors'] %}
+            <p class='de-emph'>
+            <br>
+            <em>Also: </em>
+            {{ project['Co-authors'] | sort | join(', ') }}
+            {% endif %}
+            </ul>
+        </div>
+        {% endfor %}
+        </div>
+        <div id="grid-foot"><a href="/help">HELP</a></div>
+    </body>
+</html>
+

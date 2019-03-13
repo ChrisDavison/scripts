@@ -85,3 +85,23 @@ a:hover {
     color: #ffc000;
     border-bottom: 1px solid #ffc000;
 }
+
+.card {
+    background: rgb(245,245,245);
+    border: 1px solid rgba(0,0,0,0.2);
+    box-shadow: 1px 1px 3px rgba(0,0,0,0.2);
+    border-radius: 1em;
+    margin: 1em;
+    padding: 1em;
+}
+
+.card-head {
+    border-bottom: 1px solid rgba(0,0,0,0.2);
+    padding-bottom: 0.5em;
+    margin-bottom: 0.5em;
+}
+
+.de-emph {
+    color: rgba(0,0,0,0.5);
+    font-variant: small-caps;
+}

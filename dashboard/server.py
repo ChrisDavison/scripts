@@ -15,10 +15,12 @@ from markdown import markdown
 
 import finance
 import books
+import research
 
 app = Flask(__name__)
 app.register_blueprint(books.books)
 app.register_blueprint(finance.finance)
+app.register_blueprint(research.bp_research)
 
 
 @app.route("/")
