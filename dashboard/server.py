@@ -2,6 +2,7 @@
 
 - [`/finance/`](/finance/), and [help for routes under `/finance/`](/finance/help)
 - [`/books`](/books/), and [help for routes under `/books/`](/books/help)
+- [`/research`](/research/)
 - `/help` - this view
 """
 import json
