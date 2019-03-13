@@ -31,7 +31,7 @@ def researchhelp():
 #     return render_template("raw.html", content=formatted, title="genres")
 
 
-@bp_research.route("/research")
+@bp_research.route("/research/")
 def research():
     fn = "~/Dropbox/data/research-summaries.json"
     projects = json.load(open(os.path.expanduser(fn), "r"))

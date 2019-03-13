@@ -1,9 +1,9 @@
 let books = document.querySelectorAll('.book-entry');
 
 const filter = () => {
-    let q_title = inp_book.valuetoLowerCase();
-    let q_genre = inp_genre.valuetoLowerCase();
-    let q_status = inp_status.valuetoLowerCase();
+    let q_title = inp_book.value.toLowerCase();
+    let q_genre = inp_genre.value.toLowerCase();
+    let q_status = inp_status.value.toLowerCase();
 
     for(let book of books) {
         book.style.display = "None";

@@ -116,7 +116,14 @@ def read():
 
 @books.route("/books/")
 def filter():
-    return render_template("books.html", books=get_filtered_books(request))
+    filtered = get_filtered_books(request)
+    categories = sorted(set([c['Genre'] for c in filtered]))
+    out = []
+    for category in categories:
+        books_for_cat = [b for b in filtered if b['Genre'] == category]
+        sorted_by_title = sorted(books_for_cat, key=lambda x: x['Title'])
+        out.extend(sorted_by_title)
+    return render_template("books.html", books=out)
 
 
 @books.route("/books/new", methods=['POST'])

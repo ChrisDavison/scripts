@@ -11,7 +11,7 @@
         {% for project in research %}
         <div class='card'>
             <div class='card-head'>
-                <strong>{{ project['Topic'] }}</strong>, by <em>{{ project['Lead Author'] }}</em> <span class='de-emph'>({{ project['Date'] }})</span>
+                <strong>{{ project['Topic'] }}</strong>, by <em>{{ project['Lead Author'] }}</em><br><span class='de-emph'>{{ project['Date'] }}</span>
             </div>
             <ul>
             {% for note in project['Outline'] %}
