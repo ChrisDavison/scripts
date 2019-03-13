@@ -122,13 +122,13 @@ def main():
         flags.add_argument("-a", help="Add a video", action="store_true")
         flags.add_argument("-l", help="List videos", action="store_true")
         flags.add_argument("-f", help="List favourite videos", action="store_true")
-        parser.add_argument("query", help="Query to filter by", nargs="?", default="")
+        parser.add_argument("query", help="Query to filter by", nargs="*", default="")
         args = parser.parse_args()
 
         filename = os.path.expanduser("~/Dropbox/data/asmr.json")
         vids = json.load(open(filename, encoding="utf8"))
         vids = sorted(vids, key=lambda x: x["artist"])
-        vids = filter(args.query, vids)
+        vids = filter(' '.join(args.query), vids)
 
         if args.a:
             add_to(vids, filename)
