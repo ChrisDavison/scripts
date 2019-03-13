@@ -67,8 +67,9 @@ def add_to(entries, filename):
     new_vid = {
         "artist": artist,
         "title": title,
-        "fav": True if fav[0] == "y" else False,
         "hash": vid,
+        "fav": True if fav[0] == "y" else False,
+        "broken": False
     }
     entries.append(new_vid)
     json.dump(entries, open(filename, "w", encoding="utf8"), indent=2)
@@ -122,6 +123,7 @@ def main():
         flags.add_argument("-a", help="Add a video", action="store_true")
         flags.add_argument("-l", help="List videos", action="store_true")
         flags.add_argument("-f", help="List favourite videos", action="store_true")
+        flags.add_argument("-b", help="List broken videos", action="store_true")
         parser.add_argument("query", help="Query to filter by", nargs="*", default="")
         args = parser.parse_args()
 
@@ -136,6 +138,8 @@ def main():
             display(vids)
         elif args.f:
             display([v for v in vids if v['fav']])
+        elif args.b:
+            display([v for v in vids if v['broken']])
         else:
             choice = choose(vids, args.r)
             print(format_entry(choice))
