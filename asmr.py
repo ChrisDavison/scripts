@@ -5,18 +5,19 @@ import json
 import os
 import random
 import re
-import sys
 import webbrowser
 
 
 class Errors(Enum):
+    """Enum for more descriptive error return values (sys.exit)"""
     none = 0
     no_vid = 1
     short_vid_hash = 2
     vid_already_exists = 3
 
 
-class style:
+class Style:
+    """Shortcuts to terminal styling escape sequences"""
     BOLD = "\033[1m"
     END = "\033[0m"
     FG_Black = "\033[30m"
@@ -37,19 +38,22 @@ class style:
     BG_White = "\033[47m"
 
 
-def parse_youtube_video(s):
-    m = re.search(".*?v=(.{11})", s)
-    if m:
-        return m.group(1)
+def parse_youtube_video(url):
+    """Take a youtube url and extract the video id hash"""
+    match = re.search(".*?v=(.{11})", url)
+    if match:
+        return match.group(1)
     return None
 
 
 def display(entries):
+    """For every asmr entry, display it's index and a pretty printed title"""
     for i, entry in enumerate(entries):
         print(f"{i:4} {format_entry(entry)}")
 
 
 def add_to(entries, filename):
+    """Give the user prompts to add a new asmr video to the backend file"""
     artist = input("Artist: ")
     title = input("Title: ")
     fav = input("Fav [y/n]: ").lower()
@@ -71,6 +75,7 @@ def add_to(entries, filename):
 
 
 def filter(query, entries):
+    """Filter videos based on a matching title or artist"""
     q = query.lower()
     matches = [
         e for e in entries if q in e["title"].lower() or q in e["artist"].lower()
@@ -81,6 +86,7 @@ def filter(query, entries):
 
 
 def choose(entries, get_random_video=False):
+    """Either prompt for a choice or return a random matching video"""
     choice = random.randint(0, len(entries) - 1)
     if not get_random_video:
         if len(entries) == 1:
@@ -91,45 +97,56 @@ def choose(entries, get_random_video=False):
     return entries[choice]
 
 
-def format_entry(e):
-    s = f"{style.BOLD}{style.FG_Red}" if e["fav"] else ""
-    return f"{s}{e['artist']:20}{e['title']}{style.END}"
+def format_entry(video):
+    """Pretty print an asmr video entry"""
+    s = f"{Style.BOLD}{Style.FG_Red}" if video["fav"] else ""
+    return f"{s}{video['artist']:20}{video['title']}{Style.END}"
 
 
-def urlize(e):
-    return f"https://www.youtube.com/watch?v={e['hash']}"
-
-def open_in_browser(e):
-    webbrowser.open(urlize(e))
+def urlize(video):
+    """Take an asmr video, and create a url from its hash"""
+    return f"https://www.youtube.com/watch?v={video['hash']}"
 
 
-try:
-    parser = argparse.ArgumentParser("asmr")
-    group = parser.add_mutually_exclusive_group()
-    group.add_argument("-r", help="Open a random video", action="store_true")
-    group.add_argument("-a", help="Add a video", action="store_true")
-    group.add_argument("-l", help="List videos", action="store_true")
-    group.add_argument("-f", help="List favourite videos", action="store_true")
-    parser.add_argument("query", help="Query to filter by", nargs="?", default="")
-    args = parser.parse_args()
+def open_in_browser(video):
+    """Use the default web browser to open ASMR video's url"""
+    webbrowser.open(urlize(video))
 
-    filename = os.path.expanduser("~/Dropbox/data/asmr.json")
-    vids = json.load(open(filename, encoding="utf8"))
-    vids = sorted(vids, key=lambda x: x["artist"])
-    vids = filter(args.query, vids)
 
-    if args.a:
-        add_to(vids, filename)
-    elif args.l:
-        display(vids)
-    elif args.f:
-        display([v for v in vids if v['fav']])
-    else:
-        choice = choose(vids, args.r == True)
-        print(format_entry(choice))
-        print(urlize(choice))
-        open_in_browser(choice)
-except (EOFError, KeyboardInterrupt):
-    print("\nNo video selected. Exiting...")
-except Exception as E:
-    print(E)
+def main():
+    """Run asmr video listing or choice"""
+    try:
+        parser = argparse.ArgumentParser("asmr")
+        flags = parser.add_mutually_exclusive_group()
+        flags.add_argument("-r", help="Open a random video", action="store_true")
+        flags.add_argument("-a", help="Add a video", action="store_true")
+        flags.add_argument("-l", help="List videos", action="store_true")
+        flags.add_argument("-f", help="List favourite videos", action="store_true")
+        parser.add_argument("query", help="Query to filter by", nargs="?", default="")
+        args = parser.parse_args()
+
+        filename = os.path.expanduser("~/Dropbox/data/asmr.json")
+        vids = json.load(open(filename, encoding="utf8"))
+        vids = sorted(vids, key=lambda x: x["artist"])
+        vids = filter(args.query, vids)
+
+        if args.a:
+            add_to(vids, filename)
+        elif args.l:
+            display(vids)
+        elif args.f:
+            display([v for v in vids if v['fav']])
+        else:
+            choice = choose(vids, args.r)
+            print(format_entry(choice))
+            print(urlize(choice))
+            open_in_browser(choice)
+    except (EOFError, KeyboardInterrupt):
+        print("\nNo video selected. Exiting...")
+    except Exception as E:
+        print(E)
+
+
+if __name__ == "__main__":
+    main()
+
