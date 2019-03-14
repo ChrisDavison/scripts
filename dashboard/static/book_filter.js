@@ -9,7 +9,7 @@ const filter = () => {
         book.style.display = "None";
         let matches_title =book.children[0].textContent.toLowerCase().includes(q_title);
         let matches_genre =book.children[1].textContent.toLowerCase().includes(q_genre);
-        let matches_status =book.children[2].textContent.toLowerCase().includes(q_status);
+        let matches_status =book.children[2].textContent.toLowerCase().startsWith(q_status);
 
         if (matches_title && matches_genre && matches_status) {
             book.style.display = "";
