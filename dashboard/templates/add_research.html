@@ -1,0 +1,54 @@
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+        <meta http-equiv="content-type" content="text/html; charset=utf-8">
+        <title>Dashboard</title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    </head>
+    <body>
+        <h1 id="grid-head" class='centered'>{{ title | title }}</h1>
+        <form id="grid-body" action="{{ url_for('research.new') }}" method="post">
+            <table>
+                <tr>
+                    <td><strong>Topic</strong></td>
+                    <td><input type="text" name="topic"></br></td>
+                </tr>
+                <tr>
+                    <td><strong>Date</strong></td>
+                    <td><input type="date" name="date"></br></td>
+                </tr>
+                <tr>
+                    <td><strong>Lead Author</strong></td>
+                    <td><input type="text" name="leadauthor"></br></td>
+                </tr>
+                <tr>
+                    <td><strong>Co-authors</strong></td>
+                    <td><input type="text" name="coauthor"></br></td>
+                </tr>
+                        <tr>
+                <td><strong>Bullet 1</strong></td>
+                <td><input type="text" name="bullet-1"></br></td>
+            </tr>
+            <tr>
+                <td><strong>Bullet 2</strong></td>
+                <td><input type="text" name="bullet-2"></br></td>
+            </tr>
+            <tr>
+                <td><strong>Bullet 3</strong></td>
+                <td><input type="text" name="bullet-3"></br></td>
+            </tr>
+            <tr>
+                <td><strong>Bullet 4</strong></td>
+                <td><input type="text" name="bullet-4"></br></td>
+            </tr>
+            <tr>
+                <td><strong>Bullet 5</strong></td>
+                <td><input type="text" name="bullet-5"></br></td>
+            </tr>
+            </table>
+            <input type="submit">
+        </form>
+        <div id="grid-foot"><a href="/help">HELP</a></div>
+    </body>
+</html>
+

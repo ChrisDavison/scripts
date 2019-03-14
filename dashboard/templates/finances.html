@@ -12,26 +12,23 @@
             <br>
             <table>
                 <tr>
-                    <td style='width: 10%'><input id="input_year"></input></td>
-                    <td style='width: 10%'><input id="input_month"></input></td>
+                    <td style='width: 10%'><input id="input_date"></input></td>
                     <td class='border-right'><span></span></td>
                     <td style='width: 20%'><input id="input_category"></input></td>
                     <td style='width: 50%'><input id="input_description"></input></td>
                 </tr>
                 <tr>
-                    <th>Y</th>
-                    <th>M</th>
+                    <th>Date</th>
                     <th class='border-right'>£</th>
                     <th>Category</th>
                     <th>Description</th>
                 </tr>
-            {% for _, row in finances.iterrows() %}
+            {% for row in finances %}
                 <tr class='finance-entry'>
-                    <td>{{ row.year }}</td>
-                    <td>{{ row.month }}</td>
-                    <td class='border-right'>{{ row.cost }}</td>
-                    <td>{{ row.category }}</td>
-                    <td>{{ row.description | truncate(40) }}</td>
+                    <td>{{ row["date"] }}</td>
+                    <td class='border-right'>{{ row["cost"] }}</td>
+                    <td>{{ row["category"] }}</td>
+                    <td>{{ row["description"] | truncate(40) }}</td>
                 </tr>
             {% endfor %}
             </table>

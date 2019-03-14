@@ -1,57 +1,69 @@
-"""## Research
-
-Research currently going on at UoS.
-
-- - [`/research/help`](/research/help) for this view
-"""
+"""Routes for research questions"""
 import json
 import os
-from collections import defaultdict
-from textwrap import dedent
 
-import dateutil
 from flask import render_template, request, Blueprint
-from markdown import markdown
 
-bp_research = Blueprint('research', __name__, template_folder='templates')
-
-
-@bp_research.route("/research/help")
-def researchhelp():
-    content = markdown(dedent(__doc__))
-    return render_template("raw.html", content=content, title="Help")
+BP_RESEARCH = Blueprint("research", __name__, template_folder="templates")
+RESEARCH_FILE = os.path.join(os.environ["DATADIR"], "research-summaries.json")
 
 
-# @books.route("/books/genres")
-# def genres():
-#     genres = sorted(set(b['Genre'] for b in get_books()))
-#     no_space = lambda x: x.replace(' ', '%20')
-#     genres_as_list = "\n".join([f"- [{c}](/books/?genre={no_space(c)})" for c in genres])
-#     formatted = markdown(dedent(genres_as_list))
-#     return render_template("raw.html", content=formatted, title="genres")
+class Research:
+    """Research represents a bunch of UoS research projects"""
+
+    def __init__(self, filename):
+        """Load in JSON research topics"""
+        self.filename = filename
+        self.data = json.load(open(os.path.expanduser(self.filename), "r"))
+
+    def write(self):
+        """Write data to file"""
+        if self.data:
+            json.dump(self.data, open(self.filename, "w"), indent=2)
+        else:
+            print("NO DATA")
+
+    def append(self, item):
+        """Append a new item to the internal data"""
+        self.data.append(item)
 
 
-@bp_research.route("/research/")
+@BP_RESEARCH.route("/research/")
 def research():
-    fn = "~/Dropbox/data/research-summaries.json"
-    projects = json.load(open(os.path.expanduser(fn), "r"))
-    return render_template("research.html", research=projects)
+    """Display all research projects"""
+    projects = Research(RESEARCH_FILE)
+    return render_template("research.html", research=projects.data)
 
 
-# @books.route("/books/new", methods=['POST'])
-# def new():
-#     books = get_books()
-#     books.append({
-#         'Title': request.form['title'],
-#         'Author': request.form['author'],
-#         'Genre': request.form['genre'],
-#         'Status': request.form['status'],
-#         'Read': request.form['read']
-#     })
-#     json.dump(books, open(fn, 'w'), indent=2)
-#     return render_template("books.html", books=books[-10:], extra_pre=f"Added: {request.form['title']} by {request.form['author']}")
+@BP_RESEARCH.route("/research/new", methods=["POST"])
+def new():
+    """Write a new element to the file, from /research/add's form input"""
+    projects = Research(RESEARCH_FILE)
+    coauthors = [s.strip() for s in request.form["coauthor"].split(",")]
+    projects.append(
+        {
+            "Topic": request.form["topic"],
+            "Date": request.form["date"],
+            "Author": request.form["leadauthor"],
+            "Co-authors": coauthors,
+            "Outline": [
+                request.form["bullet-1"],
+                request.form["bullet-2"],
+                request.form["bullet-3"],
+                request.form["bullet-4"],
+                request.form["bullet-5"],
+            ],
+        }
+    )
+    Research.write()
+    return render_template(
+        "research.html",
+        research=projects.data[-1:],
+        extra_pre=f"Added: {request.form['topic']} by {request.form['leadauthor']}",
+    )
 
 
-# @books.route("/books/add")
-# def add():
-#     return render_template("add_book.html", title="Add a book")
+@BP_RESEARCH.route("/research/add")
+def add():
+    """Present a form to add a new research project"""
+    return render_template("add_research.html", title="Add research")
