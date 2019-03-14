@@ -49,6 +49,7 @@ table {
 td,
 th {
     padding: 0.2em;
+    vertical-align: middle;
 }
 tr:nth-child(even) {
     background: rgb(240,240,240);
