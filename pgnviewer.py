@@ -1,6 +1,7 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """usage: pgnviewer <PGNfile> [query]"""
 import os
+import shutil
 import sys
 import textwrap
 from pathlib import Path
@@ -9,6 +10,19 @@ from docopt import docopt
 from chess import Board
 from chess.pgn import read_headers, read_game
 from chess.svg import board as display
+
+
+def display(board, title, moves_played):
+    joined_moves = [f"{i+1:2d}.{w}_{b}" for i, (w, b) in enumerate(moves_played)]
+    os.system('clear')
+    print(title)
+    print()
+    print(board)
+    print()
+    s = shutil.get_terminal_size((80, 20))
+    ss = min([80, s.columns-2])
+    filled = textwrap.fill('-'.join(joined_moves), ss)
+    print(filled.replace('-', ' ').replace('_', ' ').strip())
 
 
 def main():
@@ -23,9 +37,11 @@ def main():
         game_desc = f"{header['White']} vs {header['Black']}, {header['Result']}"
         games_in_pgn.append((game_desc, offset))
 
-    for i, (head, peek) in enumerate(games_in_pgn):
-        print(f"{i+1:3d}: {head}")
-    chosen = games_in_pgn[int(input("Choose: "))-1]
+    chosen = games_in_pgn[0]
+    if len(games_in_pgn) > 1:
+        for i, (head, peek) in enumerate(games_in_pgn):
+            print(f"{i+1:3d}: {head}")
+        chosen = games_in_pgn[int(input("Choose: "))-1]
     print(chosen[0])
 
     pgn.seek(chosen[1])
@@ -35,22 +51,17 @@ def main():
     moves = []
     idx = 1
     moveiter = game.mainline_moves().__iter__()
-    while True:
-        try:
-            whitemove = next(moveiter)
-            blackmove = next(moveiter)
-            os.system('clear')
-            movestr = f"{idx}. {b.san(whitemove):3s} "
-            b.push(whitemove)
-            movestr += f"{b.san(blackmove):3s}"
-            moves.append(movestr)
-            b.push(blackmove)
-            print(b)
-            print(f"\n{movestr}")
-            idx += 1
+    isBlack = False
+    this_move = []
+    for move in game.mainline_moves():
+        this_move.append(b.san(move))
+        b.push(move)
+        if isBlack:
+            moves.append(this_move)
+            this_move = []
+            display(b, chosen[0], moves)
             input()
-        except StopIteration:
-            break
+        isBlack = not isBlack
     print("FINISHED")
 
 
