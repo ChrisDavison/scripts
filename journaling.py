@@ -1,8 +1,19 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
+"""
+usage: journaling.py KEYWORD
+
+Display all journal entries that are based on KEYWORD.
+Keywords: strength, life, fitness, diet, self-improvement
+
+options:
+    -h --help  Show this message
+"""
 import os
 import re
 import sys
+import textwrap
 from pathlib import Path
+from docopt import docopt
 
 def get_journals():
     p = Path('~/Dropbox/notes/journal/').expanduser()
@@ -10,33 +21,24 @@ def get_journals():
 
 
 def main(keyword):
+    header = f"Journals about {keyword.lower()}"
+    print(header)
+    print('='*len(header))
     for journal in get_journals():
         should_print = False
+        paragraph = ""
         for line in journal.read_text().splitlines():
             if line.startswith('#'):
-                print(line)
+                paragraph = line + "\n"
             if line.lower().startswith(keyword.lower()):
                 should_print=True
             if should_print and line == "":
                 break
             if should_print:
-                print('\t', line)
-
-
-def keywords():
-    words = set()
-    for journal in get_journals():
-        for line in journal.read_text().splitlines():
-            first_word = line.split(' ')[0]
-            if first_word and first_word[-1] == ':':
-                words.add(first_word[:-1])
-    return words
+                paragraph += line + "\n"
+        print(paragraph)
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print('usage: journaling <KEYWORD>')
-        print(f'\nKEYWORDS: {", ".join(sorted(keywords()))}')
-        sys.exit(1)
-    keyword = sys.argv[1]
-    sys.exit(main(keyword))
+    args = docopt(__doc__)
+    main(args['KEYWORD'])
