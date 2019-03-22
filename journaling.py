@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """
-usage: journaling.py [-s] KEYWORD
+usage: 
+    journaling.py show [-s] KEYWORD
+    journaling.py keywords|kw
 
-Display all journal entries that are based on KEYWORD.
-Keywords: strength, life, fitness, diet, self-improvement
+Display all journal entries that are based on KEYWORD,
+or list all possible keywords.
 
 options:
     -h --help    Show this message
@@ -16,6 +18,9 @@ import sys
 import textwrap
 from pathlib import Path
 from docopt import docopt
+
+
+JOURNALPATH = Path('~/Dropbox/notes/journal/').expanduser()
 
 
 def paragraphs(data):
@@ -56,15 +61,23 @@ def display_matching_section(keyword):
     return display
 
 
+def keywords():
+    kw = set()
+    for journal in list(JOURNALPATH.glob('*.md')):
+        data = journal.read_text()
+        m = re.findall('\n([a-zA-Z\-]+):', data)
+        for match in m:
+            kw.add(match)
+    print(', '.join(sorted(kw)))
+
+
 def main(keyword, incremental=False):
     """Print all journals matching keyword"""
-    p = Path('~/Dropbox/notes/journal/').expanduser()
-    journals = list(p.glob('*.md'))
-    section_pattern = re.compile(r"(?:^$\n)((?:.+\n)+)")
-    display_keyword = display_matching_section(keyword)
     os.system('clear')
-    for journal in journals:
-        if incremental and display_keyword(journal):
+    display_keyword = display_matching_section(keyword)
+    for journal in list(JOURNALPATH.glob('*.md')):
+        displayed = display_keyword(journal)
+        if incremental and displayed:
             input()
             os.system('clear')
 
@@ -72,4 +85,7 @@ def main(keyword, incremental=False):
 if __name__ == "__main__":
     args = docopt(__doc__)
     incremental = args['-s']
-    main(args['KEYWORD'], incremental)
+    if args['keywords'] or args['kw']:
+        keywords()
+    else:
+        main(args['KEYWORD'], incremental)
