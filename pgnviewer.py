@@ -13,21 +13,17 @@ from chess.svg import board as display
 
 
 def display(board, title, moves_played):
-    joined_moves = [f"{i+1:2d}.{w}_{b}" for i, (w, b) in enumerate(moves_played)]
-    os.system('clear')
+    os.system("clear")
     print(title)
     print()
     print(board)
     print()
-    s = shutil.get_terminal_size((80, 20))
-    ss = min([80, s.columns-2])
-    filled = textwrap.fill('-'.join(joined_moves), ss)
-    print(filled.replace('-', ' ').replace('_', ' ').strip())
+    for chunk in moves_played[-5:]:
+        print(chunk)
 
 
-def main():
-    args = docopt(__doc__)
-    pgn = open(args['<PGNfile>'], 'r')
+def choose_game(pgnpath):
+    pgn = open(pgnpath, "r")
     games_in_pgn = []
     while True:
         offset = pgn.tell()
@@ -41,27 +37,27 @@ def main():
     if len(games_in_pgn) > 1:
         for i, (head, peek) in enumerate(games_in_pgn):
             print(f"{i+1:3d}: {head}")
-        chosen = games_in_pgn[int(input("Choose: "))-1]
-    print(chosen[0])
+        chosen = games_in_pgn[int(input("Choose: ")) - 1]
 
     pgn.seek(chosen[1])
-    game = read_game(pgn)
+    return read_game(pgn), chosen[0]
+
+
+def main():
+    args = docopt(__doc__)
+    game, title = choose_game(args["<PGNfile>"])
     b = Board()
-    os.system('clear')
-    moves = []
-    idx = 1
-    moveiter = game.mainline_moves().__iter__()
     isBlack = False
-    this_move = []
-    for move in game.mainline_moves():
-        this_move.append(b.san(move))
+    movestr = ""
+    moves = []
+    for i, move in enumerate(game.mainline_moves()):
+        if i%2 == 0:
+            moves.append(f"{int(i/2)+1}. {b.san(move)}")
+        else:
+            moves[-1] += f" {b.san(move)} "
         b.push(move)
-        if isBlack:
-            moves.append(this_move)
-            this_move = []
-            display(b, chosen[0], moves)
-            input()
-        isBlack = not isBlack
+        display(b, title, moves)
+        input()
     print("FINISHED")
 
 
