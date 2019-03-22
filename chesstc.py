@@ -8,7 +8,7 @@ if len(args) < 2:
 
 base, inc, *rest = args
 
-totalsec = base*60 + inc*40
+totalsec = float(base)*60 + float(inc)*40
 minutes = int(totalsec/60)
 remsec = int(totalsec - minutes*60)
 print(f"{minutes}:{remsec}")
