@@ -47,9 +47,7 @@ def main():
     args = docopt(__doc__)
     game, title = choose_game(args["<PGNfile>"])
     b = Board()
-    isBlack = False
-    movestr = ""
-    moves = []
+    moves, annotations = [], []
     for i, move in enumerate(game.mainline_moves()):
         if i%2 == 0:
             moves.append(f"{int(i/2)+1}. {b.san(move)}")
@@ -57,7 +55,10 @@ def main():
             moves[-1] += f" {b.san(move)} "
         b.push(move)
         display(b, title, moves)
-        input()
+        annotate = input("> ")
+        if annotate:
+            annotations.append((int(i/2)+1, annotate))
+    print(annotate)
     print("FINISHED")
 
 
