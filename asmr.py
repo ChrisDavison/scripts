@@ -25,8 +25,6 @@ from typing import List, Optional, Any
 
 from docopt import docopt
 
-from terminalstyle import Style
-
 
 @dataclass
 class Video:
@@ -45,8 +43,11 @@ class Video:
         return q in self.title.lower() or q in self.artist.lower()
 
     def __str__(self):
-        s = f"{Style.BOLD}{Style.FG_Red}" if self.fav else ""
-        return f"{s}{self.artist:20}{self.title}{Style.END}"
+        BOLD = "\033[1m"
+        END = "\033[0m"
+        FG_Red = "\033[31m"
+        s = f"{BOLD}{FG_Red}" if self.fav else ""
+        return f"{s}{self.artist:20}{self.title}{END}"
 
     def open(self):
         url = f"https://www.youtube.com/watch?v={self.vid}"
