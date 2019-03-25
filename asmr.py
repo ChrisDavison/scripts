@@ -11,9 +11,8 @@ usage:
     asmr open [-r|-f] [QUERY...]
 
 options:
-    -a          Add a new video
-    -r          Open a random video [default: False]
     -f          Filter to favourites only [default: False]
+    -r          Open a random video [default: False]
 """
 import json
 import os
