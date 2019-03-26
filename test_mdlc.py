@@ -25,3 +25,13 @@ def test_get_links():
     ]
     for i, (input, wanted) in enumerate(tests):
         assert get_links(input) == wanted, "Test input: %s" % input
+
+# TESTCASES TO ADD
+#
+# Reference links only
+# Mix of inline and reference links
+# Links with anchors ("[test](./local.md#withanchor)")
+# Links within lists ("- [test](www.google.com)", ["www.google.com"])
+# No links ("", [])
+# Extract link from link with anchor ("with_anchor.md#head", "with_anchor.md")
+# Don't modify links without anchors ("without_anchor.md", "without_anchor.md")
