@@ -2,8 +2,12 @@
 """ASMR video management.
 
 Optionally filtered by QUERY (matching title or artist).
-Looks for 'asmr.json' inside directory defined by $DATADIR,
-with title, artist, hash, and fav keys.
+Looks for 'asmr.json' inside directory defined by $DATADIR, with title, artist, 
+hash, and fav keys.
+
+This script exists because youtube's playlists are pretty balls, and I wanted an
+easier way of jumping to videos based on keyword matches (e.g. if I want to
+watch a tapping video).
 
 usage:
     asmr add
