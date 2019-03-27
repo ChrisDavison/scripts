@@ -9,10 +9,9 @@ import requests
 from docopt import docopt
 
 
-RE_MDLOCAL = re.compile(r"^.{1,2}/([a-zA-Z0-9-_])*[a-zA-Z0-9-_].md")
-RE_MDWEB = re.compile(r"^(?:http(s)?://)?[\w.-]+(?:.[\w\.-]+)+[\w\-\._~:/?#\[\\]@!\$&'\(\)\*\+,;=.]+$")
-RE_REFLINK = re.compile(r"\[.+?\]: (.*)")
-RE_INLINELINK = re.compile(r"\[.+?\]\((.+?)\)|^\s*\[.+?\]: (.+)")
+RE_REFLINK = re.compile(r"\[.+?\]: (.+)(?:\s|$)")
+RE_INLINELINK = re.compile(r"\[.+?\]\((.+?)\)")
+RE_MDANCHOR = re.compile("#.*")
 
 
 def check_link(url):
