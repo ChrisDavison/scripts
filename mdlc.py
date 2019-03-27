@@ -14,7 +14,6 @@ RE_INLINELINK = re.compile(r"\[.+?\]\((.+?)\)")
 RE_MDANCHOR = re.compile("#.*")
 
 
-def check_link(url):
     return is_valid_local(url) or is_valid_web(url)
 
 
@@ -33,14 +32,24 @@ def get_links(text):
     matches2 = RE_REFLINK.findall(text)
     matches.extend(matches2)
     return [match for group in matches for match in group if match]
+    return [match for match in matches]
+
+
+def mdlc(filename):
+    """Get all invalid links from markdown file."""
+    text = Path(filename).read_text()
+    links = get_links(text)
+    return [l for l in links if not is_valid(link)]
+
 
 def main():
+    """Run markdown link checking on all files passed from the commandline."""
     args = docopt(__doc__)
-    filenames = args['FILENAMES']
+    filenames = args["FILENAMES"]
+    bad_links = []
     for filename in filenames:
-        matches = RE_REFLINK.findall(open(filename).read())
-        if matches:
-            print(matches)
+        bad_links.extend(mdlc(filename))
+        break
 
 
 if __name__ == "__main__":
