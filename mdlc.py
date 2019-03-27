@@ -14,24 +14,40 @@ RE_INLINELINK = re.compile(r"\[.+?\]\((.+?)\)")
 RE_MDANCHOR = re.compile("#.*")
 
 
+def is_valid(url):
+    """Check if a url is valid (either local or web)."""
     return is_valid_local(url) or is_valid_web(url)
 
 
+def trim_md_anchor(url):
+    """Remove any #text from a url."""
+    return RE_MDANCHOR.sub("", url)
+
+
 def is_valid_local(url):
-    p = Path(url).resolve()
+    """Check if a url references a local file."""
+    no_anchor = trim_md_anchor(url)
+    p = Path(no_anchor).resolve()
     return p.exists()
 
 
 def is_valid_web(url):
+    """Check if a url returns a valid status code."""
     valid_statuses = [200, 202, 301, 307, 308]
-    r = requests.get(url)
-    return r.status_code in valid_statuses
+    if not (url.startswith("http://") or url.startswith("https://")):
+        url = f"https://{url}"
+    try:
+        r = requests.get(url)
+        return r.status_code in valid_statuses
+    except:
+        return False
+
 
 def get_links(text):
+    """Get all links from with in a text as a list of URLs."""
     matches = RE_INLINELINK.findall(text)
     matches2 = RE_REFLINK.findall(text)
     matches.extend(matches2)
-    return [match for group in matches for match in group if match]
     return [match for match in matches]
 
 

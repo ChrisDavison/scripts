@@ -3,35 +3,50 @@ from mdlc import *
 
 
 def test_is_valid_web():
+    """Test both valid and invalid web URLs."""
     assert is_valid_web("https://httpstat.us/200")
     assert is_valid_web("https://www.google.com")
     assert is_valid_web("https://www.duckduckgo.com")
-    
-def test_not_valid_web():
     assert not is_valid_web("https://httpstat.us/404")
+    assert not is_valid_web("README.md")
+    assert not is_valid_web("README.md#anchor")
+
 
 def test_is_valid_local():
+    """Test both valid and invalid local URLs."""
     assert is_valid_local("mdlc.py") == True
-
-def test_not_valid_local():
+    assert is_valid_local("README.md") == True
+    assert is_valid_local("README.md#scripts") == True
     assert not is_valid_local("doesnt_exist.py")
+    assert not is_valid_local("https://www.google.com")
+    assert not is_valid_local("https://www.httpstat.us/200")
+
 
 def test_get_links():
-    tests = [
-        ("[test1](https://www.google.com)", ["https://www.google.com"]),
-        ("This is [test](https://www.google.com)", ["https://www.google.com"]),
-        ("Local [test](mdlc.py)", ["mdlc.py"]),
-        ("Local [test](mdlc.py), [another](./asmr.py)", ["mdlc.py", "./asmr.py"])
-    ]
-    for i, (input, wanted) in enumerate(tests):
-        assert get_links(input) == wanted, "Test input: %s" % input
+    """Test extract links from a text."""
+    assert get_links("") == []
+    assert get_links("[test1](https://www.google.com)") == ["https://www.google.com"]
+    assert get_links("Local [test](mdlc.py)") == ["mdlc.py"]
+    assert get_links("- Local [test](mdlc.py)") == ["mdlc.py"]
+    assert get_links("[ref]: https://www.google.com") == ["https://www.google.com"]
 
-# TESTCASES TO ADD
-#
-# Reference links only
-# Mix of inline and reference links
-# Links with anchors ("[test](./local.md#withanchor)")
-# Links within lists ("- [test](www.google.com)", ["www.google.com"])
-# No links ("", [])
-# Extract link from link with anchor ("with_anchor.md#head", "with_anchor.md")
-# Don't modify links without anchors ("without_anchor.md", "without_anchor.md")
+    inp, exp = "This is [test](https://www.google.com)", ["https://www.google.com"]
+    assert get_links(inp) == exp
+
+    inp, exp = "Local [test](mdlc.py)), [another](./asmr.py)", ["mdlc.py", "./asmr.py"]
+    assert get_links(inp) == exp
+
+    inp, exp = "Local with anchor [test](README.md#anchor)", ["README.md#anchor"]
+    assert get_links(inp) == exp
+
+    inp = "[test](README.md#anchor) [ref][]\n    [ref]: https://www.google.com"
+    exp = ["README.md#anchor", "https://www.google.com"] 
+    assert get_links(inp) == exp
+
+
+def test_handling_anchors():
+    """Test removal of markdown anchors from local links"""
+    assert trim_md_anchor("file.md#anchor") == "file.md"
+    assert trim_md_anchor("file.md#") == "file.md"
+    assert trim_md_anchor("file.md#file.md") == "file.md"
+    assert trim_md_anchor("file.md") == "file.md"
