@@ -1,16 +1,10 @@
-#!/usr/bin/env python
-"""
-usage: rpn.py [-v] CALCULATION...
+#!/usr/bin/env python3
+"""Reverse Polish Notation calculator
 
-Supports operations:
-+ 
-- 
-\\ (divide) 
-* (multiply)
-** (power)
-sin, tan, cos
-R (to radians)
-D (to degrees)
+Supports operations: +, -, \\, *, **, sin, tan, cos, R (to radians), D (to degrees)
+If wanting divide from command line, must wrap args in '', e.g. ('9 3 \\')
+
+usage: rpn.py [-v] CALCULATION...
 
 options:
     -v     Print each stage of the stack
@@ -67,6 +61,11 @@ class RPN:
             raise Exception("Not enough operations.  Stack still has multiple values")
         self.result = self.stack[0]
 
+
+    def evaluate(self):
+        for _ in self:
+            continue
+
     def _unary(self, operation):
         x = self.stack.pop()
         self.stack.append(operation(x))
@@ -76,20 +75,39 @@ class RPN:
         self.stack.append(operation(x, y))
 
 
+def __interactive():
+    print("Type 'exit' or 'quit' to exit")
+    while True:
+        i = input("> ")
+        if "quit" in i or "exit" in i:
+            break
+        yield i
+    print("EXITING")
+
+
+def display_equation_steps(rpn):
+    for stack, operation in rpn:
+        print(stack, operation)
+    return rpn
+
+
 def main():
     args = sys.argv[1:]
     verbose = False
     if "-v" in args:
         verbose = True
         args.remove("-v")
-    rpn = RPN("5 6 3 * 5 + +")
-    if args:
-        rpn = RPN(" ".join(args))
-    for stack, operation in rpn:
+    if "-h" in args:
+        print(__doc__)
+        sys.exit(0)
+    equations = __interactive() if not args else [" ".join(args)]
+    for eqn in equations:
+        rpn = RPN(eqn)
         if verbose:
-            print(stack, operation)
-    print(f"RESULT: {rpn.result}")
-
+            display_equation_steps(rpn)
+        else:
+            rpn.evaluate()
+        print(rpn.result)
 
 if __name__ == "__main__":
     sys.exit(main())
