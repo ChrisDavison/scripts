@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from mdlc import *
+from scripts.mdlc import *
 
 
 def test_is_valid_web():

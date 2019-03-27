@@ -67,10 +67,11 @@ def main():
     """Run markdown link checking on all files passed from the commandline."""
     args = docopt(__doc__)
     filenames = args["FILENAMES"]
-    bad_links = []
-    for filename in filenames:
-        bad_links.extend(mdlc(filename))
-        break
+    bad_links = {filename: mdlc(filename) for filename in filenames}
+    for filename, badlinks in bad_links.items():
+        print(filename)
+        for link in badlinks:
+            print('\t', link)
 
 
 if __name__ == "__main__":
