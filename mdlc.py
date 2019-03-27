@@ -51,11 +51,16 @@ def get_links(text):
     return [match for match in matches]
 
 
+def get_links_from_file(filename):
+    """Get all links from markdown file."""
+    text = Path(filename).read_text()
+    return get_links(text)
+
+
 def mdlc(filename):
     """Get all invalid links from markdown file."""
-    text = Path(filename).read_text()
-    links = get_links(text)
-    return [l for l in links if not is_valid(link)]
+    links = get_links_from_file(filename)
+    return [l for l in links if not is_valid(l)]
 
 
 def main():

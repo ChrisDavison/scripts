@@ -50,3 +50,15 @@ def test_handling_anchors():
     assert trim_md_anchor("file.md#") == "file.md"
     assert trim_md_anchor("file.md#file.md") == "file.md"
     assert trim_md_anchor("file.md") == "file.md"
+
+
+def test_invalid_links_in_file():
+    inp = "README.md"
+    exp = [
+            "https://www.google.com",
+            "https://www.duckduckgo.com",
+            "https://www.httpstat.us/404"
+    ]
+    assert set(get_links_from_file("README.md")) == set(exp)
+    assert mdlc("README.md") == ["https://www.httpstat.us/404"]
+
