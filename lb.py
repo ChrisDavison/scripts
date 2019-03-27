@@ -20,7 +20,7 @@ def main(days=1):
 
     content = path.read_text().splitlines()
     for line in content:
-        if line.startswith('-'):
+        if line.startswith("-"):
             if temp:
                 entries.append(temp)
             temp = [line.strip()]
@@ -35,11 +35,11 @@ def main(days=1):
         entries.append(temp)
 
     for group in entries:
-        reflinks = [l for l in group if ']: ' in l]
+        reflinks = [l for l in group if "]: " in l]
         if reflinks:
-            print('\n'.join(['  '+r for r in reflinks]))
+            print("\n".join(["  " + r for r in reflinks]))
         else:
-            print(' '.join(group))
+            print(" ".join(group))
 
 
 if __name__ == "__main__":

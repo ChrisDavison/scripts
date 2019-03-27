@@ -40,24 +40,24 @@ class RPN:
 
     def __iter__(self):
         functions = {
-            '+': (False, lambda x, y: x + y),
-            '-': (False, lambda x, y: x - y),
-            '*': (False, lambda x, y: x * y),
-            '**': (False, lambda x, y: x ** y),
-            '\\': (False, lambda x, y: x / y),
-            'R': (True, lambda x: x * m.pi / 180),
-            'D': (True, lambda x: x * 180 / m.pi),
-            'cos': (True, m.cos),
-            'sin': (True, m.sin),
-            'tan': (True, m.tan),
-            'pow': (True, m.pow)
+            "+": (False, lambda x, y: x + y),
+            "-": (False, lambda x, y: x - y),
+            "*": (False, lambda x, y: x * y),
+            "**": (False, lambda x, y: x ** y),
+            "\\": (False, lambda x, y: x / y),
+            "R": (True, lambda x: x * m.pi / 180),
+            "D": (True, lambda x: x * 180 / m.pi),
+            "cos": (True, m.cos),
+            "sin": (True, m.sin),
+            "tan": (True, m.tan),
+            "pow": (True, m.pow),
         }
         for element in self.calculation:
             if self.is_numeric(element):
                 self.stack.append(float(element))
-                yield ' '.join(map(str, self.stack)), '<'
+                yield " ".join(map(str, self.stack)), "<"
             else:
-                yield ' '.join(map(str, self.stack)), element
+                yield " ".join(map(str, self.stack)), element
                 unary, operation = functions[element]
                 if unary:
                     self._unary(operation)
@@ -74,17 +74,17 @@ class RPN:
     def _binary(self, operation):
         y, x = self.stack.pop(), self.stack.pop()
         self.stack.append(operation(x, y))
-        
+
 
 def main():
     args = sys.argv[1:]
     verbose = False
-    if '-v' in args:
+    if "-v" in args:
         verbose = True
-        args.remove('-v')
+        args.remove("-v")
     rpn = RPN("5 6 3 * 5 + +")
     if args:
-        rpn = RPN(' '.join(args))
+        rpn = RPN(" ".join(args))
     for stack, operation in rpn:
         if verbose:
             print(stack, operation)

@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 class Style:
     """Shortcuts to terminal styling escape sequences"""
+
     BOLD = "\033[1m"
     END = "\033[0m"
     FG_Black = "\033[30m"
@@ -19,5 +20,3 @@ class Style:
     BG_Magenta = "\033[45m"
     BG_Cyan = "\033[46m"
     BG_White = "\033[47m"
-
-

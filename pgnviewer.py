@@ -49,7 +49,7 @@ def main():
     b = Board()
     moves, annotations = [], []
     for i, move in enumerate(game.mainline_moves()):
-        if i%2 == 0:
+        if i % 2 == 0:
             moves.append(f"{int(i/2)+1}. {b.san(move)}")
         else:
             moves[-1] += f" {b.san(move)} "
@@ -57,7 +57,7 @@ def main():
         display(b, title, moves)
         annotate = input("> ")
         if annotate:
-            annotations.append((int(i/2)+1, annotate))
+            annotations.append((int(i / 2) + 1, annotate))
     print(annotate)
     print("FINISHED")
 
