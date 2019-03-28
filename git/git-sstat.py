@@ -11,20 +11,22 @@ import subprocess
 import sys
 from pathlib import Path
 
+from docopt import docopt
 
-version = "0.2.0"
 
-
-def isGitRepo(path):
-    return False
+VERSION = "0.2.0"
 
 
 def git(*args):
-    return subprocess.check_output(['git'] + list(args))
+    return subprocess.run(['git'] + list(args), capture_output=True)
 
 
 def main():
-    status = git('status', '-s', '-b')
+    finished_proc = git('status', '-s', '-b')
+    if finished_proc.returncode == 128:
+        print("Not a git repo")
+        return
+    status = finished_proc.stdout
     if b'ahead' in status or b'behind' in status or status.count(b'\n') > 1:
         p = Path('.').resolve()
         print('/'.join(p.parts[-2:]))
@@ -32,4 +34,9 @@ def main():
     
 
 if __name__ == "__main__":
+    args = docopt(__doc__)
+    if args['-v']:
+        print(Path(__file__).stem, VERSION)
+        sys.exit(0)
     sys.exit(main())
+
