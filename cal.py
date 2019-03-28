@@ -34,7 +34,9 @@ def month_cal(year, month, start_day_of_week=0, simple_display=False):
         pipeize = lambda x: x
         print(headerstr)
     else:
-        print(topbot_border, "\n", pipeize(headerstr), "\n", topbot_border)
+        print(topbot_border)
+        print(pipeize(headerstr))
+        print(topbot_border)
     for i, week in enumerate(by_weekday):
         aligned_week = [str(w.day).rjust(2) for w in week] 
         w = ' '.join(aligned_week)
