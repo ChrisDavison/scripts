@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Todo management."""
+import datetime
 import os
 import re
 import sys
@@ -12,6 +13,7 @@ import click
 VERSION = "0.1.0"
 FILENAME_TODO = os.environ["TODOFILE"]
 FILENAME_DONE = os.environ["DONEFILE"]
+RE_DATE = re.compile(r"20\d\d-[0-1][0-9]-[0-2][0-9]")
 
 
 @dataclass
@@ -22,7 +24,8 @@ class Todo:
 
     def __str__(self):
         s = self.scheduled if self.scheduled else ""
-        return f"{s:10s} {self.task}"
+        d = self.finished + " " if self.finished else ""
+        return f"{d}{s:10s} {self.task}"
 
     def __contains__(self, query):
         return query.lower() in self.task.lower()
@@ -33,118 +36,168 @@ class Todo:
         if line.startswith("- "):
             line = line[2:]
         date, task = None, line
-        if re.match("\d\d\d\d-\d\d-\d\d", line):
+        if RE_DATE.match(line):
             date, task = line[:10], line[11:]
         return Todo(task, date, None)
 
 
 @click.group()
 def cli():
+    """Manage todos in plaintext files.
+
+    Filenames are recorded in $TODOFILE and $DONEFILE.
+    Inspired by todo.txt/todo.sh, but with a much more streamlined approach.
+    """
     pass
 
 
 @cli.command(short_help="Add a todo")
-@click.argument("text")
+@click.argument("text", nargs=-1)
 def add(text):
-    #     todo = Todo.new(' '.join(args['TEXT']))
-    #     todos.append(todo)
-    #     print(f"Added: {len(todos)}. {str(todo).lstrip()}")
-    #     # save_todos(todos, FILENAME_TODO)
-    pass
+    """Add a todo to $TODOFILE."""
+    todo = Todo.new(' '.join(text))
+    todos = parse_file(FILENAME_TODO)
+    todos.append(todo)
+    print(f"Added: {len(todos)-1}. {str(todo).lstrip()}")
+    save_todos(todos, FILENAME_TODO)
+
 
 @cli.command(short_help = "Remove a todo")
-@click.argument("IDX")
+@click.argument("idx", type=int)
 def rm(idx):
-    #     idx = int(args['IDX'])
-    #     todo = todos[idx]
-    #     print(f"Remove: {len(todos)}. {str(todo).lstrip()}")
-    #     del todos[idx]
-    #     # save_todos(todos, FILENAME_TODO)
-    #     pass
-    pass
+    """Delete a todo."""
+    todos = parse_file(FILENAME_TODO)
+    todo = todos[idx]
+    print(f"Remove: {len(todos)-1}. {str(todo).lstrip()}")
+    del todos[idx]
+    save_todos(todos, FILENAME_TODO)
+
 
 @cli.command(short_help="Do todos")
-@click.argument("IDX...")
-def do(text):
-    pass
+@click.argument("IDX", nargs=-1)
+def do(idx):
+    """Move todos from $TODOFILE to $DONEFILE."""
+    todos = parse_file(FILENAME_TODO)
+    dones = parse_file(FILENAME_DONE)
+    indexes = sorted([int(i) for i in idx])[::-1]
+    valid_indexes = [i for i in indexes if i < len(todos)]
+    for i in valid_indexes:
+        todos[i].finished = datetime.date.today().strftime("%Y-%m-%d")
+        dones.append(todos[i])
+        del todos[i]
+    save_todos(todos, FILENAME_TODO)
+    save_todos(dones, FILENAME_DONE)
+
 
 @cli.command(short_help="Undo todos")
 @click.argument("IDX", nargs=-1)
 def undo(idx):
-    pass
+    """Move todos from $DONEFILE into $TODOFILE"""
+    todos = parse_file(FILENAME_TODO)
+    dones = parse_file(FILENAME_DONE)
+    indexes = sorted([int(i) for i in idx])[::-1]
+    valid_indexes = [i for i in indexes if i < len(dones)]
+    for i in valid_indexes:
+        todos.append(dones[i])
+        del dones[i]
+    save_todos(todos, FILENAME_TODO)
+    save_todos(dones, FILENAME_DONE)
+
 
 @cli.command(short_help="Append text to end of todo")
-@click.argument("idx")
+@click.argument("idx", type=int)
 @click.argument("text", nargs=-1)
 def app(idx, text):
-    print(idx)
-    print(" ".join(text))
-    #     idx = int(args['IDX'])
-    #     todos[idx].task += ' '.join(args["TEXT"])
-    #     save_todos(todos, FILENAME_TODO)
-    pass
+    todos = parse_file(FILENAME_TODO)
+    todos[idx].task += ' '.join(text)
+    print(f"APPEND: {' '.join(text)}")
+    save_todos(todos, FILENAME_TODO)
 
-@cli.command()
-@click.argument("text")
-def prepend(text):
-    #     idx = int(args['IDX'])
-    #     todos[idx].task = ' '.join(args["TEXT"]) + " " + todos[idx].task
-    #     save_todos(todos, FILENAME_TODO)
-    pass
 
-@cli.command()
-@click.argument("text")
-def schedule(text):
-    pass
+@cli.command(short_help="Prepend text to start of todo")
+@click.argument("idx", type=int)
+@click.argument("text", nargs=-1)
+def prepend(idx, text):
+    todos = parse_file(FILENAME_TODO)
+    todos[idx].task = ' '.join(text) + todos[idx].task
+    print(f"PREPEND: {' '.join(text)}")
+    save_todos(todos, FILENAME_TODO)
 
-@cli.command()
-@click.argument("text")
-def unschedule(text):
-    pass
 
-@cli.command()
-@click.argument("text")
-def today(text):
-    pass
+@cli.command(short_help="Schedule a task")
+@click.argument("idx", type=int)
+@click.argument("text", nargs=1)
+def schedule(idx, text):
+    todos = parse_file(FILENAME_TODO)
+    if RE_DATE.match(text):
+        todos[idx].scheduled = text
+        print(f"SCHEDULE: {todos[idx]}")
+        save_todos(todos, FILENAME_TODO)
 
-@cli.command()
+
+@cli.command(short_help="Unschedule a task")
+@click.argument("idx", type=int)
+def unschedule(idx):
+    todos = parse_file(FILENAME_TODO)
+    todos.scheduled = None
+    print(f"UNSCHEDULE: {todos[idx]}")
+    save_todos(todos, FILENAME_TODO)
+
+
+@cli.command(short_help="Schedule a command today")
+@click.argument("idx", type=int)
+def today(idx):
+    now = datetime.date.today().strftime("%Y-%m-%d")
+    todos = parse_file(FILENAME_TODO)
+    todos[idx].task = f"{now} {todos[idx]}"
+    print(f"TODAY: {todos[idx].task}")
+    save_todos(todos, FILENAME_TODO)
+
+
+@cli.command(short_help="List current todos")
 @click.argument("query", default="")
 def ls(query):
     todos = parse_file(FILENAME_TODO)
-    for i, todo in enumerate(todos):
-        if query in todo:
-            print(f"{i:3d}. {todo}")
+    print_enumerated_todos(todos, filter=lambda _, x: query in x)
+    
 
-@cli.command()
-@click.argument("text")
-def lsd(text):
-    pass
-
-@cli.command()
-@click.argument("text")
-def due(text):
-    pass
+@cli.command(short_help="List done todos")
+@click.argument("query", default="")
+def lsd(query):
+    """Print done tasks.  Optionally filtered."""
+    dones = parse_file(FILENAME_DONE)
+    print_enumerated_todos(dones, filter=lambda _, x: query in x)
 
 
-@cli.command()
+@cli.command(short_help="List overdue tasks or tasks due today")
+@click.argument("query", default="")
+def due(query):
+    """Print tasks due today, or overdue.  Optionally filtered."""
+    todos = parse_file(FILENAME_TODO)
+    print_enumerated_todos(todos, filter=lambda _, x: x.scheduled and query in x)
+    
+
+@cli.command(short_help="Print version")
 def version():
+    """Display current software version"""
     print(Path(__file__).stem, VERSION)
 
 
 def parse_file(filename):
-    todos = []
-    for i, line in enumerate(open(filename, 'r')):
-        todos.append(Todo.new(line))
-    return todos
+    """Get all todos in todofile"""
+    return [Todo.new(line) for line in open(filename, 'r')]
+
+
+def print_enumerated_todos(todos, filter=lambda i, x: True):
+    for i, task in enumerate(todos):
+        if filter(i, task):
+            print(f"{i:3d}. {task}")
 
 
 def save_todos(todos, filename):
-    if 0:
-        with open(filename, 'w') as f:
-            for todo in todos:
-                print(f"- {str(todo).lstrip()}", file=f)
-    else:
-        print("NOT SAVED. Still testing code")
+    with open(filename, 'w') as f:
+        for todo in todos:
+            print("-", re.sub('\s\s+', ' ', str(todo)), file=f)
 
 
 if __name__ == "__main__":
