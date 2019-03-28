@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""usage: mdlc FILENAMES..."""
+"""Markdown link checker"""
 import os
 import re
 import sys
+from argparse import ArgumentParser
 from pathlib import Path
 
 import requests
-from docopt import docopt
 
 
 RE_REFLINK = re.compile(r"\[.+?\]: (.+)(?:\s|$)")
@@ -65,9 +65,14 @@ def mdlc(filename):
 
 def main():
     """Run markdown link checking on all files passed from the commandline."""
-    args = docopt(__doc__)
-    filenames = args["FILENAMES"]
-    bad_links = {filename: mdlc(filename) for filename in filenames}
+    p = ArgumentParser(prog='mdlc')
+    p.add_argument('-v', '--version')
+    p.add_argument('FILENAMES', nargs='+')
+    args = p.parse_args()
+    if args.version:
+        print(Path(__file__).stem, "0.1.0")
+        sys.exit(0)
+    bad_links = {filename: mdlc(filename) for filename in args.FILENAMES}
     for filename, badlinks in bad_links.items():
         print(filename)
         for link in badlinks:
