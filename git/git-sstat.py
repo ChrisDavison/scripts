@@ -9,20 +9,17 @@ options:
 import os
 import subprocess
 import sys
+from argparse import ArgumentParser
 from pathlib import Path
-
-from docopt import docopt
 
 
 VERSION = "0.2.0"
 
 
-def git(*args):
-    return subprocess.run(['git'] + list(args), capture_output=True)
-
-
 def main():
-    finished_proc = git('status', '-s', '-b')
+    """Get filtered short status of current directory"""
+    args = ['git', 'status', '-s', '-b']
+    finished_proc = subprocess.run(args, capture_output=True)
     if finished_proc.returncode == 128:
         print("Not a git repo")
         return
@@ -34,9 +31,12 @@ def main():
     
 
 if __name__ == "__main__":
-    args = docopt(__doc__)
-    if args['-v']:
+    p = ArgumentParser(prog='git-sstat')
+    p.add_argument('-v', '--version', action='store_true')
+    args = p.parse_args()
+
+    if args.version:
         print(Path(__file__).stem, VERSION)
-        sys.exit(0)
-    sys.exit(main())
+    else:
+        sys.exit(main())
 
