@@ -128,35 +128,45 @@ def prepend(idx, text):
 @click.argument("idx", type=int)
 @click.argument("text", nargs=1)
 def schedule(idx, text):
+    """Schedule tasks with given date."""
     todos = parse_file(FILENAME_TODO)
-    if RE_DATE.match(text):
-        todos[idx].scheduled = text
-        print(f"SCHEDULE: {todos[idx]}")
-        save_todos(todos, FILENAME_TODO)
+    indexes = [int(i) for i in idx]
+    for index in indexes:
+        if RE_DATE.match(text):
+            todos[index].scheduled = text
+            print(f"SCHEDULE: {todos[index]}")
+            save_todos(todos, FILENAME_TODO)
 
 
 @cli.command(short_help="Unschedule a task")
 @click.argument("idx", type=int)
 def unschedule(idx):
-    todos = parse_file(FILENAME_TODO)
-    todos.scheduled = None
-    print(f"UNSCHEDULE: {todos[idx]}")
+    """Remove due date for tasks"""
+    indexes = [int(i) for i in idx]
+    for index in indexes:
+        todos = parse_file(FILENAME_TODO)
+        todos[index].scheduled = None
+        print(f"UNSCHEDULE: {todos[index]}")
     save_todos(todos, FILENAME_TODO)
 
 
 @cli.command(short_help="Schedule a command today")
-@click.argument("idx", type=int)
+@click.argument("idx", nargs=-1)
 def today(idx):
+    """Schedule tasks for today"""
     now = datetime.date.today().strftime("%Y-%m-%d")
     todos = parse_file(FILENAME_TODO)
-    todos[idx].task = f"{now} {todos[idx]}"
-    print(f"TODAY: {todos[idx].task}")
+    indexes = [int(i) for i in idx]
+    for index in indexes:
+        todos[index].task = f"{now} {todos[index]}"
+        print(f"TODAY: {todos[index].task}")
     save_todos(todos, FILENAME_TODO)
 
 
 @cli.command(short_help="List current todos")
 @click.argument("query", default="")
 def ls(query):
+    """Print current tasks."""
     todos = parse_file(FILENAME_TODO)
     print_enumerated_todos(todos, filter=lambda _, x: query in x)
     
@@ -188,7 +198,7 @@ def parse_file(filename):
     return [Todo.new(line) for line in open(filename, 'r')]
 
 
-def print_enumerated_todos(todos, filter=lambda i, x: True):
+def print_enumerated_todos(todos, filter=lambda _: True):
     for i, task in enumerate(todos):
         if filter(i, task):
             print(f"{i:3d}. {task}")
