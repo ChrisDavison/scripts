@@ -10,7 +10,6 @@ if len(sys.argv) > 1:
 today = datetime.date.today()
 tmp = datetime.date(today.year, today.month + offset, 1)
 end = datetime.date(today.year, today.month + 1 + offset, 1)
-print(f"# {tmp.strftime('%B')}\n")
 while tmp < end:
     print(f"- `{tmp.day:2d}`: ")
     tmp += datetime.timedelta(days=1)
