@@ -11,12 +11,13 @@ watch a tapping video).
 
 usage:
     asmr add
-    asmr view [-f] [QUERY...]
+    asmr view [-f] [-a] [QUERY...]
     asmr open [-r|-f] [QUERY...]
 
 options:
     -f          Filter to favourites only [default: False]
     -r          Open a random video [default: False]
+    -a          Show all, including archived videos [default: False]
 """
 import json
 import os
@@ -41,6 +42,7 @@ class Video:
     artist: str
     vid: str
     fav: bool
+    archived: bool
 
     def __contains__(self, query):
         q = query.lower()
@@ -51,7 +53,8 @@ class Video:
         END = "\033[0m"
         FG_Red = "\033[31m"
         s = f"{BOLD}{FG_Red}" if self.fav else ""
-        return f"{s}{self.artist:20}{self.title}{END}"
+        arc = " (a)" if self.archived else ""
+        return f"{s}{self.artist:20}{self.title}{arc}{END}"
 
     def open(self):
         url = f"https://www.youtube.com/watch?v={self.vid}"
@@ -72,7 +75,9 @@ def display(entries: List[Video]):
 
 
 def new_video() -> Video:
-    """Give the user prompts to create a new asmr video."""
+    """Give the user prompts to create a new asmr video.
+    
+    Always assumes a new video is not archived."""
     artist = input("Artist: ")
     title = input("Title: ")
     vid = input("Video ID: ")
@@ -89,16 +94,16 @@ def new_video() -> Video:
         vid = parse_youtube_video(vid)
     if len(vid) < 11:
         raise Exception("VidAddException: Video hash must be >= 11 characters")
-    return Video(title, artist, vid, fav)
+    return Video(title, artist, vid, fav, False)
 
 
 def load_from_json() -> List[Video]:
     vids = json.load(open(get_filename(), encoding="utf8"))
 
     def json_to_Video(j):
-        return Video(j["title"], j["artist"], j["hash"], j["fav"])
+        return Video(j["title"], j["artist"], j["hash"], j["fav"], j["archived"])
 
-    return [json_to_Video(j) for j in vids]
+    return sorted([json_to_Video(j) for j in vids], key=lambda x: x.artist)
 
 
 def write_vids(videos: List[Video]):
@@ -119,6 +124,8 @@ def main():
     filtered = [v for v in vids if q in v]
     if args["-f"]:
         filtered = [v for v in filtered if v.fav]
+    if not args["-a"]:
+        filtered = [v for v in filtered if not v.archived]
 
     try:
         if args["add"]:
@@ -128,17 +135,22 @@ def main():
                 write_vids(vids)
         elif args["view"]:
             display(filtered)
-        else:
+        elif args["open"] and args["-r"]:
             choiceidx = random.randint(0, len(filtered) - 1)
-            if not args["-r"]:
-                if len(filtered) == 1:
-                    choice = 0
-                else:
-                    display(filtered)
-                choiceidx = int(input("Choice: "))
             choice = filtered[choiceidx]
             print(choice)
             choice.open()
+        else:
+            if len(filtered) == 1:
+                print(f"Only 1 video: {filtered[0]}")
+                play = input("Play? [y/n] ")[0].lower()
+                if play == "y":
+                    filtered[0].open()
+            else:
+                display(filtered)
+                choice = int(input("Choose: "))
+                print(filtered[choice])
+                filtered[choice].open()
     except (EOFError, KeyboardInterrupt):
         print("\nNo video selected. Exiting...")
     except Exception as E:
