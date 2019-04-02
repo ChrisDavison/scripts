@@ -5,3 +5,6 @@ set -o nounset  # Exit when trying to use undeclared variables
 
 echo "Fetching repos in $CODEDIR";
 parallel 'cd {} && git fetch -q --all' ::: $CODEDIR/*
+
+echo "Fetching repos in ~/work";
+parallel 'cd {} && git fetch -q --all' ::: ~/work/*
