@@ -81,7 +81,7 @@ class Video:
 
         def parse_youtube_video(url):
             """Take a youtube url and extract the video hash"""
-            match = re.search(".*?video=(.{11})", url)
+            match = re.search(".*?video=(.{11}).*", url)
             if match:
                 return match.group(1)
             return None
@@ -112,12 +112,16 @@ def load_from_json() -> List[Video]:
 
 
 def write_vids(videos: List[Video]):
+    if not videos:
+        raise Exception("Sent empty list of videos to write to file")
     def replace_vid_to_hash(video):
         h = video["vid"]
         del video["vid"]
         return {"hash": h, **video}
 
     entries = [replace_vid_to_hash(asdict(video)) for video in videos]
+    if not entries:
+        raise Exception("Entries in write_vids is empty")
     json.dump(entries, open(FILENAME, "w", encoding="utf8"), indent=2)
 
 
@@ -126,34 +130,45 @@ def modify(vids, query):
         if query in video:
             print(i, video)
     vid_choice = int(input("Choose: "))
-    vid = vids[vid_choice]
-    print(vid.__repr__())
+    print(vids[vid_choice].__repr__())
+    print()
+    options = ["artist", "title", "fav", "archived", "exit"]
     while True:
-        print("Fields")
-        print("\t0 Artist")
-        print("\t1 Title")
-        print("\t2 Fav")
-        print("\t3 Archived")
-        field_choice = int(input("> "))
-        if field_choice < 0 or field_choice > 3:
+        response = input(", ".join(options) + ": ").lower()
+        if response == "exit":
             break
-        if field_choice == 0:
+        elif response not in options:
+            break
+        elif response == "artist":
             vids[vid_choice].artist = input("Artist: ")
-        elif field_choice == 1:
+        elif response == "title":
             vids[vid_choice].title = input("Title: ")
-        elif field_choice == 2:
+        elif response == "fav":
             vids[vid_choice].fav = not vids[vid_choice].fav
             print(f"'Favourite' toggled to {vids[vid_choice].fav}")
-        else:
+        elif response == "archived":
             vids[vid_choice].archived = not vids[vid_choice].archived
             print(f"'Archived' toggled to {vids[vid_choice].archived}")
-    vid = vids[vid_choice]
-    print(vid.__repr__())
-    happy = input("Happy? [y/n] ").lower()[0]
-    if happy == "y":
-        write_vids(vids)
-    else:
-        print("Not saving updates.  Re-run if needed")
+        else:
+            raise Exception("Shouldn't be possible to get here...'%s'" % response)
+    print(vids[vid_choice].__repr__())
+    print()
+    happy = input("Happy? [y/n] ").lower()[0] == "y"
+    if not happy:
+        raise Exception("Not happy with result. Re-run if needed")
+    write_vids(vids)
+
+
+def choose(list, random=False):
+    if random:
+        return list[random.randint(0, len(list) - 1)]
+    if not list:
+        raise Exception("List is empty")
+    if len(list) == 1:
+        return list[0]
+    display(list)
+    choice = int(input("Choose: "))
+    return list[choice]
         
 
 def main():
@@ -177,23 +192,17 @@ def main():
             display(filtered)
         elif args["modify"]:
             modify(vids, query)
-        elif args["open"] and args["-r"]:
-            choiceidx = random.randint(0, len(filtered) - 1)
-            choice = filtered[choiceidx]
+        elif args["open"]:
+            choice = choose(filtered, args["-r"]) 
             print(choice)
             choice.open()
         else:
-            choice = 0
-            if len(filtered) > 1:
-                display(filtered)
-                choice = int(input("Choose: "))
-            print(filtered[choice])
-            print(filtered[choice].vid)
-            filtered[choice].open()
+            print("Unknown option...shouldn't be able to get here")
     except (EOFError, KeyboardInterrupt):
         print("\nC-c pressed. Exiting...")
     except Exception as E:
         print(E)
+
 
 
 if __name__ == "__main__":
