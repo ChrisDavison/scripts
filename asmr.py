@@ -4,6 +4,7 @@ import json
 import os
 import random
 import re
+import sys
 import webbrowser
 from dataclasses import dataclass, asdict
 from pathlib import Path
@@ -47,7 +48,7 @@ def modify(query):
     for idx, (i, video) in enumerate(options):
         print(f"{idx:4} {video}")
     vid_choice = options[int(input("Choose: "))][0]
-    print("\n", videos[vid_choice][1].__repr__(), "\n")
+    print("\n", videos[vid_choice][1].__str__(), "\n")
     options = ["artist", "title", "fav", "archived", "exit"]
     while True:
         response = input(", ".join(options) + ": ").lower()
@@ -68,7 +69,7 @@ def modify(query):
         else:
             raise Exception("Shouldn't be possible to get here...'%s'" % response)
         print()
-    print("\n", videos[vid_choice][1].__repr__())
+    print("\n", videos[vid_choice][1].__str__())
     write_asmr_file(videos)
 
 
@@ -99,18 +100,15 @@ class Video:
     archived: bool
 
     def __contains__(self, query):
+        """Search for query in title or artist"""
         query = query.lower()
         return query in self.title.lower() or query in self.artist.lower()
 
     def __str__(self):
-        fav = "F" if self.fav else " "
-        arc = "@" if self.archived else " "
+        """Prettyprint"""
+        fav = "F" if self.fav else "."
+        arc = "@" if self.archived else "."
         return f"{fav} {arc} {self.artist:20s}{self.title}"
-
-    def __repr__(self):
-        fav = "F" if self.fav else "x"
-        arc = "@" if self.archived else "x"
-        return f"[{fav}|{arc}] {self.title} by {self.artist}"
 
     def open(self):
         url = f"https://www.youtube.com/watch?v={self.vid_id}"
@@ -126,21 +124,17 @@ class Video:
         vid = input("Video ID: ")
         fav = input("Fav [y/n]: ")[0] in ["Y", "y"]
 
-        def parse_youtube_video(url):
-            """Take a youtube url and extract the video hash"""
+        if vid.startswith("www.") or vid.startswith("http"):
             match = re.search(".*?video=(.{11}).*", url)
             if match:
-                return match.group(1)
-            return None
-
-        if vid.startswith("www.") or vid.startswith("http"):
-            vid = parse_youtube_video(vid)
-        if len(vid) < 11:
-            raise Exception("VidAddException: Video hash must be >= 11 characters")
+                vid = match.group(1)
+        if not vid:
+            raise Exception("VidAddException: Could not parse video id")
         return Video(title, artist, vid, fav, False)
 
 
 def filter_videos(query, only_favourites, with_archived):
+    """Get videos, optionall focusing on favourites, or including archived."""
     filtered = []
     for i, vid in videos:
         has_query = query.lower() in vid
@@ -148,14 +142,6 @@ def filter_videos(query, only_favourites, with_archived):
         has_archive = not vid.archived or with_archived
         if has_query and has_fav and has_archive:
             filtered.append((i, vid))
-
-        # if query.lower() in vid:
-        #     has_query
-    # filtered = [(i, vid) for (i, vid) in videos if query.lower() in vid]
-    # if only_favourites:
-        # filtered = [video for video in filtered if video.fav]
-    # if not with_archived:
-        # filtered = [video for video in filtered if not video.archived]
     return filtered
 
 
@@ -185,15 +171,17 @@ def write_asmr_file(videos):
     """Convert videos to a dict and then export to json file."""
     if not videos:
         raise Exception("Sent empty list of videos to write to file")
-    json.dump([asdict(v) for i, v in videos], open(FILENAME, "w", encoding="utf8"), indent=2)
+    videos_without_index = map(lambda x: x[1], videos)
+    videos_as_dicts = map(asdict, videos_without_index)
+    json.dump(list(videos_as_dicts), open(FILENAME, "w", encoding="utf8"), indent=2)
 
 
 def choose(list, random=False):
     """Choose an entry from a list, or get a random one."""
-    if random:
-        return random.choice(list)[1]
     if not list:
         raise Exception("List is empty")
+    if random:
+        return random.choice(list)[1]
     if len(list) == 1:
         return list[0][1]
     display(list)
