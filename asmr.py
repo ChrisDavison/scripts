@@ -12,7 +12,7 @@ import click
 
 
 Video = namedtuple('Video', 'title artist vid_id fav archived')
-DB_FILENAME = str((Path(os.environ["DATADIR"]) / "data.database").resolve())
+DB_FILENAME = str((Path(os.environ["DATADIR"]) / "data.db").resolve())
 
 
 def format_video(video):
@@ -44,6 +44,22 @@ def choose(entries, random=False):
     return entries[choice][1]
 
 
+def select_videos(only_favourites, with_archived, query):
+    """Run a database query for videos"""
+    fav = "AND fav = 1" if only_favourites else ""
+    archived = "AND archived = 0" if not with_archived else ""
+    database = sqlite3.connect(DB_FILENAME)
+    cursor = database.cursor()
+    cursor.execute(f"""
+        select * from asmr
+        where (title like '%{query}%' or artist like '%{query}%')
+            {fav} {archived}
+        ORDER BY artist, fav DESC, title""")
+    data = cursor.fetchall()
+    database.close()
+    return data
+
+
 @click.group()
 def cli():
     """Handle asmr video data in $DATADIR/asmr.json.  Can view, add, play, or modify
@@ -62,14 +78,14 @@ def add():
         match = re.search(".*?video=(.{11}).*", vid)
         if match:
             vid = match.group(1)
-    if not vid:
-        raise Exception("VidAddException: Could not parse video id")
+    if not vid or len(vid) != 11:
+        raise Exception("Could not parse video id")
 
     database = sqlite3.connect(DB_FILENAME)
     cursor = database.cursor()
     cursor.execute(f"""
         INSERT INTO asmr(title, artist, hash, fav, archived)
-        VALUES ( '{title}', '{artist}', '{vid}', '{fav}', '{0}' )
+        VALUES ( '{title}', '{artist}', '{vid}', '{fav}', '0' )
     """)
     database.commit()
     database.close()
@@ -80,15 +96,8 @@ def add():
 def modify(query):
     """Modify an existing video's metadata"""
     query = ' '.join(query).lower()
-    database = sqlite3.connect(DB_FILENAME)
-    cursor = database.cursor()
-    cursor.execute(f"""
-        select * from asmr
-        where title like '%{query}%' or artist like '%{query}%'
-        ORDER BY artist, fav DESC, title
-    """)
-    data = cursor.fetchall()
-    database.close()
+    only_favourites, with_archived = False, True
+    data = select_videos(only_favourites, with_archived, query)
     videos = [(idx, Video(title, artist, vid_id, fav, archived))
               for (idx, title, artist, vid_id, fav, archived) in data]
     display(videos)
@@ -134,16 +143,7 @@ def modify(query):
 def view(query, only_favourites, with_archived):
     """List videos, optionally filtered by query or favourites only"""
     query = ' '.join(query).lower()
-    fav = "AND fav = 1" if only_favourites else ""
-    archived = "AND archived = 0" if not with_archived else ""
-    database = sqlite3.connect(DB_FILENAME)
-    cursor = database.cursor()
-    cursor.execute(f"""
-        select * from asmr
-        where (title like '%{query}%' or artist like '%{query}%')
-            {fav} {archived}
-        ORDER BY artist, fav DESC, title""")
-    data = cursor.fetchall()
+    data = select_videos(only_favourites, with_archived, query)
     database.close()
     videos = [(idx, Video(title, artist, vid_id, fav, archived))
               for (idx, title, artist, vid_id, fav, archived) in data]
@@ -158,16 +158,7 @@ def view(query, only_favourites, with_archived):
 def play(query, random, only_favourites, with_archived):
     """Play a video (optionally filtered)"""
     query = ' '.join(query).lower()
-    fav = "AND fav = 1" if only_favourites else ""
-    archived = "AND archived = 0" if not with_archived else ""
-    database = sqlite3.connect(DB_FILENAME)
-    cursor = database.cursor()
-    cursor.execute(f"""
-        select * from asmr
-        where (title like '%{query}%' or artist like '%{query}%')
-            {fav} {archived} """)
-    data = cursor.fetchall()
-    database.close()
+    data = select_videos(only_favourites, with_archived, query)
     videos = [(idx, Video(title, artist, vid_id, fav, archived))
               for (idx, title, artist, vid_id, fav, archived) in data]
     choice = choose(videos, random)
