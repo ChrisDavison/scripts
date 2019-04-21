@@ -65,6 +65,7 @@ def modify(query):
     sql_query = f"""
         select * from asmr
         where title like '%{query}%' or artist like '%{query}%'
+        ORDER BY artist, fav DESC, title
     """
     _, data = execute_select(sql_query)
     videos = [(idx, Video(title, artist, vid_id, fav, archived))
@@ -119,6 +120,7 @@ def view(query, only_favourites, with_archived):
         select * from asmr
         where (title like '%{query}%' or artist like '%{query}%')
             {fav} {archived}
+        ORDER BY artist, fav DESC, title
     """
     _, data = execute_select(sql_query)
     videos = [(idx, Video(title, artist, vid_id, fav, archived))
