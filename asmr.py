@@ -144,7 +144,6 @@ def view(query, only_favourites, with_archived):
     """List videos, optionally filtered by query or favourites only"""
     query = ' '.join(query).lower()
     data = select_videos(only_favourites, with_archived, query)
-    database.close()
     videos = [(idx, Video(title, artist, vid_id, fav, archived))
               for (idx, title, artist, vid_id, fav, archived) in data]
     display(videos)
