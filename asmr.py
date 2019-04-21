@@ -4,32 +4,50 @@ import os
 import re
 import sqlite3
 import webbrowser
-from random import choice as random_choice
-from dataclasses import dataclass
+from collections import namedtuple
 from pathlib import Path
+from random import choice as random_choice
 
 import click
 
 
-DB_FILENAME = 'e:/Dropbox/data/data.db'
+Video = namedtuple('Video', 'title artist vid_id fav archived')
+DB_FILENAME = str((Path(os.environ["DATADIR"]) / "data.database").resolve())
 
 
-def execute_select(query):
-    """Execute an sqlite select query, returning column names and data"""
-    db = sqlite3.connect(DB_FILENAME)
-    cursor = db.cursor()
-    cursor.execute(query)
-    data = cursor.fetchall()
-    columns = list(map(lambda x: x[0], cursor.description))
-    db.close()
-    return columns, data
+def format_video(video):
+    """Prettyprint a Video"""
+    fav = "F" if video.fav else "."
+    arc = "@" if video.archived else "."
+    return f"{fav} {arc} {video.artist:20s}{video.title}"
+
+
+def display(entries):
+    """For every asmr entry, display it's index and a pretty printed title"""
+    title = f"   # F A {'ARTIST'.ljust(20)}TITLE"
+    print(title)
+    print("-"*(len(title)+20))
+    for idx, (_, entry) in enumerate(entries):
+        print(f"{idx:4} {format_video(entry)}")
+
+
+def choose(entries, random=False):
+    """Choose an entry from a entries, or get a random one."""
+    if not entries:
+        raise Exception("Can't choose. List is empty.")
+    if random:
+        return random_choice(entries)[1]
+    if len(entries) == 1:
+        return entries[0][1]
+    display(entries)
+    choice = int(input("Choose: "))
+    return entries[choice][1]
 
 
 @click.group()
 def cli():
     """Handle asmr video data in $DATADIR/asmr.json.  Can view, add, play, or modify
     metadata.  Exists because youtube's playlists are pretty crap."""
-    pass
 
 
 @cli.command(short_help="Add a new video")
@@ -47,14 +65,14 @@ def add():
     if not vid:
         raise Exception("VidAddException: Could not parse video id")
 
-    db = sqlite3.connect(DB_FILENAME)
-    cursor = db.cursor()
+    database = sqlite3.connect(DB_FILENAME)
+    cursor = database.cursor()
     cursor.execute(f"""
         INSERT INTO asmr(title, artist, hash, fav, archived)
         VALUES ( '{title}', '{artist}', '{vid}', '{fav}', '{0}' )
     """)
-    db.commit()
-    db.close()
+    database.commit()
+    database.close()
 
 
 @cli.command(short_help="Modify a video")
@@ -62,19 +80,21 @@ def add():
 def modify(query):
     """Modify an existing video's metadata"""
     query = ' '.join(query).lower()
-    sql_query = f"""
+    database = sqlite3.connect(DB_FILENAME)
+    cursor = database.cursor()
+    cursor.execute(f"""
         select * from asmr
         where title like '%{query}%' or artist like '%{query}%'
         ORDER BY artist, fav DESC, title
-    """
-    _, data = execute_select(sql_query)
+    """)
+    data = cursor.fetchall()
+    database.close()
     videos = [(idx, Video(title, artist, vid_id, fav, archived))
               for (idx, title, artist, vid_id, fav, archived) in data]
-    for idx, (_, video) in enumerate(videos):
-        print(f"{idx:4} {video}")
+    display(videos)
 
     db_id, video = videos[int(input("Choose: "))]
-    print(video)
+    print(format_video(video))
     print("Enter new values, or leave blank to keep current")
     updates = []
     inp = input(f"artist ({video.artist}): ")
@@ -96,15 +116,15 @@ def modify(query):
     if not updates:
         return
 
-    db = sqlite3.connect(DB_FILENAME)
-    cursor = db.cursor()
+    database = sqlite3.connect(DB_FILENAME)
+    cursor = database.cursor()
     command = f"""
         UPDATE asmr
         SET {','.join(updates)}
         WHERE id={db_id}
     """
     cursor.execute(command)
-    db.commit()
+    database.commit()
 
 
 @cli.command(short_help="View list of videos")
@@ -116,13 +136,15 @@ def view(query, only_favourites, with_archived):
     query = ' '.join(query).lower()
     fav = "AND fav = 1" if only_favourites else ""
     archived = "AND archived = 0" if not with_archived else ""
-    sql_query = f"""
+    database = sqlite3.connect(DB_FILENAME)
+    cursor = database.cursor()
+    cursor.execute(f"""
         select * from asmr
         where (title like '%{query}%' or artist like '%{query}%')
             {fav} {archived}
-        ORDER BY artist, fav DESC, title
-    """
-    _, data = execute_select(sql_query)
+        ORDER BY artist, fav DESC, title""")
+    data = cursor.fetchall()
+    database.close()
     videos = [(idx, Video(title, artist, vid_id, fav, archived))
               for (idx, title, artist, vid_id, fav, archived) in data]
     display(videos)
@@ -138,75 +160,20 @@ def play(query, random, only_favourites, with_archived):
     query = ' '.join(query).lower()
     fav = "AND fav = 1" if only_favourites else ""
     archived = "AND archived = 0" if not with_archived else ""
-    sql_query = f"""
+    database = sqlite3.connect(DB_FILENAME)
+    cursor = database.cursor()
+    cursor.execute(f"""
         select * from asmr
         where (title like '%{query}%' or artist like '%{query}%')
-            {fav} {archived}
-    """
-    _, data = execute_select(sql_query)
+            {fav} {archived} """)
+    data = cursor.fetchall()
+    database.close()
     videos = [(idx, Video(title, artist, vid_id, fav, archived))
               for (idx, title, artist, vid_id, fav, archived) in data]
     choice = choose(videos, random)
-    print(choice)
-    choice.open()
+    print(format_video(choice))
+    url = f"https://www.youtube.com/watch?v={choice.vid_id}"
+    webbrowser.open(url)
 
 
-@dataclass
-class Video:
-    """An ASMR Video.
-
-    Contains title, artist, ID (11-character), and indication of favourite
-    """
-    title: str
-    artist: str
-    vid_id: str
-    fav: bool
-    archived: bool
-
-    def __contains__(self, query):
-        """Search for query in title or artist"""
-        query = query.lower()
-        return query in self.title.lower() or query in self.artist.lower()
-
-    def __str__(self):
-        """Prettyprint"""
-        fav = "F" if self.fav else "."
-        arc = "@" if self.archived else "."
-        return f"{fav} {arc} {self.artist:20s}{self.title}"
-
-    def open(self):
-        """Generate URL from video id and open in browser"""
-        url = f"https://www.youtube.com/watch?v={self.vid_id}"
-        webbrowser.open(url)
-
-
-def display(entries):
-    """For every asmr entry, display it's index and a pretty printed title"""
-    title = f"   # F A {'ARTIST'.ljust(20)}TITLE"
-    print(title)
-    print("-"*(len(title)+20))
-    for idx, (_, entry) in enumerate(entries):
-        print(f"{idx:4} {entry}")
-
-
-def choose(list, random=False):
-    """Choose an entry from a list, or get a random one."""
-    if not list:
-        raise Exception("List is empty")
-    if random:
-        return random_choice(list)[1]
-    if len(list) == 1:
-        return list[0][1]
-    display(list)
-    choice = int(input("Choose: "))
-    return list[choice][1]
-
-
-try:
-    direc = os.environ.get("DATADIR", None)
-    if not direc:
-        raise Exception("DATADIR not defined")
-    FILENAME = str((Path(direc) / "asmr.json").resolve())
-    cli()
-except Exception as E:
-    print(E)
+cli()
