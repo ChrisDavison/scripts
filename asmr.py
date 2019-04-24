@@ -40,8 +40,10 @@ def choose(entries, random=False):
     if len(entries) == 1:
         return entries[0][1]
     display(entries)
-    choice = int(input("Choose: "))
-    return entries[choice][1]
+    response = input("Choose: ")
+    # Split optionally on ",", to allow entry of multiple choices
+    choice = [int(i.strip()) for i in response.split(",")]
+    return [entries[c][1] for c in choice]
 
 
 def select_videos(only_favourites, with_archived, query):
@@ -161,9 +163,9 @@ def play(query, random, only_favourites, with_archived):
     videos = [(idx, Video(title, artist, vid_id, fav, archived))
               for (idx, title, artist, vid_id, fav, archived) in data]
     choice = choose(videos, random)
-    print(format_video(choice))
-    url = f"https://www.youtube.com/watch?v={choice.vid_id}"
-    webbrowser.open(url)
-
+    for c in choice:
+        print(format_video(c))
+        url = f"https://www.youtube.com/watch?v={c.vid_id}"
+        webbrowser.open(url)
 
 cli()
