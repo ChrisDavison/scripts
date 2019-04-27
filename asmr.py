@@ -27,7 +27,7 @@ def display(entries):
     title = f"   # F A {'ARTIST'.ljust(20)}TITLE"
     print(title)
     print("-"*(len(title)+20))
-    for idx, (_, entry) in enumerate(entries):
+    for idx, entry in enumerate(entries):
         print(f"{idx:4} {format_video(entry)}")
 
 
@@ -43,7 +43,7 @@ def choose(entries, random=False):
     response = input("Choose: ")
     # Split optionally on ",", to allow entry of multiple choices
     choice = [int(i.strip()) for i in response.split(",")]
-    return [entries[c][1] for c in choice]
+    return [entries[c] for c in choice]
 
 
 def select_videos(only_favourites, with_archived, query):
@@ -104,7 +104,7 @@ def modify(query):
               for (idx, title, artist, vid_id, fav, archived) in data]
     display(videos)
 
-    db_id, video = videos[int(input("Choose: "))]
+    video = videos[int(input("Choose: "))]
     print(format_video(video))
     print("Enter new values, or leave blank to keep current")
     updates = []
@@ -132,7 +132,7 @@ def modify(query):
     command = f"""
         UPDATE asmr
         SET {','.join(updates)}
-        WHERE id={db_id}
+        WHERE artist={video.artist} and title={video.title}
     """
     cursor.execute(command)
     database.commit()
@@ -146,8 +146,8 @@ def view(query, only_favourites, with_archived):
     """List videos, optionally filtered by query or favourites only"""
     query = ' '.join(query).lower()
     data = select_videos(only_favourites, with_archived, query)
-    videos = [(idx, Video(title, artist, vid_id, fav, archived))
-              for (idx, title, artist, vid_id, fav, archived) in data]
+    videos = [Video(title, artist, vid_id, fav, archived)
+              for title, artist, vid_id, fav, archived in data]
     display(videos)
 
 
@@ -160,8 +160,8 @@ def play(query, random, only_favourites, with_archived):
     """Play a video (optionally filtered)"""
     query = ' '.join(query).lower()
     data = select_videos(only_favourites, with_archived, query)
-    videos = [(idx, Video(title, artist, vid_id, fav, archived))
-              for (idx, title, artist, vid_id, fav, archived) in data]
+    videos = [Video(title, artist, vid_id, fav, archived)
+              for title, artist, vid_id, fav, archived in data]
     choice = choose(videos, random)
     for c in choice:
         print(format_video(c))
