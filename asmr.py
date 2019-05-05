@@ -36,9 +36,9 @@ def choose(entries, random=False):
     if not entries:
         raise Exception("Can't choose. List is empty.")
     if random:
-        return random_choice(entries)[1]
+        return random_choice(entries)
     if len(entries) == 1:
-        return entries[0][1]
+        return entries
     display(entries)
     response = input("Choose: ")
     # Split optionally on ",", to allow entry of multiple choices
@@ -59,7 +59,7 @@ def select_videos(only_favourites, with_archived, query):
         ORDER BY artist, fav DESC, title""")
     data = cursor.fetchall()
     database.close()
-    return data
+    return [Video(*d) for d in data]
 
 
 @click.group()
@@ -99,9 +99,7 @@ def modify(query):
     """Modify an existing video's metadata"""
     query = ' '.join(query).lower()
     only_favourites, with_archived = False, True
-    data = select_videos(only_favourites, with_archived, query)
-    videos = [(idx, Video(title, artist, vid_id, fav, archived))
-              for (idx, title, artist, vid_id, fav, archived) in data]
+    videos = select_videos(only_favourites, with_archived, query)
     display(videos)
 
     video = videos[int(input("Choose: "))]
@@ -145,9 +143,7 @@ def modify(query):
 def view(query, only_favourites, with_archived):
     """List videos, optionally filtered by query or favourites only"""
     query = ' '.join(query).lower()
-    data = select_videos(only_favourites, with_archived, query)
-    videos = [Video(title, artist, vid_id, fav, archived)
-              for title, artist, vid_id, fav, archived in data]
+    videos = select_videos(only_favourites, with_archived, query)
     display(videos)
 
 
@@ -159,13 +155,11 @@ def view(query, only_favourites, with_archived):
 def play(query, random, only_favourites, with_archived):
     """Play a video (optionally filtered)"""
     query = ' '.join(query).lower()
-    data = select_videos(only_favourites, with_archived, query)
-    videos = [Video(title, artist, vid_id, fav, archived)
-              for title, artist, vid_id, fav, archived in data]
+    videos = select_videos(only_favourites, with_archived, query)
     choice = choose(videos, random)
-    for c in choice:
-        print(format_video(c))
-        url = f"https://www.youtube.com/watch?v={c.vid_id}"
+    for video in choice:
+        print(format_video(video))
+        url = f"https://www.youtube.com/watch?v={video.vid_id}"
         webbrowser.open(url)
 
 cli()
