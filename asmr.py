@@ -1,5 +1,23 @@
 #!/usr/bin/env python3
-"""ASMR video management"""
+"""ASMR video management
+
+Usage:
+    asmr play [-far] [<query>]...
+    asmr view [-fa] [<query>]...
+    asmr modify [<query>]...
+    asmr add
+
+Commands:
+    play    Play a video matching query
+    view    List all videos matching query
+    modify  Change metadata of an existing video
+    add     Add a new video to the database
+
+Options:
+    -f --favourites      Display only favourites      [default: False]
+    -a --with-archived   Also display archived videos [default: False]
+    -r --random          Choose a random video        [default: False]
+"""
 import os
 import re
 import sqlite3
@@ -8,10 +26,10 @@ from collections import namedtuple
 from pathlib import Path
 from random import choice as random_choice
 
-import click
+from docopt import docopt
 
 
-Video = namedtuple('Video', 'title artist vid_id fav archived')
+Video = namedtuple("Video", "title artist vid_id fav archived")
 DB_FILENAME = str((Path(os.environ["DATADIR"]) / "data.db").resolve())
 
 
@@ -26,7 +44,7 @@ def display(entries):
     """For every asmr entry, display it's index and a pretty printed title"""
     title = f"   # F A {'ARTIST'.ljust(20)}TITLE"
     print(title)
-    print("-"*(len(title)+20))
+    print("-" * (len(title) + 20))
     for idx, entry in enumerate(entries):
         print(f"{idx:4} {format_video(entry)}")
 
@@ -34,7 +52,7 @@ def display(entries):
 def choose(entries, random=False):
     """Choose an entry from a entries, or get a random one."""
     if not entries:
-        raise Exception("Can't choose. List is empty.")
+        raise Exception("choose: Can't choose from an empty video list.")
     if random:
         return random_choice(entries)
     if len(entries) == 1:
@@ -52,24 +70,19 @@ def select_videos(only_favourites, with_archived, query):
     archived = "AND archived = 0" if not with_archived else ""
     database = sqlite3.connect(DB_FILENAME)
     cursor = database.cursor()
-    cursor.execute(f"""
+    cursor.execute(
+        f"""
         select * from asmr
         where (title like '%{query}%' or artist like '%{query}%')
             {fav} {archived}
-        ORDER BY artist, fav DESC, title""")
+        ORDER BY artist, fav DESC, title"""
+    )
     data = cursor.fetchall()
     database.close()
     return [Video(*d) for d in data]
 
 
-@click.group()
-def cli():
-    """Handle asmr video data in $DATADIR/asmr.json.  Can view, add, play, or modify
-    metadata.  Exists because youtube's playlists are pretty crap."""
-
-
-@cli.command(short_help="Add a new video")
-def add():
+def add(**kwargs):
     """Give the user inputs to add a new video to the ASMRFILE"""
     artist = input("Artist: ")
     title = input("Title: ")
@@ -81,28 +94,26 @@ def add():
         if match:
             vid = match.group(1)
     if not vid or len(vid) != 11:
-        raise Exception("Could not parse video id")
+        raise Exception("add: Could not parse video id")
 
     database = sqlite3.connect(DB_FILENAME)
     cursor = database.cursor()
-    cursor.execute(f"""
+    cursor.execute(
+        f"""
         INSERT INTO asmr(title, artist, hash, fav, archived)
         VALUES ( '{title}', '{artist}', '{vid}', '{fav}', '0' )
-    """)
+    """
+    )
     database.commit()
     database.close()
 
 
-@cli.command(short_help="Modify a video")
-@click.argument('query', nargs=-1)
-def modify(query):
+def modify(*, query, **kwargs):
     """Modify an existing video's metadata"""
-    query = ' '.join(query).lower()
+    query = " ".join(query).lower()
     only_favourites, with_archived = False, True
     videos = select_videos(only_favourites, with_archived, query)
-    display(videos)
-
-    video = videos[int(input("Choose: "))]
+    video = choose(videos, False)
     print(format_video(video))
     print("Enter new values, or leave blank to keep current")
     updates = []
@@ -136,25 +147,16 @@ def modify(query):
     database.commit()
 
 
-@cli.command(short_help="View list of videos")
-@click.argument('query', nargs=-1)
-@click.option('-f', '--only-favourites', is_flag=True, default=False)
-@click.option('-a', '--with-archived', is_flag=True, default=False)
-def view(query, only_favourites, with_archived):
+def view(*, query, only_favourites, with_archived, **kwargs):
     """List videos, optionally filtered by query or favourites only"""
-    query = ' '.join(query).lower()
+    query = " ".join(query).lower()
     videos = select_videos(only_favourites, with_archived, query)
     display(videos)
 
 
-@cli.command(short_help="Play a video")
-@click.argument('query', nargs=-1)
-@click.option('-r', '--random', is_flag=True, default=False)
-@click.option('-f', '--only-favourites', is_flag=True, default=False)
-@click.option('-a', '--with-archived', is_flag=True, default=False)
-def play(query, random, only_favourites, with_archived):
+def play(*, query, random, only_favourites, with_archived):
     """Play a video (optionally filtered)"""
-    query = ' '.join(query).lower()
+    query = " ".join(query).lower()
     videos = select_videos(only_favourites, with_archived, query)
     choice = choose(videos, random)
     for video in choice:
@@ -162,4 +164,22 @@ def play(query, random, only_favourites, with_archived):
         url = f"https://www.youtube.com/watch?v={video.vid_id}"
         webbrowser.open(url)
 
-cli()
+
+def main():
+    """Run asmr video util"""
+    args = docopt(__doc__)
+    commands = [("play", play), ("view", view), ("modify", modify), ("add", add)]
+    # Due to the way docopt works, we should _always_ have one of the above commands
+    # by the time we reach this point, so it's save to just take the 0th
+    # Also, only one command should be available, so the list should be length 1.
+    command = [func for (funcname, func) in commands if args[funcname]][0]
+    command(
+        query=args["<query>"],
+        random=args["--random"],
+        only_favourites=args["--favourites"],
+        with_archived=args["--with-archived"],
+    )
+
+
+if __name__ == "__main__":
+    main()
