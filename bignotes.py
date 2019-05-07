@@ -7,6 +7,7 @@ import pandas as pd
 from toolz.functoolz import *
 from IPython.display import display
 
+from terminalstyle import Style
 
 def get_kb(path):
     return int(path.stat().st_size / 1024)
@@ -35,7 +36,7 @@ def main():
     files['kb'] = files['path'].apply(get_kb)
     files = files.sort_values(by='kb', ascending=False)
     for _, row in files.iloc[:args.n].iterrows():
-        print(f"({row.kb}) {row.path.name}")
+        print(f"{row.kb:3d} kb\t{row.path.parent}/{Style.red(row.path.name)}")
 
 
 if __name__ == "__main__":
