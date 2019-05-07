@@ -20,3 +20,19 @@ class Style:
     BG_Magenta = "\033[45m"
     BG_Cyan = "\033[46m"
     BG_White = "\033[47m"
+
+    @staticmethod
+    def bold(string):
+        return f"{Style.BOLD}{string}{Style.END}"
+
+    @staticmethod
+    def red(string):
+        return f"{Style.FG_Red}{string}{Style.END}"
+
+    @staticmethod
+    def green(string):
+        return f"{Style.FG_Green}{string}{Style.END}"
+
+    @staticmethod
+    def blue(string):
+        return f"{Style.FG_Blue}{string}{Style.END}"
