@@ -1,20 +1,23 @@
 #!/usr/bin/env python3
+"""Show the largest notes under a directory."""
 from argparse import ArgumentParser
 from pathlib import Path
-from functools import partial
 
 import pandas as pd
-from toolz.functoolz import *
-from IPython.display import display
 
 from terminalstyle import Style
 
+
 def get_kb(path):
+    """Stat the file and get filesize in kb"""
     return int(path.stat().st_size / 1024)
 
 
+
 def matches_any(queries, path):
+    """Check if a path matches any of a list of queries."""
     return any([query in str(path) for query in queries])
+
 
 
 def main():
@@ -29,7 +32,7 @@ def main():
     queries_to_ignore = args.i
     if args.f:
         queries_to_ignore.extend(Path(args.f).read_text().splitlines())
-    files = [f for f in Path(".").rglob("*.md")
+    files = [f for f in Path(".").rglob("*.org")
              if matches_any(args.q, f)
              and not matches_any(queries_to_ignore, f)]
     files = pd.DataFrame(files, columns=['path'])
@@ -39,5 +42,6 @@ def main():
         print(f"{row.kb:3d} kb\t{row.path.parent}/{Style.red(row.path.name)}")
 
 
+        
 if __name__ == "__main__":
     main()
