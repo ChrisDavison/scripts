@@ -24,6 +24,7 @@ import re
 import webbrowser
 from pathlib import Path
 from random import choice as random_choice
+from functools import lru_cache
 
 from docopt import docopt
 
@@ -31,92 +32,61 @@ from docopt import docopt
 FILENAME = str((Path(os.environ["DATADIR"]) / "asmr.json").resolve())
 
 
-def write_sorted_videos(videos):
-    sorted_videos = sorted(videos, key=lambda x: x['artist'])
-    json.dump(sorted_videos, open(FILENAME, 'w'), indent=2)
-
-
-def read_videos():
-    return json.load(open(FILENAME, 'r'))
-
-
-def contains(v, query):
-    query = query.lower()
-    return query in v['artist'].lower() or query in v['title'].lower()
+@lru_cache(4096)
+def levenshtein(a, b):
+    """Compute levenshtein edit distance between two strings"""
+    if not a or not b:
+        return max(len(a), len(b))
+    if a[0] == b[0]:
+        return levenshtein(a[1:], b[1:])
+    return 1 + min(
+        levenshtein(a[1:], b), levenshtein(a, b[1:]), levenshtein(a[1:], b[1:])
+    )
 
 
 def new_video():
     title = input("Title: ")
     artist = input("Artist: ")
     url = input("URL: ")
-    if not (url.startswith('http') or url.startswith('www.')):
+    if not (url.startswith("http") or url.startswith("www.")):
         url = f"https://www.youtube.com/watch?v={url}"
-    return {'title': title, 'artist': artist, 'url': url}
+    return {"title": title, "artist": artist, "url": url}
 
 
-def format_video(video):
-    """Prettyprint a Video"""
-    return f"{video['artist']:20s}{video['title']}"
-
-
-def display(entries):
-    """For every asmr entry, display it's index and a pretty printed title"""
-    title = f"   # {'ARTIST'.ljust(20)}TITLE"
-    print(title)
-    print("-" * (len(title) + 20))
-    for idx, entry in enumerate(entries):
-        print(f"{idx:4} {format_video(entry)}")
-
-
-def choose(entries, random=False):
-    """Choose an entry from a entries, or get a random one."""
-    if not entries:
-        raise Exception("choose: Can't choose from an empty video list.")
-    if random:
-        return random_choice(entries)
-    if len(entries) == 1:
-        return entries
-    display(entries)
-    response = input("Choose: ")
-    # Split optionally on ",", to allow entry of multiple choices
-    choice = [int(i.strip()) for i in response.split(",")]
-    return [entries[c] for c in choice]
-
-
-def select_videos(query):
-    """Load and filter videos"""
-    videos = read_videos()
-    return [v for v in videos if contains(v, query)]
+def check_for_similar_artist(artists):
+    new_artist = input("Artist: ")
+    distances = {(artist, levenshtein(new_artist, artist)) for artist in artists}
+    similar = {artist for (artist, distance) in distances if distance < 3}
+    exact = {artist for (artist, distance) in distances if distance == 0}
+    if similar and not exact:
+        print("Similar artists")
+        for i, artist in enumerate(similar):
+            print(f"{i}\t{artist}")
+        video = int(input(f"Artist, or -1 to use '{new_artist}': "))
+        return new_artist if video == -1 else similar[video]
+    return new_artist
 
 
 def urlify(url):
-    if not url.startswith('http') and not url.startswith('www'):
+    if not url.startswith("http") and not url.startswith("www"):
         return f"https://www.youtube.com/watch?v={url}"
     return url
 
 
-def add(**kwargs):
+def add(*, videos):
     """Give the user inputs to add a new video to the ASMRFILE"""
-    artist = input("Artist: ")
+    artists = [v["artist"] for v in videos]
+    artist = check_for_similar_artist(artists)
     title = input("Title: ")
-    url= urlify(input("Video ID: "))
-
-    videos = read_videos()
-    videos.append({'title': title, 'artist': artist, 'url': url})
-    write_sorted_videos(videos)
+    url = urlify(input("Video ID: "))
+    videos.append({"title": title, "artist": artist, "url": url})
+    return videos
 
 
-
-def modify(*, query, **kwargs):
+def modify(*, videos, mask):
     """Modify an existing video's metadata"""
-
-    query = " ".join(query).lower()
-    videos = read_videos()
-    for i, video in enumerate(videos):
-        if contains(video, query):
-            print(f"{i:5d}\t{format_video(video)}")
-    choice = int(input("Choice: "))
-
+    choices = [int(c) for c in input("Choice(s): ").replace(" ", ",").split(",")
+               if int(c) in mask]
     print("\nEnter new values, or press enter to keep current value")
 
     def prompt_or_stay_same(prompt, current):
@@ -125,55 +95,72 @@ def modify(*, query, **kwargs):
             return current
         return val
 
-    videos[choice]['artist'] = prompt_or_stay_same("Artist", videos[choice]['artist'])
-    videos[choice]['title'] = prompt_or_stay_same("Title", videos[choice]['title'])
-    videos[choice]['url'] = urlify(prompt_or_stay_same("URL", videos[choice]['url']))
-    videos[choice]['broken'] = prompt_or_stay_same("Broken?", videos[choice]['broken'])
-    write_sorted_videos(videos)
+    for idx in choices:
+        artists = [v["artist"] for v in videos]
+        videos[idx]["artist"] = check_for_similar_artist(artists)
+        videos[idx]["title"] = prompt_or_stay_same("Title", videos[idx]["title"])
+        videos[idx]["url"] = urlify(prompt_or_stay_same("URL", videos[idx]["url"]))
+        videos[idx]["broken"] = prompt_or_stay_same(
+            "Broken?", videos[idx]["broken"]
+        )
+    return videos
 
 
-def delete(*, query, **kwargs):
-    """Delete a video"""
-    query = " ".join(query).lower()
-    videos = read_videos()
-    for i, video in enumerate(videos):
-        if contains(video, query):
-            print(f"{i:5d}\t{format_video(video)}")
-    choice = int(input("Choice: "))
-    if choice in range(len(videos)):
-        del videos[choice]
-    write_sorted_videos(videos)
+def delete(*, videos, mask):
+    """Delete videos"""
+    choices = [int(c) for c in input("Choice(s): ").replace(" ", ",").split(",")
+               if int(c) in mask]
+    for idx in sorted(choices, reverse=True):
+        del videos[video]
+    return videos
 
 
-def view(*, query, **kwargs):
-    """List videos, optionally filtered by query"""
-    query = " ".join(query).lower()
-    videos = select_videos(query)
-    display(videos)
-
-
-def play(*, query, random):
+def play(*, videos, mask, random):
     """Play a video (optionally filtered)"""
-    query = " ".join(query).lower()
-    videos = select_videos(query)
-    choice = choose(videos, random)
-    for video in choice:
-        print(format_video(video))
-        webbrowser.open(video['url'])
+    choices = [random_choice(mask)]
+    if not random:
+        choices = [int(c) for c in input("Choice(s): ").replace(" ", ",").split(",")
+                   if int(c) in mask]
+    for idx in choices:
+        video = videos[idx]
+        print(f"{video['title']} ~~~ {video['artist']}")
+        webbrowser.open(video["url"])
+    return videos
 
 
 def main():
     """Run asmr video util"""
     args = docopt(__doc__)
-    commands = [("play", play), ("view", view), ("modify", modify), ("add", add), ("delete", delete)]
-    # Due to the way docopt works, we should _always_ have one of the above commands
-    # by the time we reach this point, so it's save to just take the 0th
-    # Also, only one command should be available, so the list should be length 1.
-    command = [func for (funcname, func) in commands if args[funcname]][0]
-    command(
-        query=args["<query>"],
-        random=args["--random"]
-    )
+    query = " ".join(args["<query>"]).lower()
+    videos = json.load(open(FILENAME, "r"))
+    mask = [i for i, v in enumerate(videos)
+            if query in v['title'].lower() or query in v['artist'].lower()]
+    is_random=args['--random']
+
+    title = f"   # {'ARTIST'.ljust(20)}TITLE"
+    print(title)
+    print("-" * (len(title) + 20))
+    for idx, video in enumerate(videos):
+        if idx in mask:
+            print(f"{idx:4}) {video['artist']:20s}{video['title']}")
+    print()
+
+    if args['play']:
+        new_videos = play(videos=videos[:], mask=mask, random=is_random)
+    elif args['modify']:
+        new_videos = modify(videos=videos[:], mask=mask)
+    elif args['delete']:
+        new_videos = delete(videos=videos[:], mask=mask)
+    elif args['add']:
+        new_videos = add(videos=videos[:])
+    else: # args['view']
+        # The 'view' command is basically a NOOP since main always displays videos
+        new_videos = videos
+    if not new_videos:
+        print("Something went wrong. No videos")
+        new_videos = videos
+    sorted_videos = sorted(new_videos, key=lambda x: x["artist"])
+    json.dump(sorted_videos, open(FILENAME, "w"), indent=2)
 
 
 if __name__ == "__main__":
