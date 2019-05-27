@@ -6,3 +6,7 @@ scratch.go
 tags
 __pycache__/
 .pytest_cache/
+**/*.exe
+**/*.pdb
+**/*.jar
+**/META-INF/
