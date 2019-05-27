@@ -44,15 +44,6 @@ def levenshtein(a, b):
     )
 
 
-def new_video():
-    title = input("Title: ")
-    artist = input("Artist: ")
-    url = input("URL: ")
-    if not (url.startswith("http") or url.startswith("www.")):
-        url = f"https://www.youtube.com/watch?v={url}"
-    return {"title": title, "artist": artist, "url": url}
-
-
 def check_for_similar_artist(artists):
     new_artist = input("Artist: ")
     distances = {(artist, levenshtein(new_artist, artist)) for artist in artists}
