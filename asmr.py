@@ -128,13 +128,14 @@ def main():
             if query in v['title'].lower() or query in v['artist'].lower()]
     is_random=args['--random']
 
-    title = f"   # {'ARTIST'.ljust(20)}TITLE"
-    print(title)
-    print("-" * (len(title) + 20))
-    for idx, video in enumerate(videos):
-        if idx in mask:
-            print(f"{idx:4}) {video['artist']:20s}{video['title']}")
-    print()
+    if not args['add']:
+        title = f"   # {'ARTIST'.ljust(20)}TITLE"
+        print(title)
+        print("-" * (len(title) + 20))
+        for idx, video in enumerate(videos):
+            if idx in mask:
+                print(f"{idx:4}) {video['artist']:20s}{video['title']}")
+        print()
 
     if args['play']:
         new_videos = play(videos=videos[:], mask=mask, random=is_random)
