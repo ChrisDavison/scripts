@@ -1,0 +1,62 @@
+#[macro_use]
+use serde::{Deserialize, Serialize};
+use serde_json;
+use webbrowser;
+
+use std::env;
+use std::fs;
+use std::io::Read;
+use std::path::Path;
+
+type Result<T> = ::std::result::Result<T, Box<::std::error::Error>>;
+
+#[derive(Serialize, Deserialize, Debug)]
+struct Video {
+    title: String,
+    artist: String,
+    url: String,
+}
+
+fn read_videos() -> Result<Vec<Video>> {
+    let fname = env::var("DATADIR")?;
+    let fpath = Path::new(&fname).join("asmr.json");
+    let data = fs::read_to_string(fpath)?;
+    let v: Vec<Video> = serde_json::from_str(&data)?;
+    Ok(v)
+}
+
+fn urlify(url: &str) -> String {
+    if !(url.starts_with("http") || url.starts_with("www")) {
+        format!("https://www.youtube.com/watch?v={}", url)
+    } else {
+        url.to_string()
+    }
+}
+
+fn main() {
+    let args: Vec<String> = env::args().skip(1).collect();
+    println!("{:?}", args);
+    let videos = read_videos().unwrap();
+    // let (a, b) = ("ring".to_string(), "bling".to_string());
+    // println!("{} {} {}", a, b, levenshtein(&a, &b));
+    // webbrowser::open("http://github.com");
+    // check_for_similar_artists(&videos);
+}
+
+mod command {
+    pub fn play() {
+        unimplemented!();
+    }
+
+    pub fn add() {
+        unimplemented!();
+    }
+
+    pub fn modify() {
+        unimplemented!();
+    }
+
+    pub fn delete() {
+        unimplemented!();
+    }
+}
