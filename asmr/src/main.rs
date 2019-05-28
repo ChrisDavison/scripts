@@ -55,12 +55,27 @@ fn is_match(i: usize, v: &Video, q: String) -> Option<usize> {
 
 fn main() {
     let args: Vec<String> = env::args().skip(1).collect();
-    println!("{:?}", args);
     let videos = read_videos().unwrap();
-    // let (a, b) = ("ring".to_string(), "bling".to_string());
-    // println!("{} {} {}", a, b, levenshtein(&a, &b));
-    // webbrowser::open("http://github.com");
-    // check_for_similar_artists(&videos);
+    let queries: Vec<String> = args.iter().skip(1).map(|x| x.to_owned()).collect();
+    let query_lower = queries.join(" ").to_lowercase();
+    let mask: Vec<usize> = videos.iter().enumerate()
+        .filter_map(|(i, x)| is_match(i, x, query_lower.clone()))
+        .collect();
+    println!("{:>5}  {:20}\t{}", "#", "Artist", "Title");
+    println!("{}", "-".repeat(60));
+    for &idx in mask.iter() {
+        println!("{:5}) {:20}\t{}", idx, videos[idx].artist, videos[idx].title);
+    }
+    let cmd: &str = &args[0];
+    match cmd {
+        "play" => command::play(&videos, &mask, false),
+        "delete" => command::delete(&videos),
+    //     "modify" => unimplemented!(),
+    //     "add" => unimplemented!(),
+        _ => unimplemented!(),
+    };
+}
+
 fn read_choices() -> Vec<usize> {
     print!("Choose: ");
     io::stdout().flush(); // Need to flush to ensure 'choose' gets printed
