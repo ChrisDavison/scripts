@@ -1,20 +1,32 @@
+// TODO
+// Modify
+// Add
+//
+// Skip getArtists / levenshtein artist check?
 #[macro_use]
 use serde::{Deserialize, Serialize};
 use serde_json;
 use webbrowser;
 
 use std::env;
+use std::fmt;
 use std::fs;
-use std::io::Read;
+use std::io::{self, Write};
 use std::path::Path;
 
 type Result<T> = ::std::result::Result<T, Box<::std::error::Error>>;
 
-#[derive(Serialize, Deserialize, Debug)]
-struct Video {
+#[derive(Serialize, Deserialize, Debug,Clone)]
+pub struct Video {
     title: String,
     artist: String,
     url: String,
+}
+
+impl fmt::Display for Video {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{} by {}", self.title, self.artist)
+    }
 }
 
 fn read_videos() -> Result<Vec<Video>> {
