@@ -43,6 +43,13 @@ fn urlify(url: &str) -> String {
         false => format!("https://www.youtube.com/watch?v={}", url)
     }
 }
+
+fn is_match(i: usize, v: &Video, q: String) -> Option<usize> {
+    let matches_title = v.title.to_lowercase().contains(&q);
+    let matches_artist = v.artist.to_lowercase().contains(&q);
+    match matches_title || matches_artist {
+        true => Some(i),
+        _ => None
     }
 }
 
