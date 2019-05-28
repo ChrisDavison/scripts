@@ -61,6 +61,18 @@ fn main() {
     // println!("{} {} {}", a, b, levenshtein(&a, &b));
     // webbrowser::open("http://github.com");
     // check_for_similar_artists(&videos);
+fn read_choices() -> Vec<usize> {
+    print!("Choose: ");
+    io::stdout().flush(); // Need to flush to ensure 'choose' gets printed
+    let mut response = String::new();
+    io::stdin().read_line(&mut response);
+    // Now, get rid of newline, and parse integers.
+    // Just assume all integers are fine for now
+    response
+        .trim()
+        .split(",")
+        .map(|x| x.parse::<usize>().unwrap())
+        .collect()
 }
 
 mod command {
