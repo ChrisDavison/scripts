@@ -3,7 +3,6 @@
 // Add
 //
 // Skip getArtists / levenshtein artist check?
-#[macro_use]
 use serde::{Deserialize, Serialize};
 use serde_json;
 use webbrowser;
@@ -61,26 +60,28 @@ fn main() {
     let mask: Vec<usize> = videos.iter().enumerate()
         .filter_map(|(i, x)| is_match(i, x, query_lower.clone()))
         .collect();
-    println!("{:>5}  {:20}\t{}", "#", "Artist", "Title");
-    println!("{}", "-".repeat(60));
-    for &idx in mask.iter() {
-        println!("{:5}) {:20}\t{}", idx, videos[idx].artist, videos[idx].title);
-    }
     let cmd: &str = &args[0];
-    match cmd {
+    if cmd != "add" {
+        println!("{:>5}  {:20}\t{}", "#", "Artist", "Title");
+        println!("{}", "-".repeat(60));
+        for &idx in mask.iter() {
+            println!("{:5}) {:20}\t{}", idx, videos[idx].artist, videos[idx].title);
+        }
+    }
+    let new_videos = match cmd {
         "play" => command::play(&videos, &mask, false),
         "delete" => command::delete(&videos),
-    //     "modify" => unimplemented!(),
-    //     "add" => unimplemented!(),
+        "modify" => command::modify(&videos),
+        "add" => command::add(&videos),
         _ => unimplemented!(),
     };
 }
 
 fn read_choices() -> Vec<usize> {
     print!("Choose: ");
-    io::stdout().flush(); // Need to flush to ensure 'choose' gets printed
+    io::stdout().flush().unwrap(); // Need to flush to ensure 'choose' gets printed
     let mut response = String::new();
-    io::stdin().read_line(&mut response);
+    io::stdin().read_line(&mut response).unwrap();
     // Now, get rid of newline, and parse integers.
     // Just assume all integers are fine for now
     response
@@ -105,16 +106,16 @@ mod command {
         };
         for idx in choices {
             println!("{}", v[idx]);
-            webbrowser::open(&v[idx].url);
+            webbrowser::open(&v[idx].url).unwrap();
         }
         v.to_vec()
     }
 
-    pub fn add() {
+    pub fn add(v: &[Video]) -> Vec<Video> {
         unimplemented!();
     }
 
-    pub fn modify() {
+    pub fn modify(v: &[Video]) -> Vec<Video> {
         unimplemented!();
     }
 
