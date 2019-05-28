@@ -76,8 +76,23 @@ fn read_choices() -> Vec<usize> {
 }
 
 mod command {
-    pub fn play() {
-        unimplemented!();
+    use super::*;
+    use random::Source;
+
+    pub fn play(v: &[Video], mask: &[usize], random: bool) -> Vec<Video> {
+        let mut source = random::default();
+        let choices: Vec<usize> = match random {
+            true => {
+                let rand = source.read::<usize>() % mask.len();
+                vec![mask[rand]]
+            }
+            false => read_choices(),
+        };
+        for idx in choices {
+            println!("{}", v[idx]);
+            webbrowser::open(&v[idx].url);
+        }
+        v.to_vec()
     }
 
     pub fn add() {
