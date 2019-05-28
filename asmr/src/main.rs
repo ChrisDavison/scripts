@@ -38,10 +38,11 @@ fn read_videos() -> Result<Vec<Video>> {
 }
 
 fn urlify(url: &str) -> String {
-    if !(url.starts_with("http") || url.starts_with("www")) {
-        format!("https://www.youtube.com/watch?v={}", url)
-    } else {
-        url.to_string()
+    match url.starts_with("http") || url.starts_with("www") {
+        true => url.to_string(),
+        false => format!("https://www.youtube.com/watch?v={}", url)
+    }
+}
     }
 }
 
