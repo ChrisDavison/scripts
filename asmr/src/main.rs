@@ -68,7 +68,15 @@ mod command {
         unimplemented!();
     }
 
-    pub fn delete() {
-        unimplemented!();
+    pub fn delete(v: &[Video]) -> Vec<Video> {
+        let mut choices = read_choices();
+        choices.sort();
+        choices.reverse();
+        println!("{:?}", choices);
+        let mut v_new = v.to_vec();
+        for idx in choices {
+            v_new.remove(idx);
+        }
+        v_new
     }
 }
