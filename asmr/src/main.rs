@@ -2,6 +2,7 @@
 // Skip getArtists / levenshtein artist check?
 use serde::{Deserialize, Serialize};
 use serde_json;
+use regex::Regex;
 use webbrowser;
 
 use std::env;
@@ -37,17 +38,21 @@ fn read_videos() -> Result<Vec<Video>> {
 fn write_videos(v: &[Video]) -> Result<()> {
     let fname = env::var("DATADIR")?;
     let fpath = Path::new(&fname).join("asmr.json");
-    let j = serde_json::to_string(v)?;
+    let j = serde_json::to_string_pretty(v)?;
     fs::write(fpath, j)?;
     Ok(())
 }
 
-fn urlify<T: ToString + fmt::Display>(url: T) -> String {
+fn urlify<T: ToString + fmt::Display>(url: T) -> Result<String> {
     let url_s = url.to_string();
-    match url_s.starts_with("http") || url_s.starts_with("www") {
-        true => url_s,
-        false => format!("https://www.youtube.com/watch?v={}", url_s),
-    }
+    let re = Regex::new(r"\?v=(.{11})")?;
+    let hash_only = if url_s.len() == 11 {
+        url_s
+    } else {
+        let caps = re.captures(&url_s).expect("No URL match");
+        caps.get(1).expect("No URL capture group").as_str().to_string()
+    };
+    Ok(format!("https://www.youtube.com/watch?v={}", hash_only))
 }
 
 fn is_match(i: usize, v: &Video, q: String) -> Option<usize> {
@@ -144,7 +149,7 @@ mod command {
         let mut v_new = v.to_vec();
         let artist = read_line_with_prompt("Artist")?;
         let title = read_line_with_prompt("Title")?;
-        let url = urlify(read_line_with_prompt("URL")?);
+        let url = urlify(read_line_with_prompt("URL")?)?;
         v_new.push(Video { title, artist, url });
         Ok(v_new)
     }
@@ -157,7 +162,7 @@ mod command {
             let current = v[idx].clone();
             v_new[idx].artist = current_or_new(&current.artist, &"Artist".to_string())?;
             v_new[idx].title = current_or_new(&current.title, &"Title".to_string())?;
-            v_new[idx].url = current_or_new(&current.url, &"URL".to_string())?;
+            v_new[idx].url = urlify(current_or_new(&current.url, &"URL".to_string())?)?;
         }
         Ok(v_new.to_vec())
     }
