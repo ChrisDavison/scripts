@@ -1,7 +1,4 @@
 // TODO
-// Modify
-// Add
-//
 // Skip getArtists / levenshtein artist check?
 use serde::{Deserialize, Serialize};
 use serde_json;
@@ -15,12 +12,13 @@ use std::path::Path;
 
 type Result<T> = ::std::result::Result<T, Box<::std::error::Error>>;
 
-#[derive(Serialize, Deserialize, Debug,Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Video {
     title: String,
     artist: String,
     url: String,
 }
+
 
 impl fmt::Display for Video {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -36,10 +34,19 @@ fn read_videos() -> Result<Vec<Video>> {
     Ok(v)
 }
 
-fn urlify(url: &str) -> String {
-    match url.starts_with("http") || url.starts_with("www") {
-        true => url.to_string(),
-        false => format!("https://www.youtube.com/watch?v={}", url)
+fn write_videos(v: &[Video]) -> Result<()> {
+    let fname = env::var("DATADIR")?;
+    let fpath = Path::new(&fname).join("asmr.json");
+    let j = serde_json::to_string(v)?;
+    fs::write(fpath, j)?;
+    Ok(())
+}
+
+fn urlify<T: ToString + fmt::Display>(url: T) -> String {
+    let url_s = url.to_string();
+    match url_s.starts_with("http") || url_s.starts_with("www") {
+        true => url_s,
+        false => format!("https://www.youtube.com/watch?v={}", url_s),
     }
 }
 
@@ -48,16 +55,40 @@ fn is_match(i: usize, v: &Video, q: String) -> Option<usize> {
     let matches_artist = v.artist.to_lowercase().contains(&q);
     match matches_title || matches_artist {
         true => Some(i),
-        _ => None
+        _ => None,
     }
 }
 
-fn main() {
+fn read_choices() -> Result<Vec<usize>> {
+    print!("Choose: ");
+    io::stdout().flush()?; // Need to flush to ensure 'choose' gets printed
+    let mut response = String::new();
+    io::stdin().read_line(&mut response)?;
+    // Now, get rid of newline, and parse integers.
+    // Just assume all integers are fine for now
+    Ok(response
+        .trim()
+        .split(",")
+        .filter_map(|x| x.parse::<usize>().ok())
+        .collect())
+}
+
+pub fn read_line_with_prompt<T: ToString + fmt::Display>(prompt: T) -> Result<String> {
+    let mut response = String::new();
+    println!("{}", prompt);
+    io::stdout().flush()?;
+    io::stdin().read_line(&mut response)?;
+    Ok(response)
+}
+
+fn main() -> Result<()> {
     let args: Vec<String> = env::args().skip(1).collect();
-    let videos = read_videos().unwrap();
+    let videos = read_videos()?;
     let queries: Vec<String> = args.iter().skip(1).map(|x| x.to_owned()).collect();
     let query_lower = queries.join(" ").to_lowercase();
-    let mask: Vec<usize> = videos.iter().enumerate()
+    let mask: Vec<usize> = videos
+        .iter()
+        .enumerate()
         .filter_map(|(i, x)| is_match(i, x, query_lower.clone()))
         .collect();
     let cmd: &str = &args[0];
@@ -65,62 +96,74 @@ fn main() {
         println!("{:>5}  {:20}\t{}", "#", "Artist", "Title");
         println!("{}", "-".repeat(60));
         for &idx in mask.iter() {
-            println!("{:5}) {:20}\t{}", idx, videos[idx].artist, videos[idx].title);
+            println!(
+                "{:5}) {:20}\t{}",
+                idx, videos[idx].artist, videos[idx].title
+            );
         }
     }
     let new_videos = match cmd {
-        "play" => command::play(&videos, &mask, false),
-        "delete" => command::delete(&videos),
-        "modify" => command::modify(&videos),
-        "add" => command::add(&videos),
-        _ => unimplemented!(),
+        "play" => command::play(&videos, &mask, false)?,
+        "delete" => command::delete(&videos)?,
+        "modify" => command::modify(&videos)?,
+        "add" => command::add(&videos)?,
+        _ => videos,
     };
-}
-
-fn read_choices() -> Vec<usize> {
-    print!("Choose: ");
-    io::stdout().flush().unwrap(); // Need to flush to ensure 'choose' gets printed
-    let mut response = String::new();
-    io::stdin().read_line(&mut response).unwrap();
-    // Now, get rid of newline, and parse integers.
-    // Just assume all integers are fine for now
-    response
-        .trim()
-        .split(",")
-        .map(|x| x.parse::<usize>().unwrap())
-        .collect()
+    write_videos(&new_videos)
 }
 
 mod command {
     use super::*;
     use random::Source;
 
-    pub fn play(v: &[Video], mask: &[usize], random: bool) -> Vec<Video> {
+    fn current_or_new(current: &String, pre_prompt: &String) -> Result<String> {
+        let new = read_line_with_prompt(format!("{} ({}): ", pre_prompt, current))?;
+        match new == "\n" {
+            true => Ok(current.clone()),
+            false => Ok(new),
+        }
+    }
+
+    pub fn play(v: &[Video], mask: &[usize], random: bool) -> Result<Vec<Video>> {
         let mut source = random::default();
         let choices: Vec<usize> = match random {
             true => {
                 let rand = source.read::<usize>() % mask.len();
                 vec![mask[rand]]
             }
-            false => read_choices(),
+            false => read_choices()?,
         };
         for idx in choices {
             println!("{}", v[idx]);
-            webbrowser::open(&v[idx].url).unwrap();
+            webbrowser::open(&v[idx].url)?;
         }
-        v.to_vec()
+        Ok(v.to_vec())
     }
 
-    pub fn add(v: &[Video]) -> Vec<Video> {
-        unimplemented!();
+    pub fn add(v: &[Video]) -> Result<Vec<Video>> {
+        let mut v_new = v.to_vec();
+        let artist = read_line_with_prompt("Artist")?;
+        let title = read_line_with_prompt("Title")?;
+        let url = urlify(read_line_with_prompt("URL")?);
+        v_new.push(Video { title, artist, url });
+        Ok(v_new)
     }
 
-    pub fn modify(v: &[Video]) -> Vec<Video> {
-        unimplemented!();
+    pub fn modify(v: &[Video]) -> Result<Vec<Video>> {
+        let mut v_new: Vec<Video> = v.to_vec();
+        let choices = read_choices()?;
+        println!("Update info, or ENTER to keep current");
+        for idx in choices {
+            let current = v[idx].clone();
+            v_new[idx].artist = current_or_new(&current.artist, &"Artist".to_string())?;
+            v_new[idx].title = current_or_new(&current.title, &"Title".to_string())?;
+            v_new[idx].url = current_or_new(&current.url, &"URL".to_string())?;
+        }
+        Ok(v_new.to_vec())
     }
 
-    pub fn delete(v: &[Video]) -> Vec<Video> {
-        let mut choices = read_choices();
+    pub fn delete(v: &[Video]) -> Result<Vec<Video>> {
+        let mut choices = read_choices()?;
         choices.sort();
         choices.reverse();
         println!("{:?}", choices);
@@ -128,6 +171,6 @@ mod command {
         for idx in choices {
             v_new.remove(idx);
         }
-        v_new
+        Ok(v_new)
     }
 }
