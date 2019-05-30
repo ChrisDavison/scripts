@@ -64,7 +64,7 @@ fn main() -> Result<()> {
         .iter()
         .enumerate()
         .filter(|(_idx, video)| is_match(video, query_lower.clone()))
-        .map(|(i, _video)| idx)
+        .map(|(idx, _video)| idx)
         .collect();
     let cmd: &str = &args[0];
     if cmd != "add" {
