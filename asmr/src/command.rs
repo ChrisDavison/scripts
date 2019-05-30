@@ -2,9 +2,19 @@ use random::Source;
 use webbrowser;
 
 use super::video::Video;
-use super::{read_line_with_prompt,read_choices,urlify};
+use super::{read_choices, read_line_with_prompt, urlify};
 
 type Result<T> = ::std::result::Result<T, Box<::std::error::Error>>;
+
+#[derive(PartialEq)]
+pub enum Command {
+    Play(bool),
+    Add,
+    Delete,
+    Modify,
+    View,
+    Usage,
+}
 
 fn current_or_new(current: &String, pre_prompt: &String) -> Result<String> {
     let new = read_line_with_prompt(format!("{} ({}): ", pre_prompt, current))?;

@@ -10,6 +10,8 @@ use std::io::{self, Write};
 mod command;
 mod video;
 
+use self::command::Command;
+
 type Result<T> = ::std::result::Result<T, Box<::std::error::Error>>;
 
 fn urlify<T: ToString + fmt::Display>(url: T) -> Result<String> {
@@ -27,17 +29,22 @@ fn urlify<T: ToString + fmt::Display>(url: T) -> Result<String> {
     Ok(format!("https://www.youtube.com/watch?v={}", hash_only))
 }
 
-fn is_match(v: &video::Video, q: String) -> bool {
-    let matches_title = v.title.to_lowercase().contains(&q);
-    let matches_artist = v.artist.to_lowercase().contains(&q);
+fn is_match(v: &video::Video, q: impl ToString) -> bool {
+    let q_str = q.to_string();
+    let matches_title = v.title.to_lowercase().contains(&q_str);
+    let matches_artist = v.artist.to_lowercase().contains(&q_str);
     matches_title || matches_artist
 }
 
 fn read_choices() -> Result<Vec<usize>> {
     print!("Choose: ");
-    io::stdout().flush().expect("read_choices: Couldn't flush stdout");
+    io::stdout()
+        .flush()
+        .expect("read_choices: Couldn't flush stdout");
     let mut response = String::new();
-    io::stdin().read_line(&mut response).expect("read_choices: Couldn't read choices");
+    io::stdin()
+        .read_line(&mut response)
+        .expect("read_choices: Couldn't read choices");
     // Now, get rid of newline, and parse integers.
     // Just assume all integers are fine for now
     Ok(response
@@ -50,38 +57,89 @@ fn read_choices() -> Result<Vec<usize>> {
 pub fn read_line_with_prompt<T: ToString + fmt::Display>(prompt: T) -> Result<String> {
     let mut response = String::new();
     println!("{}", prompt);
-    io::stdout().flush().expect("read_line_with_prompt: Couldn't flush stdout");
-    io::stdin().read_line(&mut response).expect("read_line_with_prompt: Couldn't read response");
+    io::stdout()
+        .flush()
+        .expect("read_line_with_prompt: Couldn't flush stdout");
+    io::stdin()
+        .read_line(&mut response)
+        .expect("read_line_with_prompt: Couldn't read response");
     Ok(response)
 }
 
-fn main() -> Result<()> {
+fn usage() {
+    let msg = "Usage:
+    asmr play   [-r] [<query>...]
+    asmr delete [<query>...]
+    asmr modify [<query>...]
+    asmr add    [<query>...]
+    asmr view   [<query>...]";
+    println!("{}", msg);
+}
+
+fn parse_args() -> (Command, String) {
     let args: Vec<String> = env::args().skip(1).collect();
+    if args.len() == 0 {
+        (Command::Usage, String::new())
+    } else {
+        let queries: Vec<String> = args
+            .iter()
+            .skip(1)
+            .filter(|x| !x.contains("-r"))
+            .map(|x| x.to_owned())
+            .collect();
+        let is_rand: bool = !args
+            .iter()
+            .skip(1)
+            .filter(|x| *x == "-r")
+            .map(|_| true)
+            .collect::<Vec<bool>>()
+            .is_empty();
+        let query_lower = queries.join(" ").to_lowercase();
+        let cmd = match &args[0].as_str() {
+            &"play" => Command::Play(is_rand),
+            &"add" => Command::Add,
+            &"delete" => Command::Delete,
+            &"modify" => Command::Modify,
+            &"view" => Command::View,
+            _ => Command::Usage,
+        };
+        (cmd, query_lower)
+    }
+}
+
+fn display_videos(videos: &[video::Video], mask: &[usize]) {
+    println!("{:>5}  {:20}\t{}", "#", "Artist", "Title");
+    println!("{}", "-".repeat(60));
+    for &idx in mask.iter() {
+        println!(
+            "{:5}) {:20}\t{}",
+            idx, videos[idx].artist, videos[idx].title
+        );
+    }
+}
+
+fn main() -> Result<()> {
+    let (cmd, query) = parse_args();
+    if cmd == Command::Usage {
+        usage();
+        return Ok(());
+    }
     let videos = video::read_videos_from_file().expect("Couldn't load videos from file");
-    let queries: Vec<String> = args.iter().skip(1).map(|x| x.to_owned()).collect();
-    let query_lower = queries.join(" ").to_lowercase();
     let mask: Vec<usize> = videos
         .iter()
         .enumerate()
-        .filter(|(_idx, video)| is_match(video, query_lower.clone()))
+        .filter(|(_idx, video)| is_match(video, &query))
         .map(|(idx, _video)| idx)
         .collect();
-    let cmd: &str = &args[0];
-    if cmd != "add" {
-        println!("{:>5}  {:20}\t{}", "#", "Artist", "Title");
-        println!("{}", "-".repeat(60));
-        for &idx in mask.iter() {
-            println!(
-                "{:5}) {:20}\t{}",
-                idx, videos[idx].artist, videos[idx].title
-            );
-        }
+
+    if !(cmd == Command::Add || cmd == Command::Play(true)) {
+        display_videos(&videos, &mask);
     }
     let new_videos = match cmd {
-        "play" => command::play(&videos, &mask, false)?,
-        "delete" => command::delete(&videos)?,
-        "modify" => command::modify(&videos)?,
-        "add" => command::add(&videos)?,
+        Command::Play(random) => command::play(&videos, &mask, random)?,
+        Command::Delete => command::delete(&videos)?,
+        Command::Modify => command::modify(&videos)?,
+        Command::Add => command::add(&videos)?,
         _ => videos,
     };
     video::write_videos_to_file(&new_videos)
