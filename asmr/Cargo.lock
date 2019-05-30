@@ -10,7 +10,7 @@ dependencies = [
 
 [[package]]
 name = "asmr"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "random 0.12.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "regex 1.1.6 (registry+https://github.com/rust-lang/crates.io-index)",

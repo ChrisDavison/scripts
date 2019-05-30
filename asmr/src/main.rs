@@ -21,10 +21,7 @@ fn urlify<T: ToString + fmt::Display>(url: T) -> Result<String> {
         url_s
     } else {
         let caps = re.captures(&url_s).expect("No URL match");
-        caps.get(1)
-            .expect("No URL capture group")
-            .as_str()
-            .to_string()
+        caps.get(1).ok_or("Couldn't capture video hash")?.as_str().to_string()
     };
     Ok(format!("https://www.youtube.com/watch?v={}", hash_only))
 }
@@ -81,19 +78,15 @@ fn parse_args() -> (Command, String) {
     if args.len() == 0 {
         (Command::Usage, String::new())
     } else {
-        let queries: Vec<String> = args
-            .iter()
-            .skip(1)
-            .filter(|x| !x.contains("-r"))
-            .map(|x| x.to_owned())
-            .collect();
-        let is_rand: bool = !args
-            .iter()
-            .skip(1)
-            .filter(|x| *x == "-r")
-            .map(|_| true)
-            .collect::<Vec<bool>>()
-            .is_empty();
+        let mut queries: Vec<String> = Vec::new();
+        let mut is_rand: bool = false;
+        for arg in args.iter() {
+            if arg == "-r" {
+                is_rand = true;
+            } else {
+                queries.push(arg.to_string());
+            }
+        }
         let query_lower = queries.join(" ").to_lowercase();
         let cmd = match &args[0].as_str() {
             &"play" => Command::Play(is_rand),

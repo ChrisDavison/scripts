@@ -33,7 +33,7 @@ pub fn read_videos_from_file() -> Result<Vec<Video>> {
 pub fn write_videos_to_file(v: &[Video]) -> Result<()> {
     let fname = env::var("DATADIR")?;
     let fpath = Path::new(&fname).join("asmr.json");
-    let j = serde_json::to_string_pretty(v)?;
-    fs::write(fpath, j)?;
+    let json = serde_json::to_string_pretty(v)?;
+    fs::write(fpath, json)?;
     Ok(())
 }
