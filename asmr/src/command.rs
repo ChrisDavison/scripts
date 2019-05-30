@@ -1,5 +1,9 @@
 use random::Source;
+use std::collections::HashSet;
+use std::io::Write;
 use webbrowser;
+
+use strsim::levenshtein;
 
 use super::video::Video;
 use super::{read_choices, read_line_with_prompt, urlify};
@@ -14,6 +18,42 @@ pub enum Command {
     Modify,
     View,
     Usage,
+}
+
+pub fn check_for_similar_artist(artist: &str, videos: &[Video]) -> Result<String> {
+    let artist_and_distance: HashSet<(String, usize)> = videos
+        .iter()
+        .map(|v| (v.artist.clone(), levenshtein(artist, &v.artist)))
+        .filter(|(_v, d)| *d < 3)
+        .collect();
+    let similar_artists: HashSet<String> = artist_and_distance
+        .iter()
+        .map(|(v, _d)| v.to_owned())
+        .collect();
+    let exact_artists: HashSet<String> = artist_and_distance
+        .iter()
+        .filter(|(_v, d)| *d == 0)
+        .map(|(v, _d)| v.to_owned())
+        .collect();
+    if similar_artists.is_empty() || !exact_artists.is_empty() {
+        Ok(artist.to_string())
+    } else {
+        println!("Found similar artists:");
+        let artists: Vec<String> = similar_artists.iter().map(|x| x.to_owned()).collect();
+        for (i, artist) in artists.iter().enumerate() {
+            println!("{}) {}", i, artist);
+        }
+        print!("Choose index, or -1 to keep '{}': ", artist);
+        let mut response = String::new();
+        std::io::stdout().flush()?;
+        std::io::stdin().read_line(&mut response)?;
+        let idx: i64 = response.trim().parse()?;
+        if idx < 0 || idx > (artists.len() as i64) {
+            Ok(artist.to_string())
+        } else {
+            Ok(artists[idx as usize].clone())
+        }
+    }
 }
 
 fn current_or_new(current: &String, pre_prompt: &String) -> Result<String> {
@@ -42,7 +82,7 @@ pub fn play(v: &[Video], mask: &[usize], random: bool) -> Result<Vec<Video>> {
 
 pub fn add(v: &[Video]) -> Result<Vec<Video>> {
     let mut v_new = v.to_vec();
-    let artist = read_line_with_prompt("Artist")?;
+    let artist = check_for_similar_artist(&read_line_with_prompt("Artist")?, v)?;
     let title = read_line_with_prompt("Title")?;
     let url = urlify(read_line_with_prompt("URL")?)?;
     v_new.push(Video { title, artist, url });
