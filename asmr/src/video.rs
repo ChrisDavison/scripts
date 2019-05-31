@@ -14,11 +14,16 @@ pub struct Video {
     pub title: String,
     pub artist: String,
     pub url: String,
+    pub views: usize,
 }
 
 impl fmt::Display for Video {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{} by {}", self.title, self.artist)
+        write!(
+            f,
+            "{} by {} (#{})",
+            self.title, self.artist, self.views
+        )
     }
 }
 

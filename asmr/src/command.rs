@@ -3,10 +3,11 @@ use std::collections::HashSet;
 use std::io::Write;
 use webbrowser;
 
-use strsim::levenshtein;
-
 use super::video::Video;
 use super::{read_choices, read_line_with_prompt, urlify};
+
+use itertools::Itertools;
+use strsim::levenshtein;
 
 type Result<T> = ::std::result::Result<T, Box<::std::error::Error>>;
 
@@ -18,6 +19,8 @@ pub enum Command {
     Modify,
     View,
     Usage,
+    Artists,
+    Popular,
 }
 
 pub fn check_for_similar_artist(artist: &str, videos: &[Video]) -> Result<String> {
@@ -73,11 +76,13 @@ pub fn play(v: &[Video], mask: &[usize], random: bool) -> Result<Vec<Video>> {
         }
         false => read_choices()?,
     };
+    let mut v_new: Vec<Video> = v.to_vec();
     for idx in choices {
         println!("{}", v[idx]);
         webbrowser::open(&v[idx].url)?;
+        v_new[idx].views += 1;
     }
-    Ok(v.to_vec())
+    Ok(v_new)
 }
 
 pub fn add(v: &[Video]) -> Result<Vec<Video>> {
@@ -85,7 +90,13 @@ pub fn add(v: &[Video]) -> Result<Vec<Video>> {
     let artist = check_for_similar_artist(&read_line_with_prompt("Artist")?, v)?;
     let title = read_line_with_prompt("Title")?;
     let url = urlify(read_line_with_prompt("URL")?)?;
-    v_new.push(Video { title, artist, url });
+    let views = 0;
+    v_new.push(Video {
+        title,
+        artist,
+        url,
+        views,
+    });
     Ok(v_new)
 }
 
@@ -112,4 +123,24 @@ pub fn delete(v: &[Video]) -> Result<Vec<Video>> {
         v_new.remove(idx);
     }
     Ok(v_new)
+}
+
+pub fn artists(v: &[Video]) -> Vec<Video> {
+    let artists: HashSet<String> = v.iter().map(|x| x.artist.to_string()).collect();
+    let mut artists_s: Vec<String> = artists.iter().map(|x| x.to_string()).collect();
+    artists_s.sort();
+    for (key, mut group) in &artists_s.iter().group_by(|x| x.chars().nth(0).unwrap()) {
+        let artist_string = group.join("   ");
+        println!("{})\t{}", key, artist_string);
+    }
+    v.to_vec()
+}
+
+pub fn popular(v: &[Video]) -> Vec<Video> {
+    let mut v_new = v.to_vec();
+    v_new.sort_by(|a, b| b.views.cmp(&a.views));
+    for artist in v_new.iter().take(10) {
+        println!("{}", artist);
+    }
+    v.to_vec()
 }

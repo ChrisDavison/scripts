@@ -21,7 +21,10 @@ fn urlify<T: ToString + fmt::Display>(url: T) -> Result<String> {
         url_s
     } else {
         let caps = re.captures(&url_s).expect("No URL match");
-        caps.get(1).ok_or("Couldn't capture video hash")?.as_str().to_string()
+        caps.get(1)
+            .ok_or("Couldn't capture video hash")?
+            .as_str()
+            .to_string()
     };
     Ok(format!("https://www.youtube.com/watch?v={}", hash_only))
 }
@@ -52,7 +55,9 @@ fn read_choices() -> Result<Vec<usize>> {
 }
 
 pub fn read_line_with_prompt<T>(prompt: T) -> Result<String>
-where T: ToString + fmt::Display {
+where
+    T: ToString + fmt::Display,
+{
     let mut response = String::new();
     println!("{}", prompt);
     io::stdout()
@@ -66,11 +71,12 @@ where T: ToString + fmt::Display {
 
 fn usage() {
     let msg = "Usage:
-    asmr play   [-r] [<query>...]
-    asmr delete [<query>...]
-    asmr modify [<query>...]
-    asmr add    [<query>...]
-    asmr view   [<query>...]";
+    asmr play    [-r] [<query>...]
+    asmr delete  [<query>...]
+    asmr modify  [<query>...]
+    asmr add     [<query>...]
+    asmr artists [<query>...]
+    asmr view    [<query>...]";
     println!("{}", msg);
 }
 
@@ -95,6 +101,8 @@ fn parse_args() -> (Command, String) {
             &"delete" => Command::Delete,
             &"modify" => Command::Modify,
             &"view" => Command::View,
+            &"artists" => Command::Artists,
+            &"popular" => Command::Popular,
             _ => Command::Usage,
         };
         (cmd, query_lower)
@@ -119,23 +127,35 @@ fn main() -> Result<()> {
         return Ok(());
     }
     let videos = video::read_videos_from_file().expect("Couldn't load videos from file");
-    println!("Query: '{}'", query);
     let mask: Vec<usize> = videos
         .iter()
         .enumerate()
         .filter(|(_idx, video)| is_match(video, &query))
         .map(|(idx, _video)| idx)
         .collect();
-    if !(cmd == Command::Add || cmd == Command::Play(true)) {
-        display_videos(&videos, &mask);
-    }
     let new_videos = match cmd {
-        Command::Play(random) => command::play(&videos, &mask, random)?,
-        Command::Delete => command::delete(&videos)?,
-        Command::Modify => command::modify(&videos)?,
+        Command::Play(random) => {
+            if !random {
+                display_videos(&videos, &mask);
+            }
+            command::play(&videos, &mask, random)?
+        }
+        Command::Delete => {
+            display_videos(&videos, &mask);
+            command::delete(&videos)?
+        }
+        Command::Modify => {
+            display_videos(&videos, &mask);
+            command::modify(&videos)?
+        }
         Command::Add => command::add(&videos)?,
         Command::Usage => videos,
-        Command::View => videos,
+        Command::View => {
+            display_videos(&videos, &mask);
+            videos
+        }
+        Command::Artists => command::artists(&videos),
+        Command::Popular => command::popular(&videos),
     };
     video::write_videos_to_file(&new_videos)
 }
