@@ -74,9 +74,10 @@ fn usage() {
     asmr play    [-r] [<query>...]
     asmr delete  [<query>...]
     asmr modify  [<query>...]
-    asmr add     [<query>...]
-    asmr artists [<query>...]
-    asmr view    [<query>...]";
+    asmr view    [<query>...]
+    asmr add
+    asmr artists
+    asmr popular";
     println!("{}", msg);
 }
 
