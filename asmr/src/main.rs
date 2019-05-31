@@ -51,7 +51,8 @@ fn read_choices() -> Result<Vec<usize>> {
         .collect())
 }
 
-pub fn read_line_with_prompt<T: ToString + fmt::Display>(prompt: T) -> Result<String> {
+pub fn read_line_with_prompt<T>(prompt: T) -> Result<String>
+where T: ToString + fmt::Display {
     let mut response = String::new();
     println!("{}", prompt);
     io::stdout()
@@ -80,7 +81,7 @@ fn parse_args() -> (Command, String) {
     } else {
         let mut queries: Vec<String> = Vec::new();
         let mut is_rand: bool = false;
-        for arg in args.iter() {
+        for arg in args.iter().skip(1) {
             if arg == "-r" {
                 is_rand = true;
             } else {
@@ -118,13 +119,13 @@ fn main() -> Result<()> {
         return Ok(());
     }
     let videos = video::read_videos_from_file().expect("Couldn't load videos from file");
+    println!("Query: '{}'", query);
     let mask: Vec<usize> = videos
         .iter()
         .enumerate()
         .filter(|(_idx, video)| is_match(video, &query))
         .map(|(idx, _video)| idx)
         .collect();
-
     if !(cmd == Command::Add || cmd == Command::Play(true)) {
         display_videos(&videos, &mask);
     }
@@ -133,7 +134,8 @@ fn main() -> Result<()> {
         Command::Delete => command::delete(&videos)?,
         Command::Modify => command::modify(&videos)?,
         Command::Add => command::add(&videos)?,
-        _ => videos,
+        Command::Usage => videos,
+        Command::View => videos,
     };
     video::write_videos_to_file(&new_videos)
 }
