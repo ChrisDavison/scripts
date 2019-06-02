@@ -59,7 +59,7 @@ where
     T: ToString + fmt::Display,
 {
     let mut response = String::new();
-    println!("{}", prompt);
+    print!("{}: ", prompt);
     io::stdout()
         .flush()
         .expect("read_line_with_prompt: Couldn't flush stdout");
