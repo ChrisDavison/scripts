@@ -38,7 +38,9 @@ pub fn check_for_similar_artist(artist: &str, videos: &[Video]) -> Result<String
         .filter(|(_v, d)| *d == 0)
         .map(|(v, _d)| v.to_owned())
         .collect();
-    if similar_artists.is_empty() || !exact_artists.is_empty() {
+    if !exact_artists.is_empty() {
+        Ok(artist.to_string())
+    } else if similar_artists.is_empty() {
         Ok(artist.to_string())
     } else {
         println!("Found similar artists:");
