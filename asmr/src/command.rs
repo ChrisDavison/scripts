@@ -111,6 +111,8 @@ pub fn modify(v: &[Video]) -> Result<Vec<Video>> {
         v_new[idx].artist = current_or_new(&current.artist, &"Artist".to_string())?;
         v_new[idx].title = current_or_new(&current.title, &"Title".to_string())?;
         v_new[idx].url = urlify(current_or_new(&current.url, &"URL".to_string())?)?;
+        let viewstr = format!("{}", current.views);
+        v_new[idx].views = current_or_new(&viewstr, &"VIEWS".to_string())?.parse()?;
     }
     Ok(v_new.to_vec())
 }
