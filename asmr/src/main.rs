@@ -66,7 +66,7 @@ where
     io::stdin()
         .read_line(&mut response)
         .expect("read_line_with_prompt: Couldn't read response");
-    Ok(response)
+    Ok(response.trim().to_string())
 }
 
 fn usage() {
