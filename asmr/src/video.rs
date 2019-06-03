@@ -19,11 +19,7 @@ pub struct Video {
 
 impl fmt::Display for Video {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(
-            f,
-            "{} by {} (#{})",
-            self.title, self.artist, self.views
-        )
+        write!(f, "{} by {} (#{})", self.title, self.artist, self.views)
     }
 }
 

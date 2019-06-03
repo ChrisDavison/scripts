@@ -71,12 +71,17 @@ fn current_or_new(current: &String, pre_prompt: &String) -> Result<String> {
 
 pub fn play(v: &[Video], mask: &[usize], random: bool) -> Result<Vec<Video>> {
     let mut source = random::default();
-    let choices: Vec<usize> = match random {
-        true => {
-            let rand = source.read::<usize>() % mask.len();
-            vec![mask[rand]]
+    let choices = if mask.len() == 1 {
+        println!("\nOnly 1 match");
+        mask.to_vec()
+    } else {
+        match random {
+            true => {
+                let rand = source.read::<usize>() % mask.len();
+                vec![mask[rand]]
+            }
+            false => read_choices()?,
         }
-        false => read_choices()?,
     };
     let mut v_new: Vec<Video> = v.to_vec();
     for idx in choices {
