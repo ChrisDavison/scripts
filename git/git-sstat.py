@@ -21,14 +21,14 @@ def main():
     args = ['git', 'status', '-s', '-b']
     finished_proc = subprocess.run(args, capture_output=True)
     if finished_proc.returncode == 128:
-        print("Not a git repo")
+        print(f"{os.getcwd()}: Not a git repo")
         return
     status = finished_proc.stdout
     if b'ahead' in status or b'behind' in status or status.count(b'\n') > 1:
         p = Path('.').resolve()
         print('/'.join(p.parts[-2:]))
         print(status.decode())
-    
+
 
 if __name__ == "__main__":
     p = ArgumentParser(prog='git-sstat')
@@ -39,4 +39,3 @@ if __name__ == "__main__":
         print(Path(__file__).stem, VERSION)
     else:
         sys.exit(main())
-
