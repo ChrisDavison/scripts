@@ -23,6 +23,7 @@ impl fmt::Display for Video {
     }
 }
 
+/// Read videos from $DATADIR/asmr.json, parsing json into a `Video` struct.
 pub fn read_videos_from_file() -> Result<Vec<Video>> {
     let fname = env::var("DATADIR")?;
     let fpath = Path::new(&fname).join("asmr.json");
@@ -31,6 +32,7 @@ pub fn read_videos_from_file() -> Result<Vec<Video>> {
     Ok(v)
 }
 
+/// Write all videos, pretty-printed, to $DATADIR/asmr.json,
 pub fn write_videos_to_file(v: &[Video]) -> Result<()> {
     let fname = env::var("DATADIR")?;
     let fpath = Path::new(&fname).join("asmr.json");

@@ -11,6 +11,7 @@ use strsim::levenshtein;
 
 type Result<T> = ::std::result::Result<T, Box<::std::error::Error>>;
 
+/// An enum to control the command given by command line.
 #[derive(PartialEq)]
 pub enum Command {
     Play(bool),
@@ -23,6 +24,10 @@ pub enum Command {
     Popular,
 }
 
+/// Run a levenshtein distance check between a newly entered artist name and
+/// all artists in the video list.  If a similar (but _not_ exact) artist
+/// is found, prompt the user to choose one of the existing artists, or keep
+/// their newly entered value.
 pub fn check_for_similar_artist(artist: &str, videos: &[Video]) -> Result<String> {
     let artist_and_distance: HashSet<(String, usize)> = videos
         .iter()
@@ -61,6 +66,8 @@ pub fn check_for_similar_artist(artist: &str, videos: &[Video]) -> Result<String
     }
 }
 
+/// Display the current value of a variable, and prompt for a new value (with a message).
+/// If the user does not enter a new value, return the current value.
 fn current_or_new(current: &String, pre_prompt: &String) -> Result<String> {
     let new = read_line_with_prompt(format!("{} ({}): ", pre_prompt, current))?;
     match new == "\n" {
@@ -69,6 +76,14 @@ fn current_or_new(current: &String, pre_prompt: &String) -> Result<String> {
     }
 }
 
+/// Prompt the user for their choice of video(s) to play, or a random video
+/// if the random flag is given.
+///
+/// The video list will be filtered (using `mask`) based on the query passed
+/// as a command line argument.
+///
+/// The same list of videos are returned, with the view count increased, for
+/// updating the video file.
 pub fn play(v: &[Video], mask: &[usize], random: bool) -> Result<Vec<Video>> {
     let mut source = random::default();
     let choices = if mask.len() == 1 {
@@ -92,6 +107,10 @@ pub fn play(v: &[Video], mask: &[usize], random: bool) -> Result<Vec<Video>> {
     Ok(v_new)
 }
 
+/// Prompt the user for information of a video to add, with a 'similarity'
+/// check done on the artist (with prompt to use similar, or keep entered).
+/// Video list with new video appended is returned, to allow writing
+/// updates to file.
 pub fn add(v: &[Video]) -> Result<Vec<Video>> {
     let mut v_new = v.to_vec();
     let artist = check_for_similar_artist(&read_line_with_prompt("Artist")?, v)?;
@@ -107,6 +126,9 @@ pub fn add(v: &[Video]) -> Result<Vec<Video>> {
     Ok(v_new)
 }
 
+/// Prompt the user for which video(s) to modify, and then run a series
+/// of prompts to either keep the current value or enter a new value
+/// for each field.
 pub fn modify(v: &[Video]) -> Result<Vec<Video>> {
     let mut v_new: Vec<Video> = v.to_vec();
     let choices = read_choices()?;
@@ -122,6 +144,8 @@ pub fn modify(v: &[Video]) -> Result<Vec<Video>> {
     Ok(v_new.to_vec())
 }
 
+/// Prompt the user for which video(s) to delete, returning the vector
+/// with those videos removed, to allow updating the file.
 pub fn delete(v: &[Video]) -> Result<Vec<Video>> {
     let mut choices = read_choices()?;
     choices.sort();
@@ -134,6 +158,7 @@ pub fn delete(v: &[Video]) -> Result<Vec<Video>> {
     Ok(v_new)
 }
 
+/// Print all artists, grouped under their leading character.
 pub fn artists(v: &[Video]) -> Vec<Video> {
     let artists: HashSet<String> = v.iter().map(|x| x.artist.to_string()).collect();
     let mut artists_s: Vec<String> = artists.iter().map(|x| x.to_string()).collect();
@@ -145,6 +170,7 @@ pub fn artists(v: &[Video]) -> Vec<Video> {
     v.to_vec()
 }
 
+/// Show the top 10 videos by view count.
 pub fn popular(v: &[Video]) -> Vec<Video> {
     let mut v_new = v.to_vec();
     v_new.sort_by(|a, b| b.views.cmp(&a.views));

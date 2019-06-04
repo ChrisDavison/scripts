@@ -7,13 +7,14 @@ use std::fmt;
 use std::fs;
 use std::io::{self, Write};
 
-mod command;
-mod video;
+pub mod command;
+pub mod video;
 
 use self::command::Command;
 
 type Result<T> = ::std::result::Result<T, Box<::std::error::Error>>;
 
+/// Extract the video hash from a given url, returning the tidy, launchable url.
 fn urlify<T: ToString + fmt::Display>(url: T) -> Result<String> {
     let url_s = url.to_string();
     let re = Regex::new(r"\?v=(.{11})")?;
@@ -29,6 +30,7 @@ fn urlify<T: ToString + fmt::Display>(url: T) -> Result<String> {
     Ok(format!("https://www.youtube.com/watch?v={}", hash_only))
 }
 
+/// Check if query matches video title or artist (case insensitive)
 fn is_match(v: &video::Video, q: impl ToString) -> bool {
     let q_str = q.to_string();
     let matches_title = v.title.to_lowercase().contains(&q_str);
@@ -36,6 +38,8 @@ fn is_match(v: &video::Video, q: impl ToString) -> bool {
     matches_title || matches_artist
 }
 
+/// Get a list of numeric choices from the user, splitting on any
+/// non-numeric value (so spaces, commas, tabs etc can all be used).
 fn read_choices() -> Result<Vec<usize>> {
     print!("Choose: ");
     io::stdout()
@@ -55,6 +59,9 @@ fn read_choices() -> Result<Vec<usize>> {
         .collect())
 }
 
+/// Display a message to the user and then return the resulting string (trimmed).
+/// Handles flushing to ensure that the response is displayed on the same
+/// line as the prompt.
 pub fn read_line_with_prompt<T>(prompt: T) -> Result<String>
 where
     T: ToString + fmt::Display,
@@ -70,6 +77,7 @@ where
     Ok(response.trim().to_string())
 }
 
+/// Print a short usage message.
 fn usage() {
     let msg = "Usage:
     asmr play    [-r] [<query>...]
@@ -82,6 +90,9 @@ fn usage() {
     println!("{}", msg);
 }
 
+/// Parse all command line arguments, returning the command enum and the query.
+/// This is a bit hacky and would probably benefit from something like clap
+/// or docopt.
 fn parse_args() -> (Command, String) {
     let args: Vec<String> = env::args().skip(1).collect();
     if args.len() == 0 {
@@ -111,6 +122,7 @@ fn parse_args() -> (Command, String) {
     }
 }
 
+/// Display the index, artist, and title of each video.
 fn display_videos(videos: &[video::Video], mask: &[usize]) {
     println!("{:>5}  {:20}\t{}", "#", "Artist", "Title");
     println!("{}", "-".repeat(60));
