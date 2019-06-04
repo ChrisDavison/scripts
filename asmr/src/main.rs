@@ -46,15 +46,11 @@ fn read_choices() -> Result<Vec<usize>> {
         .read_line(&mut response)
         .expect("read_choices: Couldn't read choices");
     // Now, get rid of newline, and parse integers.
-    // Just assume all integers are fine for now
-    let non_numeric_in_response: Vec<char> = response.chars().filter(|x| !x.is_numeric()).collect();
-    let split_char: char = match non_numeric_in_response.is_empty() {
-        true => ' ',
-        false => non_numeric_in_response[0],
-    };
+    // As I'm splitting on non-numeric, it should only be numeric remaining
+    // and thus we just trust that they are parseable
     Ok(response
         .trim()
-        .split(split_char)
+        .split(|x: char| !x.is_numeric())
         .filter_map(|x| x.parse::<usize>().ok())
         .collect())
 }
