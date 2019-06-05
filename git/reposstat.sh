@@ -6,7 +6,3 @@ set -o nounset  # Exit when trying to use undeclared variables
 for dir in $CODEDIR/*; do
     [ -d "$dir" ] && (cd "$dir" && git sstat)
 done
-
-for dir in ~/work/*; do
-    [ -d "$dir" ] && (cd "$dir" && git sstat)
-done
