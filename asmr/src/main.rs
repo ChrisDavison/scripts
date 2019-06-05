@@ -108,14 +108,16 @@ fn parse_args() -> (Command, String) {
             }
         }
         let query_lower = queries.join(" ").to_lowercase();
-        let cmd = match &args[0].as_str() {
-            &"play" => Command::Play(is_rand),
-            &"add" => Command::Add,
-            &"delete" => Command::Delete,
-            &"modify" => Command::Modify,
-            &"view" => Command::View,
-            &"artists" => Command::Artists,
-            &"popular" => Command::Popular,
+        let arg0 = &args[0].as_str();
+        let cmd = match (arg0.len(), arg0) {
+            (0, _) => Command::View,
+            (_, &"play") => Command::Play(is_rand),
+            (_, &"add") => Command::Add,
+            (_, &"delete") => Command::Delete,
+            (_, &"modify") => Command::Modify,
+            (_, &"view") => Command::View,
+            (_, &"artists") => Command::Artists,
+            (_, &"popular") => Command::Popular,
             _ => Command::Usage,
         };
         (cmd, query_lower)
