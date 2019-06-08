@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 """Reverse Polish Notation calculator
 
 Supports operations: +, -, \\, *, **, sin, tan, cos, R (to radians), D (to degrees)

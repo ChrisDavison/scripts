@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 """Show the largest notes under a directory."""
 from argparse import ArgumentParser
 from pathlib import Path

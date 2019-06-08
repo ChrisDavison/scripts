@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 """Print out the list of dates in this month, as a markdown list"""
 import datetime
 import sys
