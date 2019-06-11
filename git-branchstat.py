@@ -20,70 +20,47 @@ def main():
 
 
 def get_ahead_behind():
-    # out, err := git_output("for-each-ref", "--format='%(refname:short) %(upstream:track)'", "refs/heads")
-    # if err != nil :
-    #     log.Fatalf("%s\n", err)
-
-    # changedBranches := []string{}
-    # for _, line := range strings.Split(out, "\n") :
-    #     tidied := strings.Trim(line, "'\" ")
-    #     if len(strings.Split(tidied, " ")) > 1 :
-    #         changedBranches = append(changedBranches, tidied)
-
-
-    # return strings.Join(changedBranches, ", ")
-    raise Exception("Not implemented!")
+    finished = subprocess.run(["git", "for-each-ref", "--format='%(refname:short) %(upstream:track)'", "refs/heads"], capture_output=True)
+    if finished.returncode > 0:
+        raise Exception("AheadBehind err: %s" % finished.stderr)
+    changed = []
+    for line in finished.stdout.split(b'\n'):
+        tidy = line.decode('utf-8').strip("'\" ")
+        if len(tidy.split(" ")) > 1:
+            changed.append(tidy)
+    return ', '.join(tidy)
 
 
 def get_modified():
-    # out, err := git_output([]string{"diff", "--stat"})
-    # if err != nil :
-    #     log.Fatal(err)
-
-    # nmodified := strings.Count(strings.TrimRight(out, "\n"), "\n")
-    # msg := ""
-    # if nmodified > 0 :
-    #     msg = fmt.Sprintf("Modified %d", nmodified)
-
-    raise Exception("Not implemented!")
+    finished = subprocess.run(["git", "diff", "--shortstat"], capture_output=True)
+    if finished.returncode > 0:
+        raise Exception("Modified err: %s" % finished.stderr)
+    response = finished.stdout.decode('utf-8').strip("\n")
+    if 'file changed' in response:
+        num = response.lstrip(' ').split(' ')[0]
+        return f"Modified {num}"
+    return None
 
 
 def get_status():
-    # out, err := git_output([]string{"diff", "--stat", "--cached"})
-    # if err != nil :
-    #     log.Fatal(err)
-
-    # nstaged := strings.Count(out, "\n")
-    # msg := ""
-    # if nstaged > 0 :
-    #     msg = fmt.Sprintf("Staged %d", nstaged)
-
-    raise Exception("Not implemented!")
+    finished = subprocess.run(["git", "diff", "--stat", "--cached"], capture_output=True)
+    if finished.returncode > 0:
+        raise Exception("Status err: %s" % finished.stderr)
+    response = finished.stdout.split(b'\n')
+    if response != [b'']:
+        return f"Staged {len(response)}"
+    return None
 
 
 def get_untracked():
-    # out, err := git_output([]string{"ls-files", "--others", "--exclude-standard"})
-    # if err != nil :
-    #     log.Fatal(err)
-
-    # nuntracked := strings.Count(out, "\n")
-    # msg := ""
-    # if nuntracked > 0 :
-    #     msg = fmt.Sprintf("Untracked %d", nuntracked)
-
-    raise Exception("Not implemented!")
-
-
-def git_output(*args):
-    finished = subprocess.run(["git", *args])
-    print(finished.returncode == 128)
-    # cmdEditor := exec.Command("git", args...)
-    # out, err := cmdEditor.Output()
-    # if err != nil :
-    #     return "", err
-
-    # return string(out[:]), nil
-    raise Exception("Not implemented!")
+    finished = subprocess.run(["git", "ls-files", "--others", "--exclude-standard"],
+                              capture_output=True)
+    if finished.returncode > 0:
+        raise Exception("Untracked err: %s" % finished.stderr)
+    response = finished.stdout.split(b'\n')
+    if response != [b'']:
+        return f"Untracked {len(response)}"
+    return None
 
 
 def is_git_repo():
