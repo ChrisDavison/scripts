@@ -6,7 +6,8 @@ from pathlib import Path
 
 
 def fetch(direc):
-    finished = subprocess.run(["git", "fetch", "--all"], capture_output=True)
+    print(direc)
+    finished = subprocess.run(["git", "fetch", "--all"], capture_output=True, cwd=direc)
     output = finished.stdout.decode()
     if output == "Fetching origin\n":
         return None

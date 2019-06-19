@@ -6,8 +6,7 @@ from pathlib import Path
 
 
 def fetch(direc):
-    os.chdir(direc)
-    finished = subprocess.run(["git", "sstat"], capture_output=True)
+    finished = subprocess.run(["git", "sstat"], capture_output=True, cwd=direc)
     output = finished.stdout.decode().strip()
     if output:
         return f"{output}"
