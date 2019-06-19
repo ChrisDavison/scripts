@@ -6,6 +6,10 @@ from pathlib import Path
 
 
 def fetch(direc):
+    if not direc.is_dir():
+        return None
+    if not (direc / ".git").exists():
+        return None
     finished = subprocess.run(["git", "sstat"], capture_output=True, cwd=direc)
     output = finished.stdout.decode().strip()
     if output:
@@ -13,15 +17,9 @@ def fetch(direc):
     return None
 
 
-def main():
-    codedir = os.environ['CODEDIR']
-    dirs = [d for d in Path(codedir).resolve().glob('*')
-            if d.is_dir() and (d / ".git").exists()]
+if __name__ == "__main__":
+    dirs = [d for d in Path(os.environ['CODEDIR']).resolve().glob('*')]
     for result in multiprocessing.Pool().imap(fetch, dirs):
         if result:
             print(result)
             print()
-
-
-if __name__ == "__main__":
-    main()
