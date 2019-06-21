@@ -31,7 +31,9 @@ class SQL:
         return self
 
     def execute(self):
-        data = pd.read_sql(f"select {self.query} from {self.table} {self.sortby}", self.engine)
+        data = pd.read_sql(
+            f"select {self.query} from {self.table} {self.sortby}", self.engine
+        )
         for key, func in self.trans:
             data[key] = data[key].apply(func)
         return data

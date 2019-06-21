@@ -18,21 +18,21 @@ VERSION = "0.2.0"
 
 def main():
     """Get filtered short status of current directory"""
-    args = ['git', 'status', '-s', '-b']
+    args = ["git", "status", "-s", "-b"]
     finished_proc = subprocess.run(args, capture_output=True)
     if finished_proc.returncode == 128:
         print(f"{os.getcwd()}: Not a git repo")
         return
     status = finished_proc.stdout
-    if b'ahead' in status or b'behind' in status or status.count(b'\n') > 1:
-        p = Path('.').resolve()
-        print('/'.join(p.parts[-2:]))
+    if b"ahead" in status or b"behind" in status or status.count(b"\n") > 1:
+        p = Path(".").resolve()
+        print("/".join(p.parts[-2:]))
         print(status.decode())
 
 
 if __name__ == "__main__":
-    p = ArgumentParser(prog='git-sstat')
-    p.add_argument('-v', '--version', action='store_true')
+    p = ArgumentParser(prog="git-sstat")
+    p.add_argument("-v", "--version", action="store_true")
     args = p.parse_args()
 
     if args.version:

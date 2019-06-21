@@ -2,7 +2,7 @@
 from pathlib import Path
 import pyperclip
 
-here = Path('.')
+here = Path(".")
 new = input("Filename: ") + ".md"
 desc = input("Link text: ")
 newfn = here / new

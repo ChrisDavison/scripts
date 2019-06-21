@@ -40,7 +40,7 @@ def test_get_links():
     assert get_links(inp) == exp
 
     inp = "[test](README.md#anchor) [ref][]\n    [ref]: https://www.google.com"
-    exp = ["README.md#anchor", "https://www.google.com"] 
+    exp = ["README.md#anchor", "https://www.google.com"]
     assert get_links(inp) == exp
 
 
@@ -55,10 +55,9 @@ def test_handling_anchors():
 def test_invalid_links_in_file():
     inp = "README.md"
     exp = [
-            "https://www.google.com",
-            "https://www.duckduckgo.com",
-            "https://www.httpstat.us/404"
+        "https://www.google.com",
+        "https://www.duckduckgo.com",
+        "https://www.httpstat.us/404",
     ]
     assert set(get_links_from_file("README.md")) == set(exp)
     assert mdlc("README.md") == ["https://www.httpstat.us/404"]
-

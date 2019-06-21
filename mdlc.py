@@ -65,9 +65,9 @@ def mdlc(filename):
 
 def main():
     """Run markdown link checking on all files passed from the commandline."""
-    p = ArgumentParser(prog='mdlc')
-    p.add_argument('-v', '--version')
-    p.add_argument('FILENAMES', nargs='+')
+    p = ArgumentParser(prog="mdlc")
+    p.add_argument("-v", "--version")
+    p.add_argument("FILENAMES", nargs="+")
     args = p.parse_args()
     if args.version:
         print(Path(__file__).stem, "0.1.0")
@@ -76,7 +76,7 @@ def main():
     for filename, badlinks in bad_links.items():
         print(filename)
         for link in badlinks:
-            print('\t', link)
+            print("\t", link)
 
 
 if __name__ == "__main__":

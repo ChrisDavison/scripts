@@ -13,11 +13,9 @@ def get_kb(path):
     return int(path.stat().st_size / 1024)
 
 
-
 def matches_any(queries, path):
     """Check if a path matches any of a list of queries."""
     return any([query in str(path) for query in queries])
-
 
 
 def main():
@@ -32,16 +30,17 @@ def main():
     queries_to_ignore = args.i
     if args.f:
         queries_to_ignore.extend(Path(args.f).read_text().splitlines())
-    files = [f for f in Path(".").rglob("*.org")
-             if matches_any(args.q, f)
-             and not matches_any(queries_to_ignore, f)]
-    files = pd.DataFrame(files, columns=['path'])
-    files['kb'] = files['path'].apply(get_kb)
-    files = files.sort_values(by='kb', ascending=False)
-    for _, row in files.iloc[:args.n].iterrows():
+    files = [
+        f
+        for f in Path(".").rglob("*.org")
+        if matches_any(args.q, f) and not matches_any(queries_to_ignore, f)
+    ]
+    files = pd.DataFrame(files, columns=["path"])
+    files["kb"] = files["path"].apply(get_kb)
+    files = files.sort_values(by="kb", ascending=False)
+    for _, row in files.iloc[: args.n].iterrows():
         print(f"{row.kb:3d} kb\t{row.path.parent}/{Style.red(row.path.name)}")
 
 
-        
 if __name__ == "__main__":
     main()

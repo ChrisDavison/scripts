@@ -20,45 +20,56 @@ def main():
 
 
 def get_ahead_behind():
-    finished = subprocess.run(["git", "for-each-ref", "--format='%(refname:short) %(upstream:track)'", "refs/heads"], capture_output=True)
+    finished = subprocess.run(
+        [
+            "git",
+            "for-each-ref",
+            "--format='%(refname:short) %(upstream:track)'",
+            "refs/heads",
+        ],
+        capture_output=True,
+    )
     if finished.returncode > 0:
         raise Exception("AheadBehind err: %s" % finished.stderr)
     changed = []
-    for line in finished.stdout.split(b'\n'):
-        tidy = line.decode('utf-8').strip("'\" ")
+    for line in finished.stdout.split(b"\n"):
+        tidy = line.decode("utf-8").strip("'\" ")
         if len(tidy.split(" ")) > 1:
             changed.append(tidy)
-    return ', '.join(tidy)
+    return ", ".join(tidy)
 
 
 def get_modified():
     finished = subprocess.run(["git", "diff", "--shortstat"], capture_output=True)
     if finished.returncode > 0:
         raise Exception("Modified err: %s" % finished.stderr)
-    response = finished.stdout.decode('utf-8').strip("\n")
-    if 'file changed' in response:
-        num = response.lstrip(' ').split(' ')[0]
+    response = finished.stdout.decode("utf-8").strip("\n")
+    if "file changed" in response:
+        num = response.lstrip(" ").split(" ")[0]
         return f"Modified {num}"
     return None
 
 
 def get_status():
-    finished = subprocess.run(["git", "diff", "--stat", "--cached"], capture_output=True)
+    finished = subprocess.run(
+        ["git", "diff", "--stat", "--cached"], capture_output=True
+    )
     if finished.returncode > 0:
         raise Exception("Status err: %s" % finished.stderr)
-    response = finished.stdout.split(b'\n')
-    if response != [b'']:
+    response = finished.stdout.split(b"\n")
+    if response != [b""]:
         return f"Staged {len(response)}"
     return None
 
 
 def get_untracked():
-    finished = subprocess.run(["git", "ls-files", "--others", "--exclude-standard"],
-                              capture_output=True)
+    finished = subprocess.run(
+        ["git", "ls-files", "--others", "--exclude-standard"], capture_output=True
+    )
     if finished.returncode > 0:
         raise Exception("Untracked err: %s" % finished.stderr)
-    response = finished.stdout.split(b'\n')
-    if response != [b'']:
+    response = finished.stdout.split(b"\n")
+    if response != [b""]:
         return f"Untracked {len(response)}"
     return None
 

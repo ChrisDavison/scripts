@@ -18,8 +18,11 @@ def fetch(direc):
 
 
 if __name__ == "__main__":
-    dirs = [d for d in Path(os.environ['CODEDIR']).resolve().glob('*')
-            if d.is_dir() and (d / ".git").exists()]
+    dirs = [
+        d
+        for d in Path(os.environ["CODEDIR"]).resolve().glob("*")
+        if d.is_dir() and (d / ".git").exists()
+    ]
     for result in multiprocessing.Pool().imap(fetch, dirs):
         if result:
             print(result)

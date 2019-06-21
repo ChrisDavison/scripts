@@ -10,12 +10,14 @@ Assumes 40 moves, using a given base and increment.  Each player will have
 half of this duration each."""
 import sys
 
+
 def timecontrol(base, increment):
 
     totalsec = (float(base) * 60 + float(increment) * 40) * 2
     minutes = int(totalsec / 60)
     remsec = int(totalsec - minutes * 60)
     print(f"{minutes}:{remsec}")
+
 
 if __name__ == "__main__":
     args = sys.argv[1:]

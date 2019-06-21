@@ -9,12 +9,12 @@ from pathlib import Path
 
 def main(outdir, note_format="*.org"):
     """Copy all notes with format FORMAT to outdir."""
-    dropbox = Path('~/Dropbox/').expand_user()
+    dropbox = Path("~/Dropbox/").expand_user()
 
-    files = [f for f in dropbox.rglob(note_format) if 'dropbox.cache' not in str(f)]
-    files.extend([f for f in dropbox.rglob('*') if 'assets' in str(f) and f.is_file()])
+    files = [f for f in dropbox.rglob(note_format) if "dropbox.cache" not in str(f)]
+    files.extend([f for f in dropbox.rglob("*") if "assets" in str(f) and f.is_file()])
 
-    outdir = Path('~/Downloads/standalone-notes-backup/').expand_user()
+    outdir = Path("~/Downloads/standalone-notes-backup/").expand_user()
 
     for path in files:
         out = outdir / path.relative_to(dropbox)
@@ -25,7 +25,7 @@ def main(outdir, note_format="*.org"):
         out.write_bytes(path.read_bytes())
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     TODAY = date.today().strftime("%Y-%m-%d")
     main(outdir=Path(f"~/Downloads/standalone-notes-backup--{TODAY}"))
     print(f"Notes backed up to {outdir}")

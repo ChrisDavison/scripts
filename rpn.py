@@ -61,7 +61,6 @@ class RPN:
             raise Exception("Not enough operations.  Stack still has multiple values")
         self.result = self.stack[0]
 
-
     def evaluate(self):
         for _ in self:
             continue
@@ -108,6 +107,7 @@ def main():
         else:
             rpn.evaluate()
         print(rpn.result)
+
 
 if __name__ == "__main__":
     sys.exit(main())

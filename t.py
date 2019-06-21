@@ -55,14 +55,14 @@ def cli():
 @click.argument("text", nargs=-1)
 def add(text):
     """Add a todo to $TODOFILE."""
-    todo = Todo.new(' '.join(text))
+    todo = Todo.new(" ".join(text))
     todos = parse_file(FILENAME_TODO)
     todos.append(todo)
     print(f"Added: {len(todos)-1}. {str(todo).lstrip()}")
     save_todos(todos, FILENAME_TODO)
 
 
-@cli.command(short_help = "Remove a todo")
+@cli.command(short_help="Remove a todo")
 @click.argument("idx", type=int)
 def rm(idx):
     """Delete a todo."""
@@ -109,7 +109,7 @@ def undo(idx):
 @click.argument("text", nargs=-1)
 def app(idx, text):
     todos = parse_file(FILENAME_TODO)
-    todos[idx].task += ' '.join(text)
+    todos[idx].task += " ".join(text)
     print(f"APPEND: {' '.join(text)}")
     save_todos(todos, FILENAME_TODO)
 
@@ -119,7 +119,7 @@ def app(idx, text):
 @click.argument("text", nargs=-1)
 def prepend(idx, text):
     todos = parse_file(FILENAME_TODO)
-    todos[idx].task = ' '.join(text) + todos[idx].task
+    todos[idx].task = " ".join(text) + todos[idx].task
     print(f"PREPEND: {' '.join(text)}")
     save_todos(todos, FILENAME_TODO)
 
@@ -169,7 +169,7 @@ def ls(query):
     """Print current tasks."""
     todos = parse_file(FILENAME_TODO)
     print_enumerated_todos(todos, filter=lambda _, x: query in x)
-    
+
 
 @cli.command(short_help="List done todos")
 @click.argument("query", default="")
@@ -185,7 +185,7 @@ def due(query):
     """Print tasks due today, or overdue.  Optionally filtered."""
     todos = parse_file(FILENAME_TODO)
     print_enumerated_todos(todos, filter=lambda _, x: x.scheduled and query in x)
-    
+
 
 @cli.command(short_help="Print version")
 def version():
@@ -195,7 +195,7 @@ def version():
 
 def parse_file(filename):
     """Get all todos in todofile"""
-    return [Todo.new(line) for line in open(filename, 'r')]
+    return [Todo.new(line) for line in open(filename, "r")]
 
 
 def print_enumerated_todos(todos, filter=lambda _: True):
@@ -205,9 +205,9 @@ def print_enumerated_todos(todos, filter=lambda _: True):
 
 
 def save_todos(todos, filename):
-    with open(filename, 'w') as f:
+    with open(filename, "w") as f:
         for todo in todos:
-            print("-", re.sub('\s\s+', ' ', str(todo)), file=f)
+            print("-", re.sub("\s\s+", " ", str(todo)), file=f)
 
 
 if __name__ == "__main__":

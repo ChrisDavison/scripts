@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 import sys
+
 start_kg = 115
+
 
 def from_kg(kg):
     convert_from_kg(kg)
@@ -19,6 +21,7 @@ def convert_from_kg(kg):
     stone = lb / 14
     lost_kg = start_kg - kg
     print_weights(kg, lost_kg, stone, lb)
+
 
 def print_weights(kg, lost_kg, stone, lb, divider="  "):
     kg_str = f"{kg:.1f}kg"
