@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import argparse
 import codecs
 import itertools
 import pathlib
@@ -7,34 +8,29 @@ import sys
 
 
 def tidy(note):
-    return (
-        note.decode()
-        .replace("“", '"')
-        .replace("”", '"')
-        .replace("’", "'")
-        .replace("—", "--")
-        .encode()
-    )
+    replaces = [("“", '"'), ("”", '"'), ("’", "'"), ("—", "--")]
+    note = note.decode()
+    for (old, new) in replaces:
+        note = note.replace(old, new)
+    return note.encode()
 
-args = sys.argv[1:]
-if len(args) < 2:
-    print("usage: parse-kindle-clippings <clippings> <outdir>")
-    sys.exit(1)
-filename = args[0]
-outdir = pathlib.Path(args[1])
-if not outdir.exists():
-    outdir.mkdir(parents=True)
 
-contents = pathlib.Path(filename).read_bytes().replace(codecs.BOM_UTF8, b"")
+parser = argparse.ArgumentParser(description="Create an org file of highlights for every book in kindle clippings")
+parser.add_argument("clippings", help="'My Clippings.txt' file")
+parser.add_argument("outdir", help="Directory for note output")
+args = parser.parse_args()
+
+outdir = pathlib.Path(args.outdir)
+outdir.mkdir(parents=True, exist_ok=True)
+
+contents = pathlib.Path(args.clippings).read_bytes().replace(codecs.BOM_UTF8, b"")
 chunks = re.split(b"==========\s+", contents)
-notes = [re.split(b"\r\n", note) for note in chunks if b"Your Highlight" in note]
+notes = [re.split(b"\r\n", note) for note in chunks if b"Your Highlight" in note or "Your Note" in note]
 grouped = itertools.groupby(notes, lambda x: x[0])
 
-files_and_contents = dict()
-for (filename, notes_for_file) in grouped:
-    files_and_contents[filename.decode("utf-8")] = [n[3] for n in notes_for_file]
-
-for filename, contents in files_and_contents.items():
+for filename, notes_for_file in grouped:
+    filename = filename.decode("utf-8")
+    contents = [n[3] for n in notes_for_file]
     print(filename.strip())
     outfile = outdir / f"{filename}.org"
     valid_notes = b"\n".join([b"- " + tidy(n) for n in contents if n])
