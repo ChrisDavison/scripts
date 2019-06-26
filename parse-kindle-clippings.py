@@ -24,11 +24,12 @@ outdir = pathlib.Path(args.outdir)
 outdir.mkdir(parents=True, exist_ok=True)
 
 contents = pathlib.Path(args.clippings).read_bytes().replace(codecs.BOM_UTF8, b"")
-chunks = re.split(b"==========\s+", contents)
-notes = [re.split(b"\r\n", note) for note in chunks if b"Your Highlight" in note or "Your Note" in note]
-grouped = itertools.groupby(notes, lambda x: x[0])
+chunks = re.split(b"==========\r\n", contents)
+notes = [re.split(b"\r\n", note) for note in chunks if b"Your Highlight" in note or b"Your Note" in note]
+notes = sorted(notes, key=lambda x: x[0])
+grouped = {filename: list(files) for filename, files in itertools.groupby(notes, lambda x: x[0])}
 
-for filename, notes_for_file in grouped:
+for filename, notes_for_file in grouped.items():
     filename = filename.decode("utf-8")
     contents = [n[3] for n in notes_for_file]
     print(filename.strip())
