@@ -4,7 +4,6 @@ import codecs
 import itertools
 import pathlib
 import re
-import sys
 
 
 def tidy(note):
@@ -15,33 +14,47 @@ def tidy(note):
     return note.encode()
 
 
-parser = argparse.ArgumentParser(description="Create an org file of highlights for every book in kindle clippings")
-parser.add_argument("clippings", help="'My Clippings.txt' file")
-parser.add_argument("outdir", help="Directory for note output")
-parser.add_argument("-p", help="File of filenames to ignore")
-args = parser.parse_args()
+def read_notes(filepath):
+    contents = pathlib.Path(filepath).read_bytes().replace(codecs.BOM_UTF8, b"")
+    chunks = re.split(b"==========\r\n", contents)
+    notes = []
+    for chunk in chunks:
+        if b"Your Highlight" in chunk or b"Your Note" in chunk:
+            notes.append(re.split(b"\r\n", chunk))
+    return sorted(notes)
 
-outdir = pathlib.Path(args.outdir)
-outdir.mkdir(parents=True, exist_ok=True)
-ignores = []
-if args.p:
-    ignores = pathlib.Path(args.p).read_text().splitlines()
 
-contents = pathlib.Path(args.clippings).read_bytes().replace(codecs.BOM_UTF8, b"")
-chunks = re.split(b"==========\r\n", contents)
-notes = [re.split(b"\r\n", note) for note in chunks if b"Your Highlight" in note or b"Your Note" in note]
-notes = sorted(notes, key=lambda x: x[0])
-grouped = {filename: list(files) for filename, files in itertools.groupby(notes, lambda x: x[0])}
-
-for filename, notes_for_file in grouped.items():
-    filename = filename.strip()
-    if filename.decode() in ignores:
-        print("IGNORING", filename.decode())
-        continue
-    filename = filename.decode("utf-8")
-    contents = [n[3] for n in notes_for_file]
+def make_note_file(filename, notes):
+    contents = [n[3] for n in notes]
     print(filename)
-    outfile = outdir / f"book--{filename}.org"
+    outfile = outdir / f"book--{filename}.md"
     valid_notes = b"\n".join([b"- " + tidy(n) for n in contents if n])
-    data = f"#+TITLE: {filename}\n\n".encode() + valid_notes + b"\n"
+    data = f"**{filename}**\n\n".encode() + valid_notes + b"\n"
     outfile.write_bytes(data)
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Create a markdown file of highlights for every book in kindle clippings")
+    parser.add_argument("clippings", help="'My Clippings.txt' file")
+    parser.add_argument("outdir", help="Directory for note output")
+    parser.add_argument("-p", help="File of filenames to ignore")
+    args = parser.parse_args()
+
+    outdir = pathlib.Path(args.outdir)
+    outdir.mkdir(parents=True, exist_ok=True)
+    ignores = []
+    if args.p:
+        ignores = pathlib.Path(args.p).read_text().splitlines()
+
+    notes = read_notes(args.clippings)
+    for filename, notes_for_file in itertools.groupby(notes, lambda x: x[0]):
+        filename = filename.strip()
+        decoded_filename = filename.decode("utf-8")
+        if decoded_filename in ignores:
+            print("IGNORING", decoded_filename)
+        else:
+            make_note_file(decoded_filename, notes_for_file)
+
+
+if __name__ == "__main__":
+    main():
