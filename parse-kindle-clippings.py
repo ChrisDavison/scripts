@@ -24,10 +24,12 @@ def read_notes(filepath):
     return sorted(notes)
 
 
-def make_note_file(filename, notes):
+def make_note_file(outdir, filename, notes):
     contents = [n[3] for n in notes]
     print(filename)
-    outfile = outdir / f"book--{filename}.md"
+    filename = ''.join([ch for ch in filename if ch not in "(),:"])
+    filename = filename.replace(" ", "-")
+    outfile = outdir / f"{filename}.md"
     valid_notes = b"\n".join([b"- " + tidy(n) for n in contents if n])
     data = f"**{filename}**\n\n".encode() + valid_notes + b"\n"
     outfile.write_bytes(data)
@@ -53,8 +55,8 @@ def main():
         if decoded_filename in ignores:
             print("IGNORING", decoded_filename)
         else:
-            make_note_file(decoded_filename, notes_for_file)
+            make_note_file(outdir, decoded_filename, notes_for_file)
 
 
 if __name__ == "__main__":
-    main():
+    main()
