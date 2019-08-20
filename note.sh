@@ -46,19 +46,25 @@ _clear(){
     touch "$NOTESFILE"
 }
 
+_edit(){
+    $EDITOR "$NOTESFILE"
+}
+
 case $cmd in
     a|add) _add "$@" ;;
     f|find) _find "$@" ;;
+    e|edit) _edit ;;
     v|view) _view ;;
     d|delete|empty) _clear ;;
     o|open|edit) _open "$@" ;;
     p|preview) _preview "$@" ;;
     *) 
         echo "note"
-        echo "    a - add to notes file"
+        echo "    a - add to NOTES file"
+        echo "    v - view full NOTES file"
+        echo "    e - edit NOTES file"
+        echo "    d - delete(empty) NOTES file"
         echo "    f - find a note by title or content"
-        echo "    v - view full notes file"
-        echo "    d - delete notes"
         echo "    o - open files in vim"
         echo "    p - preview notes files using fzf"
         ;;
