@@ -9,10 +9,10 @@ const START: f64 = 115.0;
 
 #[derive(StructOpt, Debug)]
 struct Opts {
-    /// Unit of current weight (st|lb|kg)
-    unit: String,
     /// Current weight
     value: f64,
+    /// Unit of current weight (st|lb|kg)
+    unit: String,
 }
 
 struct Weight {
@@ -25,7 +25,7 @@ impl std::fmt::Display for Weight {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "{:.2}kg {:.2}st {:.2}lb (lost {:.2}kg)",
+            "{:.1}kg {:.1}st {:.1}lb (lost {:.1}kg)",
             self.value_kg,
             self.value_st,
             self.value_lb,
