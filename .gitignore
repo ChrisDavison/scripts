@@ -12,3 +12,4 @@ __pycache__/
 **/META-INF/**/*.~
 **/*.*~
 **.*.swp
+**/target/
