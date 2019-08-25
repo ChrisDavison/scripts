@@ -9,4 +9,5 @@ __pycache__/
 **/*.exe
 **/*.pdb
 **/*.jar
-**/META-INF/
+**/META-INF/**/*.~
+**/*.*~
