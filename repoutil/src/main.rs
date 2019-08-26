@@ -25,7 +25,7 @@ fn main() -> Result<()> {
     for repo in repos {
         let out: String = cmd(repo.clone());
         if !out.is_empty() {
-            print!("{}\n{}", repo.display(), out);
+            println!("{}\n{}", repo.display(), out);
         }
     }
     Ok(())
