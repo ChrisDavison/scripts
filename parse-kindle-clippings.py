@@ -30,7 +30,7 @@ def make_note_file(outdir, filename, notes):
     filename = ''.join([ch for ch in filename if ch not in "(),:"])
     filename = filename.replace(" ", "-")
     outfile = outdir / f"{filename}.md"
-    valid_notes = b"\n".join([b"- " + tidy(n) for n in contents if n])
+    valid_notes = b"\n\n".join([tidy(n) for n in contents if n])
     data = f"**{filename}**\n\n".encode() + valid_notes + b"\n"
     outfile.write_bytes(data)
 
