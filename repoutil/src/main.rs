@@ -1,20 +1,36 @@
 use std::thread;
 
-#[macro_use]
-extern crate simple_error;
-
 type Result<T> = ::std::result::Result<T, Box<dyn::std::error::Error>>;
+
+enum Errs {
+    BadUsage = -1,
+    UnknownCommand = -2,
+    BadRepos = -3,
+}
+
+const USAGE: &'static str = "usage: repoutil (stat|fetch)";
 
 fn main() -> Result<()> {
     let args: Vec<String> = std::env::args().skip(1).collect();
     if args.is_empty() {
-        bail!("repoutil (stat|fetch)");
+        eprintln!("{}", USAGE);
+        std::process::exit(Errs::BadUsage as i32);
     }
-    let repos = git::get_repos()?;
     let cmd = match args[0].as_ref() {
         "fetch" => git::fetch,
         "stat" => git::stat,
-        _ => bail!(format!("unrecognised command `{}`", args[0])),
+        _ => {
+            eprintln!("Error: unrecognised command `{}`", args[0]);
+            eprintln!("{}", USAGE);
+            std::process::exit(Errs::UnknownCommand as i32);
+        }
+    };
+    let repos = match git::get_repos() {
+        Ok(r) => r,
+        _ => {
+            eprintln!("Error: couldn't get repos");
+            std::process::exit(Errs::BadRepos as i32);
+        }
     };
 
     let mut handles = Vec::new();
