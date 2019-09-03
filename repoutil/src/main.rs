@@ -38,11 +38,9 @@ fn main() -> Result<()> {
         // Spawn a thread for each repo
         // and run the chosen command.
         // The handle must 'move' to take ownership of `cmd`
-        let handle = thread::spawn(move || {
-            let out: String = cmd(repo.clone());
-            if !out.is_empty() {
-                println!("{}\n{}", repo.display(), out);
-            }
+        let handle = thread::spawn(move || match cmd(repo.clone()) {
+            Some(out) => println!("{}\n{}", repo.display(), out),
+            None => return,
         });
         handles.push(handle);
     }
@@ -76,14 +74,24 @@ mod git {
             .to_string()
     }
 
-    pub fn fetch(p: std::path::PathBuf) -> String {
+    pub fn fetch(p: std::path::PathBuf) -> Option<String> {
         let err_msg = Some(format!("couldn't fetch {:?}", p));
-        command_output(p, &["fetch", "--all"], err_msg)
+        let out = command_output(p, &["fetch", "--all"], err_msg);
+        let status: String = out.lines().skip(1).collect();
+        match status.is_empty() {
+            true => None,
+            false => Some(status),
+        }
     }
 
-    pub fn stat(p: std::path::PathBuf) -> String {
+    pub fn stat(p: std::path::PathBuf) -> Option<String> {
         let err_msg = Some(format!("couldn't stat {:?}", p));
-        command_output(p, &["status", "-s", "-b"], err_msg)
+        let out = command_output(p, &["status", "-s", "-b"], err_msg);
+        let status: String = out.lines().skip(1).collect();
+        match status.is_empty() {
+            true => None,
+            false => Some(status),
+        }
     }
 
     pub fn get_repos() -> Result<Vec<::std::path::PathBuf>> {
