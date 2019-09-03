@@ -91,10 +91,10 @@ mod git {
         if lines[0].ends_with(']') {
             return Some(lines.join("\n"));
         }
-        let status: String = lines.iter().skip(1).map(|x| x.to_string()).collect();
+        let status: Vec<String> = lines.iter().skip(1).map(|x| x.to_string()).collect();
         match status.is_empty() {
             true => None,
-            false => Some(status),
+            false => Some(status.join("\n")),
         }
     }
 
