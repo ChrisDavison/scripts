@@ -87,7 +87,11 @@ mod git {
     pub fn stat(p: std::path::PathBuf) -> Option<String> {
         let err_msg = Some(format!("couldn't stat {:?}", p));
         let out = command_output(p, &["status", "-s", "-b"], err_msg);
-        let status: String = out.lines().skip(1).collect();
+        let lines: Vec<String> = out.lines().map(|x| x.to_string()).collect();
+        if lines[0].ends_with(']') {
+            return Some(lines.join("\n"));
+        }
+        let status: String = lines.iter().skip(1).map(|x| x.to_string()).collect();
         match status.is_empty() {
             true => None,
             false => Some(status),
