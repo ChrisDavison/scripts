@@ -6,7 +6,7 @@ from collections import defaultdict
 
 
 parser = ArgumentParser('ideas')
-parser.add_argument('headline', nargs='*', help='Headline to show ideas for')
+parser.add_argument('headline', nargs="?", help='Headline to show ideas for')
 args = parser.parse_args()
 
 filepath = Path('~/Dropbox/notes/idea-index.md').expanduser()
