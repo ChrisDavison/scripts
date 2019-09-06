@@ -1,33 +1,38 @@
-#!/usr/bin/env python3
-from pathlib import Path
+#!/usr/bin/env python
+import os
 import re
 from argparse import ArgumentParser
-from collections import defaultdict
 
 
-parser = ArgumentParser('ideas')
-parser.add_argument('headline', nargs="?", help='Headline to show ideas for')
+def yield_sections(filepath):
+    sections_started = False
+    contents = ""
+    for line in open(filepath):
+        if line.startswith("#"):
+            sections_started = True
+            if contents:
+                yield (header, contents)
+                contents = ""
+            header = " ".join(line.split(" ")[1:]).strip()
+        else:
+            if not sections_started:
+                continue
+            contents += line
+    if contents:
+        yield (header, contents)
+
+
+parser = ArgumentParser("ideas")
+parser.add_argument("headline", nargs="*", help="Headline to show ideas for")
 args = parser.parse_args()
 
-filepath = Path('~/Dropbox/notes/idea-index.md').expanduser()
-contents = filepath.read_text().splitlines()
+filepath = os.path.expanduser("~/Dropbox/notes/idea-index.md")
 
-headline = args.headline[0].lower() if args.headline else None
-
-headline_and_contents = defaultdict(list)
-header = None
-for line in contents:
-    re_header = re.match(r'#+\s+(.*)', line)
-    re_line = re.match(r'-\s+(.*)', line)
-    if re_header:
-        header = re_header.group(1).lower()
-    elif header and re_line:
-        headline_and_contents[header].append(re_line.group(1))
-
-if headline and headline in headline_and_contents.keys():
-    for entry in headline_and_contents[headline]:
-        print(f"- {entry}")
-else:
-    print("SECTIONS AVAILABLE")
-    print("==================")
-    print('\n'.join(sorted(headline_and_contents.keys())))
+headline = " ".join(args.headline).lower() if args.headline else None
+for header, contents in yield_sections(filepath):
+    if not headline:
+        print(header)
+    elif headline.lower() in header.lower():
+        joined_lines = re.sub("\n    ", " ", contents)
+        no_dashes = re.sub("-\s+", "", joined_lines)
+        print(no_dashes.strip())
