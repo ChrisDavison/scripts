@@ -17,10 +17,10 @@ headline = args.headline[0].lower() if args.headline else None
 headline_and_contents = defaultdict(list)
 header = None
 for line in contents:
-    re_header = re.match(r'(#+)\s+(.*)', line)
+    re_header = re.match(r'#+\s+(.*)', line)
     re_line = re.match(r'-\s+(.*)', line)
-    if re_header and len(re_header.group(1)) > 1:
-        header = re_header.group(2).lower()
+    if re_header:
+        header = re_header.group(1).lower()
     elif header and re_line:
         headline_and_contents[header].append(re_line.group(1))
 
@@ -31,8 +31,3 @@ else:
     print("SECTIONS AVAILABLE")
     print("==================")
     print('\n'.join(sorted(headline_and_contents.keys())))
-
-# for indent, text in headers:
-#     indent = '-'*(indent-2)
-#     print(f"{indent}{text}")
-
