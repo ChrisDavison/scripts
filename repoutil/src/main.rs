@@ -39,7 +39,7 @@ fn main() -> Result<()> {
         // and run the chosen command.
         // The handle must 'move' to take ownership of `cmd`
         let handle = thread::spawn(move || match cmd(repo.clone()) {
-            Some(out) => println!("{}\n{}", repo.display(), out),
+            Some(out) => println!("{}\n{}\n", repo.display(), out),
             None => return,
         });
         handles.push(handle);
