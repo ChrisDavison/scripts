@@ -2,6 +2,7 @@ cmd=$1
 shift
 
 NOTESFILE="$HOME/Dropbox/notes/notes.md"
+[ ! -f "$NOTESFILE" ] && touch "$NOTESFILE"
 
 _add() {
     if [ ! -f "$NOTESFILE" ]; then
@@ -56,7 +57,7 @@ case $cmd in
     e|edit) _edit ;;
     v|view) _view ;;
     d|delete|empty) _clear ;;
-    o|open|edit) _open "$@" ;;
+    o|open) _open "$@" ;;
     p|preview) _preview "$@" ;;
     *) 
         echo "note"
