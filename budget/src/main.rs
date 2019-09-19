@@ -2,55 +2,92 @@ use csv::Reader;
 use std::env;
 use std::fs::File;
 
-use serde::Deserialize;
+type Result<T> = std::result::Result<T, Box<dyn::std::error::Error>>;
 
 #[derive(Debug)]
 struct Config {
     salary: f64,
     bank: f64,
-    costs: Vec<Cost>,
+    monthly: Vec<Cost>,
+    one_off: Vec<Cost>,
 }
 
-#[derive(Debug, Deserialize)]
-struct Cost {
-    name: String,
-    value: f64,
-    category: String,
-    one_off: bool,
+use cost::Cost;
+
+fn display_sorted_costs(costs: Vec<Cost>) {
+    let mut costs = costs;
+    costs.sort();
+    costs.reverse();
+    for cost in costs {
+        println!("{:10} {}", cost.value, cost.name)
+    }
 }
 
-fn read_config(filepath: &str, costs: Vec<Cost>) -> Config {
-    let config = std::fs::read_to_string(&filepath).expect("Couldn't read config");
+fn parse_config(fn_config: &str, fn_costs: &str) -> Result<Config> {
+    let config = std::fs::read_to_string(&fn_config)?;
     let mut salary = 0.0;
     let mut bank = 0.0;
 
     for line in config.lines() {
         let parts: Vec<&str> = line.split(",").collect();
         let name = parts[0];
-        let value: f64 = parts[1].parse().unwrap();
+        let value: f64 = parts[1].parse()?;
         match name {
-            "monthly" => salary = value,
+            "wage" => salary = value,
             "bank" => bank = value,
             _ => continue,
         }
     }
 
-    Config {
-        salary,
-        bank,
-        costs,
-    }
-}
-
-fn read_costs(filepath: &str) -> Vec<Cost> {
-    let costfile = File::open(filepath).expect(&format!("Couldn't open {}", filepath));
+    let costfile = File::open(fn_costs).expect(&format!("Couldn't open {}", fn_costs));
     let mut costfile_rdr = Reader::from_reader(&costfile);
     let mut costs = Vec::new();
     for result in costfile_rdr.deserialize() {
-        let cost: Cost = result.expect("Couldn't get csv record");
+        let cost: Cost = result?;
         costs.push(cost);
     }
-    costs
+
+    let one_off: Vec<Cost> = costs.iter().filter(|x| x.one_off).cloned().collect();
+    let monthly: Vec<Cost> = costs
+        .iter()
+        .filter(|x| !x.one_off && x.category == "monthly")
+        .cloned()
+        .collect();
+
+    Ok(Config {
+        salary,
+        bank,
+        monthly,
+        one_off,
+    })
+}
+
+fn show_budget(fn_config: &str, fn_costs: &str, verbose: bool) -> Result<()> {
+    let config = parse_config(fn_config, fn_costs)?;
+
+    println!("{:10} £{}", "Savings", config.bank);
+    println!("{:10} £{}", "Wage", config.salary);
+
+    let one_off_sum: f64 = config.one_off.iter().map(|x| x.value).sum();
+    println!("{:10} £{}", "One-offs", one_off_sum);
+    if verbose {
+        display_sorted_costs(config.one_off);
+    }
+
+    let monthly_sum: f64 = config.monthly.iter().map(|x| x.value).sum();
+    println!("{:10} £{}", "Monthly", monthly_sum);
+    if verbose {
+        display_sorted_costs(config.monthly);
+    }
+
+    let delta = config.salary - monthly_sum;
+    let bank_after_spend: i64 = (config.bank - one_off_sum) as i64;
+    println!("\nSavings after one-offs: £{}", bank_after_spend);
+    println!(
+        "Expected savings (1yr): £{}",
+        bank_after_spend + (12.0 * delta) as i64
+    );
+    Ok(())
 }
 
 fn main() {
@@ -61,46 +98,54 @@ fn main() {
         return;
     }
 
-    let costs = read_costs(&args[1]);
-    let config = read_config(&args[0], costs);
+    let fn_config = &args[0];
+    let fn_costs = &args[1];
     let verbose = args.len() > 2 && &args[2] == "-v";
+    match show_budget(fn_config, fn_costs, verbose) {
+        Ok(_) => {}
+        Err(e) => eprintln!("{}", e),
+    };
+}
 
-    let monthly_costs: Vec<&Cost> = config
-        .costs
-        .iter()
-        .filter(|x| x.category == "monthly")
-        .collect();
-    let monthly_sum: f64 = monthly_costs.iter().map(|x| x.value).sum();
-    let delta = config.salary - monthly_sum;
-    println!("£{} savings", config.bank);
+mod cost {
+    use serde::Deserialize;
+    use std::cmp::Ordering;
 
-    println!(
-        "MONTHLY\n\tIN: £{}\n\tOUT: £{}\n\tDELTA: £{}",
-        config.salary, monthly_sum, delta,
-    );
+    const EPSILON: f64 = 0.0001;
 
-    let cost_of_oneoffs: f64 = config
-        .costs
-        .iter()
-        .filter(|x| x.one_off)
-        .map(|x| x.value)
-        .sum();
-    println!("One-off payments: £{}", cost_of_oneoffs);
-    println!(
-        "Savings after payments: £{}",
-        config.bank - cost_of_oneoffs
-    );
-    println!(
-        "Expected savings (1yr): £{}",
-        (config.bank - cost_of_oneoffs) + (12.0 * delta)
-    );
+    #[derive(Debug, Deserialize, Clone)]
+    pub struct Cost {
+        pub value: f64,
+        pub name: String,
+        pub category: String,
+        pub one_off: bool,
+    }
 
-    if verbose {
-        println!("\nMonthly payments");
-        for cost in config.costs {
-            if cost.category == "monthly" {
-                println!("{:10} {}", cost.value, cost.name);
+    impl PartialOrd for Cost {
+        fn partial_cmp(&self, other: &Cost) -> Option<Ordering> {
+            Some(self.cmp(other))
+        }
+    }
+
+    impl Ord for Cost {
+        fn cmp(&self, other: &Cost) -> Ordering {
+            let diff = self.value - other.value;
+            if diff > EPSILON {
+                Ordering::Greater
+            } else if diff < -EPSILON {
+                Ordering::Less
+            } else {
+                Ordering::Greater
             }
         }
     }
+
+    impl PartialEq for Cost {
+        fn eq(&self, other: &Cost) -> bool {
+            (self.value - other.value).abs() < 0.0001
+        }
+    }
+
+    impl Eq for Cost {}
+
 }
