@@ -91,17 +91,24 @@ fn show_budget(fn_config: &str, fn_costs: &str, verbose: bool) -> Result<()> {
 }
 
 fn main() {
-    let args: Vec<String> = env::args().skip(1).collect();
+    let (fn_config, fn_costs) = match (env::var("BUDGET_CONFIG"), env::var("BUDGET_COSTS")) {
+        (Ok(a), Ok(b)) => (a, b),
+        (_, _) => {
+            let args: Vec<String> = env::args().skip(1).collect();
 
-    if args.len() < 2 {
-        eprintln!("usage: budget CONFIG COSTS [-v]");
-        return;
-    }
-
-    let fn_config = &args[0];
-    let fn_costs = &args[1];
-    let verbose = args.len() > 2 && &args[2] == "-v";
-    match show_budget(fn_config, fn_costs, verbose) {
+            if args.len() < 2 {
+                eprintln!("usage: budget CONFIG COSTS [-v]");
+                return;
+            }
+            (String::from(&args[0]), String::from(&args[1]))
+        }
+    };
+    let verbose = env::args()
+        .filter(|x| x == "-v")
+        .collect::<Vec<String>>()
+        .len()
+        > 0;
+    match show_budget(&fn_config, &fn_costs, verbose) {
         Ok(_) => {}
         Err(e) => eprintln!("{}", e),
     };
