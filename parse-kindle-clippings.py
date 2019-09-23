@@ -21,7 +21,7 @@ def read_notes(filepath):
     for chunk in chunks:
         if b"Your Highlight" in chunk or b"Your Note" in chunk:
             notes.append(re.split(b"\r\n", chunk))
-    return sorted(notes)
+    return notes
 
 
 def make_note_file(outdir, filename, notes):
