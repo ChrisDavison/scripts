@@ -24,7 +24,8 @@ def main():
     symbol = {'md': '#', 'org': '*'}[args.format]
     notes_and_complexity = sorted([(note_complexity(n, symbol), n) for n in notes], reverse=True)
     for note in notes_and_complexity:
-        print(f"{note[0]:4d}\t{note[1]}")
+        if note[0]:
+            print(f"{note[0]:4d}\t{(Path(args.path) / note[1]).resolve()}")
 
 
 if __name__ == "__main__":
