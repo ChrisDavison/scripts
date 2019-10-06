@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 """Markdown link checker"""
-import os
 import re
 import sys
 from argparse import ArgumentParser
@@ -9,14 +8,15 @@ from pathlib import Path
 import requests
 
 
+VERBOSE = False
 RE_REFLINK = re.compile(r"\[.+?\]: (.+)(?:\s|$)")
 RE_INLINELINK = re.compile(r"\[.+?\]\((.+?)\)")
 RE_MDANCHOR = re.compile("#.*")
 
 
-def is_valid(url):
+def is_valid(url, relative_to):
     """Check if a url is valid (either local or web)."""
-    return is_valid_local(url) or is_valid_web(url)
+    return is_valid_local(url, relative_to) or is_valid_web(url)
 
 
 def trim_md_anchor(url):
@@ -24,10 +24,10 @@ def trim_md_anchor(url):
     return RE_MDANCHOR.sub("", url)
 
 
-def is_valid_local(url):
+def is_valid_local(url, relative_to):
     """Check if a url references a local file."""
     no_anchor = trim_md_anchor(url)
-    p = Path(no_anchor).resolve()
+    p = (Path(relative_to).parent / no_anchor).resolve()
     return p.exists()
 
 
@@ -48,35 +48,40 @@ def get_links(text):
     matches = RE_INLINELINK.findall(text)
     matches2 = RE_REFLINK.findall(text)
     matches.extend(matches2)
-    return [match for match in matches]
+    return matches
 
 
 def get_links_from_file(filename):
     """Get all links from markdown file."""
-    text = Path(filename).read_text()
-    return get_links(text)
+    if VERBOSE:
+        print(filename)
+    try:
+        text = Path(filename).read_text()
+        return get_links(text)
+    except Exception as E:
+        print(E, filename)
+        return []
 
 
 def mdlc(filename):
     """Get all invalid links from markdown file."""
     links = get_links_from_file(filename)
-    return [l for l in links if not is_valid(l)]
+    return [l for l in links if not is_valid(l, relative_to=filename)]
 
 
 def main():
     """Run markdown link checking on all files passed from the commandline."""
     p = ArgumentParser(prog="mdlc")
-    p.add_argument("-v", "--version")
+    p.add_argument("-v", "--verbose", action="store_true")
     p.add_argument("FILENAMES", nargs="+")
     args = p.parse_args()
-    if args.version:
-        print(Path(__file__).stem, "0.1.0")
-        sys.exit(0)
+    VERBOSE = args.verbose
     bad_links = {filename: mdlc(filename) for filename in args.FILENAMES}
     for filename, badlinks in bad_links.items():
-        print(filename)
-        for link in badlinks:
-            print("\t", link)
+        if badlinks:
+            print(filename)
+            for link in badlinks:
+                print("\t", link)
 
 
 if __name__ == "__main__":
