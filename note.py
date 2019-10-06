@@ -88,7 +88,7 @@ def view():
     subprocess.run(["bat", "-l", "md", NOTESFILE], check=True)
 
 
-def open(args):
+def open_files(args):
     """Use FZF to select notes, with optional prefilter, then open in EDITOR"""
     query = " ".join(args)
     relative_files = "\n".join([str(n.relative_to(NOTESDIR)) for n in ALL_NOTES])
@@ -128,7 +128,7 @@ def main(*, command, args):
     elif command in ["d", "delete", "del"]:
         clear()
     elif command in ["o", "open"]:
-        open(args)
+        open_files(args)
     else:
         print(__doc__)
 
