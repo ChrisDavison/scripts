@@ -36,8 +36,7 @@ impl std::fmt::Display for Weight {
 
 impl Weight {
     fn new(unit: &str, value: f64) -> Result<Weight> {
-        let unit = unit.to_string();
-        let value_kg = match unit.as_ref() {
+        let value_kg = match unit {
             "kg" => value,
             "st" => value * 14.0 / 2.2,
             "lb" => value / 2.2,
