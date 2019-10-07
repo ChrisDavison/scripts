@@ -85,7 +85,8 @@ def find(args):
 
 def view():
     """View contents of the NOTESFILE"""
-    subprocess.run(["bat", "-l", "md", NOTESFILE], check=True)
+    batstyle="--style=header,grid"
+    subprocess.run(["bat", "-l", "md", batstyle, NOTESFILE], check=True)
 
 
 def open_files(args):
