@@ -32,7 +32,7 @@ if not NOTESFILE.exists():
 def add(text):
     """Add whatever text is entered on the commandline to the NOTESFILE"""
     with NOTESFILE.open("a") as notes_file:
-        print("{}\n\n".format(" ".join(text)), file=notes_file)
+        print("\n{}\n".format(" ".join(text)), file=notes_file)
 
 
 def find_matching_filenames(query):
