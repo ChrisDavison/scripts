@@ -46,11 +46,9 @@ def parse_costs(file):
         if not line or is_dash_line:
             continue
         elif line.startswith('Income'):
-            income = int(line.split(' ')[1])
-            continue
+            income = int(line.split(' -- £')[1])
         elif line.startswith('Savings'):
-            savings = int(line.split(' ')[1])
-            continue
+            savings = int(line.split(' -- £')[1])
         elif '-- £' in line:
             category_and_costs[current_category].append(parse_cost(line))
         else:
