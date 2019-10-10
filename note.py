@@ -54,7 +54,9 @@ def find_matching_directories(query):
 def find_matching_file_contents(query):
     """Show files where contents matches the query"""
     print("===== MATCHING CONTENTS =====")
-    subprocess_args = ["rg", "-F", " ".join(query), NOTESDIR, "-l", "--color=never"]
+    if isinstance(query, list):
+        query = " ".join(query)
+    subprocess_args = ["rg", "-F", query, NOTESDIR, "-l", "--color=never"]
     output = subprocess.run(subprocess_args, stdout=subprocess.PIPE, check=True)
     for line in output.stdout.decode().split("\n"):
         if not line:
@@ -138,4 +140,8 @@ if __name__ == "__main__":
     if len(sys.argv) == 1:
         print(__doc__)
     else:
-        main(command=sys.argv[1].lower(), args=sys.argv[2:])
+        command = sys.argv[1].lower()
+        args = sys.argv[2:]
+        if not isinstance(args, list):
+            args = list(args)
+        main(command=command, args=args)
