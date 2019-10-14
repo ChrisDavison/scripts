@@ -4,10 +4,6 @@ import sys
 from argparse import ArgumentParser
 from pathlib import Path
 
-parser = ArgumentParser('budget')
-parser.add_argument('directory', nargs='?', help="Directory with costs")
-parser.add_argument('-v', '--verbose', help="Show all costs", action='store_true')
-args = parser.parse_args()
 
 def process_dir(path):
     files = [f for f in path.glob('*')
@@ -26,10 +22,19 @@ def process_dir(path):
         print(output)
 
 
-if not args.directory:
-    args.directory = os.environ['FINANCES']
-    for path in Path(args.directory).glob('*'):
-        if path.is_dir():
-            process_dir(path)
+parser = ArgumentParser('budget')
+parser.add_argument('directory', nargs='?', help="Directory with costs")
+parser.add_argument('-v', '--verbose', help="Show all costs", action='store_true')
+args = parser.parse_args()
+
+root = os.environ['FINANCES']
+if args.directory:
+    root = args.directory
+elif root:
+    dirs = [d for d in Path(root).glob('*') if d.is_dir()]
 else:
-    process_dir(args.directory)
+    print("Must provide DIRECTORY arg, or set FINANCES env var.")
+    sys.exit(1)
+
+for direc in dirs:
+    process_dir(direc)
