@@ -1,64 +1,35 @@
 #!/usr/bin/env python3
-from collections import defaultdict, namedtuple
-import re
-import sys
 import os
+import sys
+from argparse import ArgumentParser
+from pathlib import Path
 
-def boxed_text(text, width):
-    space_width = (width - len(text)) / 2
-    space_left = "=" * int(space_width)
-    space_right = space_left
-    if space_width != int(space_width):
-        space_right += "="
-    print("=" * width)
-    print("{} {} {}".format(space_left[:-1], text, space_right[:-1]))
-    print("=" * width)
+parser = ArgumentParser('budget')
+parser.add_argument('directory', nargs='?', help="Directory with costs")
+parser.add_argument('-v', '--verbose', help="Show all costs", action='store_true')
+args = parser.parse_args()
 
-def parse_cost(line):
-    re_cost = re.compile(r"(.*) -- £(.*)")
-    m = re_cost.search(line)
-    if m:
-        number = m.groups()[1]
-        text = m.groups()[0]
-        return Cost(int(number), text)
-    return None
+def process_dir(path):
+    files = [f for f in path.glob('*')
+        if f.is_file()
+    ]
+    summed = 0
+    output = ""
+    for file in files:
+        data = file.read_text().split('\n')
+        name = [line[6:] for line in data if line.startswith('name: ')][0]
+        cost = sum([float(line[6:]) for line in data if line.startswith('cost: ')])
+        summed += cost
+        output += f"{cost:8.0f}\t{name:10s}\n"
+    print(f"TOTAL for {path.stem} -- {summed:.1f}")
+    if args.verbose:
+        print(output)
 
-def summarise(savings, income, costs, verbose=False):
-    boxed_text("BASELINE", 20)
-    print("{:10s} £{}".format("Savings", savings))
-    print("{:10s} £{}".format("Income", income))
-    print()
-    boxed_text("COSTS", 20)
-    for category, items in costs.items():
-        total = sum([item.value for item in items])
-        print("{:10s} £{}".format(category, int(total)))
 
-    projected_spend = sum([item.value for item in costs['To Buy']]) + sum([item.value for item in costs['Spent']])
-    print("{:10s} £{}".format("Projected", projected_spend))
-
-def parse_costs(file):
-    category_and_costs = defaultdict(list)
-    current_category = None
-    savings, income = 0, 0
-    for line in file:
-        line = line.strip()
-        is_dash_line = all([c == "-" for c in line])
-        if not line or is_dash_line:
-            continue
-        elif line.startswith('Income'):
-            income = int(line.split(' -- £')[1])
-        elif line.startswith('Savings'):
-            savings = int(line.split(' -- £')[1])
-        elif '-- £' in line:
-            category_and_costs[current_category].append(parse_cost(line))
-        else:
-            current_category = line
-    return savings, income, category_and_costs
-
-if __name__ == "__main__":
-    Cost = namedtuple('Cost', 'value description')
-    file = sys.stdin
-    fn_budget = os.environ.get("BUDGET", None)
-    if fn_budget:
-        file = open(fn_budget)
-    summarise(*parse_costs(file))
+if not args.directory:
+    args.directory = os.environ['FINANCES']
+    for path in Path(args.directory).glob('*'):
+        if path.is_dir():
+            process_dir(path)
+else:
+    process_dir(args.directory)
