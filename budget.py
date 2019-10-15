@@ -5,19 +5,26 @@ from argparse import ArgumentParser
 from pathlib import Path
 
 
+def parse_file(filename):
+    name, cost = None, 0.0
+    if not filename.is_file():
+        return name, cost
+    for line in filename.read_text().splitlines():
+        if line.startswith('name: ') and not name:
+            name = line[6:]
+        if line.startswith('cost: ') and not cost:
+            cost += float(line[6:])
+    return name, int(cost)
+
+
 def process_dir(path):
-    files = [f for f in path.glob('*')
-        if f.is_file()
-    ]
     summed = 0
     output = ""
-    for file in files:
-        data = file.read_text().split('\n')
-        name = [line[6:] for line in data if line.startswith('name: ')][0]
-        cost = sum([float(line[6:]) for line in data if line.startswith('cost: ')])
+    for file in path.glob('*'):
+        name, cost = parse_file(file)
         summed += cost
-        output += f"{cost:8.0f}\t{name:10s}\n"
-    print(f"TOTAL for {path.stem} -- {summed:.1f}")
+        output += f"{int(cost):>8d} -- {name}\n"
+    print(f"{path.stem:8s} ~ {int(summed)}")
     if args.verbose:
         sorted_lines = sorted(line for line in output.split('\n'))
         print('\n'.join(sorted_lines[::-1]))
