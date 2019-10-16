@@ -1,33 +1,60 @@
 #!/usr/bin/env python3
 import os
+import re
 import sys
 from argparse import ArgumentParser
+from collections import defaultdict
 from pathlib import Path
+
+
+RE_KEYWORD = re.compile(r"([a-zA-Z]+): (.*)")
 
 
 def parse_file(filename):
     name, cost = None, 0.0
     if not filename.is_file():
         return name, cost
+    keywords = defaultdict(list)
+    extra = []
     for line in filename.read_text().splitlines():
-        if line.startswith('name: ') and not name:
-            name = line[6:]
-        if line.startswith('cost: ') and not cost:
-            cost += float(line[6:])
-    return name, int(cost)
+        m = RE_KEYWORD.match(line)
+        if m:
+            keywords[m.group(1)].append(m.group(2))
+        elif line:
+            extra.append(line)
+    keywords['notes'] = extra
+    return keywords
+
+
+# def budget_string_repr(file_keywords, verbose):
+#     name = keywords['name'][0]
+#     cost = float(keywords.get('cost', [0])[0])
+#     date = keywords.get('date', [''])[0]
+#     date = f"({date})" if date else ""
+
 
 
 def process_dir(path):
     summed = 0
-    output = ""
+    output = []
     for file in path.glob('*'):
-        name, cost = parse_file(file)
+        current = []
+        keywords = parse_file(file)
+        name = keywords['name'][0]
+        cost = float(keywords.get('cost', [0])[0])
+        date = keywords.get('date', [''])[0]
+        date = f"({date})" if date else ""
         summed += cost
-        output += f"{int(cost):>8d} -- {name}\n"
+        current.append(f"{int(cost):>8d} -- {name} {date}")
+        if args.verbose:
+            for line in keywords.get('notes', []):
+                current.append(f"\t\t\t{line}")
+        output.append((cost, '\n'.join(current)))
     print(f"{path.stem:8s} ~ {int(summed)}")
     if args.verbose:
-        sorted_lines = sorted(line for line in output.split('\n'))
-        print('\n'.join(sorted_lines[::-1]))
+        sorted_outputs = sorted(output, key=lambda x: x[0], reverse=True)
+        for _, output in sorted_outputs:
+            print(output)
 
 
 parser = ArgumentParser('budget')
@@ -47,6 +74,6 @@ else:
     sys.exit(1)
 
 for direc in dirs:
-    if 'archive' in str(direc) and not args.archive:
+    if 'archive' in str(direc) and not args.archive and not args.directory:
         continue
     process_dir(direc)
