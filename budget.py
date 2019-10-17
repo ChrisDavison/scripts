@@ -26,9 +26,8 @@ def parse_budget_item(filepath):
             keywords['notes'].append(line.strip())
     name = keywords.get('name', [None])[0]
     cost = keywords.get('cost', [None])[0]
-    date = keywords.get('date', '')
+    date = keywords.get('date', [''])[0]
     return BudgetItem(name, float(cost), date)
-
 
 def budget_item_repr(budget_item):
     date = f" ({budget_item.date})" if budget_item.date else ''
