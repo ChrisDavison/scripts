@@ -8,7 +8,10 @@ import (
 	"time"
 )
 
+// Version is the major.minor.patch version number
 var Version string
+
+// Build is the git commit hash when built
 var Build string
 
 func init() {
