@@ -2,28 +2,22 @@
 import sys
 import textdistance
 from pathlib import Path
+from argparse import ArgumentParser
 
-if len(sys.argv) < 3:
-    print("usage: strsim <REFERENCE> <strings>...")
-    sys.exit(1)
-location_of_n = -1
-if '-n' in sys.argv:
-    location_of_n = sys.argv.index('-n')
-num = 10
-if location_of_n > 0:
-    num = int(sys.argv[location_of_n+1])
-    sys.argv.pop(location_of_n+1)
-    sys.argv.pop(location_of_n)
-REFERENCE = sys.argv[1]
-strings = sys.argv[2:]
+parser = ArgumentParser()
+parser.add_argument('-n', help='number of results', type=int, default=10)
+parser.add_argument('-t', help='string similarity threshold', type=float, default=0.8)
+parser.add_argument('reference', help='string for comparison')
+parser.add_argument('strings', help='strings to compare (or stem if paths)', nargs='+')
+args = parser.parse_args()
 
-print(REFERENCE)
 sims = []
-for string in strings:
+for string in args.strings:
     if Path(string).exists():
         string = Path(string).stem
-    dist = textdistance.jaro_winkler(REFERENCE, string)
+    dist = textdistance.jaro_winkler(args.reference, string)
     sims.append((dist, string))
 
-for dist, string in sorted(sims, reverse=True)[:num]:
-    print(f"{dist:.3f}\t{string}")
+for dist, string in sorted(sims, reverse=True)[:args.n]:
+    if dist > args.t:
+        print(f"{dist:.3f}\t{string}")
