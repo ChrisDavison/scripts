@@ -21,12 +21,12 @@ def header_count(note, symbol):
     lines_with_headers = sum(1 for line in note_text if re_header.match(line))
     return lines_with_headers
 
-notes_and_count = [(header_count(n, args.sym), n.stem) for n in notes]
+notes_and_count = [(header_count(n, args.sym), n) for n in notes]
 sorted_notes = sorted(notes_and_count, reverse=True)
 
-for note in sorted_notes:
-    if any([p in note[1] for p in filter_words]):
+for headercount, notename in sorted_notes:
+    if any([p in str(notename) for p in filter_words]):
         continue
-    if note[0] < min_count:
+    if headercount < min_count:
         continue
-    print(note[0], '\t', note[1])
+    print(headercount, '\t', notename)
