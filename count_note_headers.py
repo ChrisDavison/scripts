@@ -5,7 +5,7 @@ import re
 
 parser = ArgumentParser()
 parser.add_argument('files', help='files to count headers in', nargs='+')
-parser.add_argument('--sym', help='header symbol', default=b'#', type=bytes)
+parser.add_argument('--sym', help='header symbol', default=b'#')
 args = parser.parse_args()
 
 
