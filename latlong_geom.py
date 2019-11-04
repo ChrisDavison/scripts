@@ -25,7 +25,7 @@ def area_quadrangle(latlon1, latlon2, radius=RADIUS_EARTH):
     lat2, lon2 = latlon2
     area_of_band = area_between_latitudes(lat1, lat2, radius)
     vertical_proportion_of_sphere = (lon2 - lon1) / 360
-    return area_of_band * vertical_proportion_of_sphere2
+    return area_of_band * vertical_proportion_of_sphere
 
 
 def area_earth():
