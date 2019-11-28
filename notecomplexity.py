@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 from argparse import ArgumentParser
 from pathlib import Path
 
@@ -21,7 +21,7 @@ def main():
     args = parser.parse_args()
 
     notes = Path(args.path).rglob(f'*.{args.format}')
-    symbol = {'md': '#', 'org': '*'}[args.format]
+    symbol = {'md': '#', 'org': '*', 'txt': '#'}[args.format]
     notes_and_complexity = sorted([(note_complexity(n, symbol), n) for n in notes], reverse=True)
     for note in notes_and_complexity:
         if note[0]:
