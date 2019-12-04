@@ -5,13 +5,14 @@ import (
 	"fmt"
 	"os"
 	"time"
+    "strings"
 
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 var (
-	title = kingpin.Arg("title", "Title of challenge").Required().String()
-	shift = kingpin.Arg("d", "How many days till start").Uint()
+	shift = kingpin.Flag("days", "How many days till start").Short('d').Uint()
+	title = kingpin.Arg("title", "Title of challenge").Required().Strings()
 )
 
 func main() {
@@ -26,7 +27,7 @@ func main() {
 		fmt.Fprintf(os.Stderr, "Failed to parse timedelta: %v", err)
 		os.Exit(1)
 	}
-	fmt.Println(*title)
+	fmt.Println(strings.Join(*title, " "))
 	fmt.Printf("[")
 	for i := 0; i < 30; i++ {
 		day := t.Weekday()
