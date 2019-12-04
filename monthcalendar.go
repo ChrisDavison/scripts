@@ -23,8 +23,9 @@ func main() {
 		fmt.Fprintf(os.Stderr, "Failed to parse timedelta: %v", err)
 		os.Exit(1)
 	}
+	fmt.Println(t.Month())
 	for tmp.Month() == t.Month() {
-		fmt.Printf("- %v-%02v-%02v %v ~\n",
+		fmt.Printf("%v/%02v/%02v %v ~\n",
 			t.Year(),
 			int(t.Month()),
 			t.Day(),
