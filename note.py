@@ -18,11 +18,11 @@ import sys
 from pathlib import Path
 
 
-DEFAULT_NOTESFILE = Path("~/Dropbox/notes/notes.md").expanduser()
+DEFAULT_NOTESFILE = Path("~/Dropbox/notes/inbox.txt").expanduser()
 NOTESFILE = Path(os.environ.get("NOTESFILE", DEFAULT_NOTESFILE))
 NOTESDIR = Path(os.environ.get("NOTESDIR", NOTESFILE.parent))
 EDITOR = os.environ.get("EDITOR", "nvim")
-ALL_NOTES = NOTESDIR.rglob("*.md")
+ALL_NOTES = NOTESDIR.rglob("*.txt")
 ALL_NOTE_DIRS = [d for d in NOTESDIR.rglob("*") if d.is_dir()]
 
 if not NOTESFILE.exists():
@@ -64,6 +64,27 @@ def find_matching_file_contents(query):
         fpath = Path(line).relative_to(NOTESDIR)
         print(fpath)
 
+
+def tagfind(query):
+    print("===== MATCHING ALL TAGS =====")
+    if isinstance(query, list):
+        query = " ".join(query)
+    paths_matching_tags = set()
+    for tag in query:
+        paths_matching_this_tag = set()
+        subprocess_args = ["rg", "-F", "@"+query, str(NOTESDIR), "-l", "--color=never"]
+        output = subprocess.run(subprocess_args, stdout=subprocess.PIPE)
+        for line in output.stdout.decode().split("\n"):
+            if not line:
+                continue
+            paths_matching_this_tag.add(line) 
+        if not paths_matching_tags:
+            paths_matching_tags = paths_matching_this_tag
+        else:
+            paths_matching_tags &= paths_matching_this_tag
+    for path in paths_matching_tags:
+        fpath = Path(path).relative_to(NOTESDIR)
+        print(fpath)
 
 def find(args):
     """Find given query in filename, dirname, or file contents"""
@@ -124,6 +145,10 @@ def main(*, command, args):
         add(args)
     elif command in ["f", "find"]:
         find(args)
+    elif command in ["t", "tag"]:
+        tagfind(args)
+    elif command in ["tt", "tags"]:
+        tagview(args)
     elif command in ["e", "edit"]:
         edit()
     elif command in ["v", "view"]:
