@@ -27,6 +27,7 @@ Options:
 var (
 	list      = kingpin.Flag("list", "List tags").Short('l').Bool()
 	verbose   = kingpin.Flag("verbose", "List tags with count of files").Short('v').Bool()
+	summarise = kingpin.Flag("summarise", "List tags and matching files").Short('s').Bool()
 	files     = kingpin.Arg("files", "Files to search/summarise").Strings()
 	keywords  = kingpin.Flag("keywords", "Keywords to filter for").Short('k').Strings()
 	andFilter = kingpin.Flag("and-filter", "Filter using ALL tags (or default ANY match)").Bool()
@@ -71,11 +72,15 @@ func getTagsForFile(filename string) []string {
 	}
 	rx := regexp.MustCompile(`(?:^|\s)+@([a-zA-Z_0-9\-]+)\s*`)
 	matches := rx.FindAllStringSubmatch(string(contents), -1)
-	onlyGroups := make([]string, 0)
+	matchesSeen := make(map[string]bool)
 	for _, match := range matches {
 		for _, keyword := range match[1:] {
-			onlyGroups = append(onlyGroups, strings.ToLower(keyword))
+			matchesSeen[keyword] = true
 		}
+	}
+	onlyGroups := make([]string, 0)
+	for kw, _ := range matchesSeen {
+		onlyGroups = append(onlyGroups, strings.ToLower(kw))
 	}
 	return onlyGroups
 }
@@ -135,7 +140,7 @@ func main() {
 		}
 		*files = append(*files, filesMd...)
 	}
-	if *verbose || *list {
+	if *verbose || *list || (*keywords == nil && !*summarise) {
 		listTags(*files, *verbose)
 		os.Exit(0)
 	}
@@ -145,6 +150,15 @@ func main() {
 		for _, tag := range getTagsForFile(filename) {
 			keywordToFile[tag] = append(keywordToFile[tag], filename)
 		}
+	}
+	if *summarise {
+		for kw, files := range keywordToFile {
+			fmt.Println(kw)
+			for _, filename := range files {
+				fmt.Println("\t", filename)
+			}
+		}
+		os.Exit(0)
 	}
 	matchingFiles := make([]string, 0)
 	if *andFilter {
