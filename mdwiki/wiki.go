@@ -6,27 +6,11 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 
 	blackfriday "gopkg.in/russross/blackfriday.v2"
 )
-
-const viewTemplate = `<head>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/3.0.1/github-markdown.css">
-<title>%s</title>
-</head>
-
-<body>
-<a href="/">HOME</a>
-<script>
-    document.write('<a href="' + document.referrer + '">Go Back</a>');
-</script>
-<br>
-
-<h1>%s</h1>
-<div>%s</div>
-
-</body>`
 
 type page struct {
 	title    string
@@ -37,7 +21,7 @@ type page struct {
 func readMarkdownFileToHTML(filename string) ([]byte, error) {
 	var body []byte
 	var err error
-	if !strings.HasSuffix(filename, ".md") {
+	if !strings.HasSuffix(filename, ".txt") && !strings.HasSuffix(filename, ".md") {
 		filename = filename + ".md"
 	}
 	body, err = ioutil.ReadFile(filename)
@@ -52,7 +36,7 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 	outputTitle := "Notes.md & Files in Root"
 	output := []byte{}
 
-	notesBody, err := readMarkdownFileToHTML("notes.md")
+	notesBody, err := readMarkdownFileToHTML("inbox.txt")
 	if err != nil {
 		// http.Redirect(w, r, "/edit/notes", http.StatusFound)
 		return
@@ -65,7 +49,7 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	output = append(output, body...)
-	fmt.Fprintf(w, viewTemplate, outputTitle, outputTitle, output)
+	fmt.Fprintf(w, VIEW_TEMPLATE, outputTitle, outputTitle, output)
 	return
 }
 
@@ -76,12 +60,12 @@ func dirHandler(w http.ResponseWriter, r *http.Request, direc string) {
 		return
 	}
 	title := filenameToTitle(r.URL.Path[1:])
-	fmt.Fprintf(w, viewTemplate, title, title, body)
+	fmt.Fprintf(w, VIEW_TEMPLATE, title, title, body)
 	return
 }
 
 func fileHandler(w http.ResponseWriter, r *http.Request, file string) {
-	if !strings.HasSuffix(file, ".md") {
+	if !strings.HasSuffix(file, ".txt") && !strings.HasSuffix(file, ".md") {
 		http.ServeFile(w, r, file)
 		return
 	}
@@ -91,29 +75,11 @@ func fileHandler(w http.ResponseWriter, r *http.Request, file string) {
 		return
 	}
 	title := filenameToTitle(r.URL.Path[1:])
-	fmt.Fprintf(w, viewTemplate, title, title, body)
-}
-
-func viewHandler(w http.ResponseWriter, r *http.Request) {
-	log.Println("GET", r.URL.Path)
-	if r.URL.Path == "/" {
-		rootHandler(w, r)
-		return
-	}
-	stat, err := os.Stat(r.URL.Path[1:])
-	if err != nil {
-		log.Println(r.URL.Path[1:], err)
-		return
-	}
-	if stat.IsDir() {
-		dirHandler(w, r, r.URL.Path[1:])
-	} else {
-		fileHandler(w, r, r.URL.Path[1:])
-	}
+	fmt.Fprintf(w, VIEW_TEMPLATE, title, title, body)
 }
 
 func filenameToTitle(filename string) string {
-	noExt := strings.TrimSuffix(filename, ".md")
+	noExt := strings.TrimSuffix(filename, filepath.Ext(filename))
 	title := strings.Title(strings.Replace(noExt, "-", " ", -1))
 	return title
 }
@@ -123,23 +89,6 @@ func filenameAsListAhref(filename, dir string) string {
 	return fmt.Sprintf(`<li><a href="%s">%s</a></li>`, joined, filenameToTitle(filename))
 }
 
-func getSubdirsAndFilesInDir(contents []os.FileInfo, withDotfiles bool) ([]os.FileInfo, []os.FileInfo) {
-	var dirs []os.FileInfo
-	var files []os.FileInfo
-
-	for _, fileinfo := range contents {
-		if strings.HasPrefix(fileinfo.Name(), ".") && !withDotfiles {
-			continue
-		}
-		if fileinfo.IsDir() {
-			dirs = append(dirs, fileinfo)
-		} else {
-			files = append(files, fileinfo)
-		}
-	}
-	return dirs, files
-}
-
 func dirContentsAsLinks(dir string) ([]byte, error) {
 	contents, err := ioutil.ReadDir(dir)
 	if err != nil {
@@ -147,22 +96,20 @@ func dirContentsAsLinks(dir string) ([]byte, error) {
 		return nil, err
 	}
 
-	dirs, files := getSubdirsAndFilesInDir(contents, false)
-	output := ""
-	if dirs != nil {
-		output += "<h2>Dirs</h2><ul>"
-		for _, subdir := range dirs {
-			output += filenameAsListAhref(subdir.Name(), dir)
+	withDotfiles := false
+	dirString, fileString := "", ""
+	for _, fileinfo := range contents {
+		if strings.HasPrefix(fileinfo.Name(), ".") && !withDotfiles {
+			continue
 		}
-		output += "</ul>"
-	}
-	if files != nil {
-		output += "<h2>Notes</h2><ul>"
-		for _, file := range files {
-			output += filenameAsListAhref(file.Name(), dir)
+		if fileinfo.IsDir() {
+			dirString += filenameAsListAhref(fileinfo.Name(), dir)
+		} else {
+			fileString += filenameAsListAhref(fileinfo.Name(), dir)
 		}
-		output += "</ul>"
 	}
+
+	output := fmt.Sprintf(DIR_CONTENTS_TEMPLATE, dirString, fileString)
 
 	return []byte(output), nil
 }
