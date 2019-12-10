@@ -6,10 +6,11 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
-	"path/filepath"
 	"regexp"
 	"sort"
 	"strings"
+
+	"github.com/bmatcuk/doublestar"
 )
 
 type countedFile struct {
@@ -44,13 +45,13 @@ func main() {
 	var files []string
 	var err error
 	if len(os.Args) == 1 {
-		files, err = filepath.Glob("**/*.txt")
+		files, err = doublestar.Glob("**/*.txt")
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(NoFilesGlobFail)
 		}
 	} else if len(os.Args) == 2 && strings.HasPrefix(os.Args[1], "*") {
-		files, err = filepath.Glob(os.Args[1])
+		files, err = doublestar.Glob(os.Args[1])
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(PassedPatternGlobFail)
