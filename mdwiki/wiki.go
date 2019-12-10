@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -75,6 +76,9 @@ func fileHandler(w http.ResponseWriter, r *http.Request, file string) {
 		return
 	}
 	title := filenameToTitle(r.URL.Path[1:])
+	if bytes.Contains(body, []byte{'h', '1'}) {
+		title = ""
+	}
 	fmt.Fprintf(w, VIEW_TEMPLATE, title, title, body)
 }
 
