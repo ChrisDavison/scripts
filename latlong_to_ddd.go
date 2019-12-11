@@ -21,38 +21,53 @@ func toDecimalDegrees(degrees, minutes, seconds float64) float64 {
 	return degrees + (minPlusSec / 60)
 }
 
-func main() {
-	args := make([]float64, 0)
-	isSouth := false
-	isWest := false
+type config struct {
+	isSouth bool
+	isWest  bool
+	args    []float64
+}
 
-	for _, arg := range os.Args[1:] {
-		if arg == "-s" {
+func parseArgs(args []string) (c config, err error) {
+	isSouth, isWest := false, false
+	latlongArgs := []float64{}
+	for _, arg := range args {
+		switch arg {
+		case "-s":
 			isSouth = true
-		} else if arg == "-w" {
+		case "-w":
 			isWest = true
-		} else {
+		default:
 			val, err := strconv.ParseFloat(arg, 10)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "Error parsing `%s`: %s\n", arg, err)
 				os.Exit(1)
 			}
-			args = append(args, val)
+			latlongArgs = append(latlongArgs, val)
 		}
 	}
-	if len(args) != 6 {
-		fmt.Fprintln(os.Stderr, "Not enough args.")
+	if len(latlongArgs) != 6 {
+		return config{}, fmt.Errorf("Not enough args.")
+	}
+	return config{isSouth, isWest, latlongArgs}, nil
+}
+
+func main() {
+	conf, err := parseArgs(os.Args[1:])
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
 		fmt.Println(USAGE)
 		os.Exit(2)
+
 	}
-	d_north, m_north, s_north, d_east, m_east, s_east := args[0], args[1], args[2], args[3], args[4], args[5]
+	d_north, m_north, s_north := conf.args[0], conf.args[1], conf.args[2]
+	d_east, m_east, s_east := conf.args[3], conf.args[4], conf.args[5]
 
 	ddd_north := toDecimalDegrees(d_north, m_north, s_north)
 	ddd_east := toDecimalDegrees(d_east, m_east, s_east)
-	if isSouth {
+	if conf.isSouth {
 		ddd_north *= -1
 	}
-	if isWest {
+	if conf.isWest {
 		ddd_east *= -1
 	}
 	fmt.Printf("%f,%f\n", ddd_north, ddd_east)
