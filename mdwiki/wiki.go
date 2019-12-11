@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	blackfriday "gopkg.in/russross/blackfriday.v2"
@@ -24,6 +25,10 @@ func readMarkdownFileToHTML(filename string) ([]byte, error) {
 	var err error
 	if !strings.HasSuffix(filename, ".txt") && !strings.HasSuffix(filename, ".md") {
 		filename = filename + ".md"
+	}
+	if _, err := os.Stat(filename); os.IsNotExist(err) {
+		fmt.Fprintf(os.Stderr, "Reading Markdown `%v` - file doesn't exist\n", filename)
+		return nil, nil
 	}
 	body, err = ioutil.ReadFile(filename)
 	if err != nil {
@@ -119,14 +124,19 @@ func dirContentsAsLinks(dir string) ([]byte, error) {
 }
 
 func main() {
+	var err error
+	var port int64 = 8080
 	if len(os.Args) > 1 {
-		os.Chdir(os.Args[1])
+		port, err = strconv.ParseInt(os.Args[1], 10, 64)
+		if err != nil {
+			log.Fatal("Error parsing port number", err)
+		}
 	}
 
 	http.HandleFunc("/", viewHandler)
 	log.Println("Registered handler `viewHandler` to `/`")
 	// http.HandleFunc("/edit/", editHandler)
 	// http.HandleFunc("/save/", saveHandler)
-	log.Println("Listening on 8080")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Println("Listening on", port)
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", port), nil))
 }
