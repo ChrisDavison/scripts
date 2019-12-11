@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -39,6 +40,9 @@ func readMarkdownFileToHTML(filename string) ([]byte, error) {
 }
 
 func rootHandler(w http.ResponseWriter, r *http.Request) {
+	curdir, _ := os.Getwd()
+	stem := path.Base(curdir)
+	pageTitle := "MDWiki - " + stem
 	outputTitle := "Notes.md & Files in Root"
 	output := []byte{}
 
@@ -55,7 +59,7 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	output = append(output, body...)
-	fmt.Fprintf(w, VIEW_TEMPLATE, outputTitle, outputTitle, output)
+	fmt.Fprintf(w, VIEW_TEMPLATE, pageTitle, outputTitle, output)
 	return
 }
 
@@ -66,7 +70,7 @@ func dirHandler(w http.ResponseWriter, r *http.Request, direc string) {
 		return
 	}
 	title := filenameToTitle(r.URL.Path[1:])
-	fmt.Fprintf(w, VIEW_TEMPLATE, title, title, body)
+	fmt.Fprintf(w, VIEW_TEMPLATE, "MDWiki - "+title, title, body)
 	return
 }
 
