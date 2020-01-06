@@ -1,6 +1,11 @@
 [package]
+<<<<<<< HEAD:batrem/Cargo.toml
 name = "batrem"
 version = "0.1.0"
+=======
+name = "thirtyday"
+version = "0.2.0"
+>>>>>>> Optionally use date as header for thirtyday:thirtyday/Cargo.toml
 authors = ["Chris Davison <c.jr.davison@gmail.com>"]
 edition = "2018"
 
