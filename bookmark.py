@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 from datetime import date
+from os.path import expanduser
 import sys
 
 import requests
@@ -11,14 +12,17 @@ today = date.today().strftime("%F")
 tags = ["@"+t for t in input("Tags: ")]
 if not tags:
     tags = "@unread"
-title_fn = "-".join(input("Title: ")) + ".txt"
 template = f"""title: {title}
 date: {today}
 url: {sys.argv[1]}
 
 {tags}
 """
+title_fn = "-".join(input("Title: ").split(" ")) + ".txt"
+title_fn_full = expanduser(f"~/Dropbox/bookmarks/{title_fn}")
 
-with open(title, 'w') as f:
+print(title_fn_full)
+
+with open(title_fn_full, 'w') as f:
     f.write(template)
 
