@@ -9,7 +9,7 @@ from bs4 import BeautifulSoup
 r = requests.get(sys.argv[1])
 title = BeautifulSoup(r.text, 'html.parser').title.string 
 today = date.today().strftime("%F")
-tags = ["@"+t for t in input("Tags: ")]
+tags = ' '.join(["@"+t for t in input("Tags: ").split(' ')])
 if not tags:
     tags = "@unread"
 template = f"""title: {title}
@@ -18,8 +18,8 @@ url: {sys.argv[1]}
 
 {tags}
 """
-title_fn = "-".join(input("Title: ").split(" ")) + ".txt"
-title_fn_full = expanduser(f"~/Dropbox/bookmarks/{title_fn}")
+title_fn = "-".join(input("Title (filename): ").split(" ")) + ".txt"
+title_fn_full = expanduser(f"~/Dropbox/bookmarks/{title_fn.lower()}")
 
 print(title_fn_full)
 
