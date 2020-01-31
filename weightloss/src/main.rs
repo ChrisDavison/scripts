@@ -5,7 +5,7 @@ extern crate simple_error;
 
 type Result<T> = ::std::result::Result<T, Box<dyn::std::error::Error>>;
 
-const START: f64 = 115.0;
+const START: f64 = 117.0;
 
 #[derive(StructOpt, Debug)]
 struct Opts {
@@ -16,20 +16,20 @@ struct Opts {
 }
 
 struct Weight {
-    value_kg: f64,
-    value_st: f64,
-    value_lb: f64,
+    kg: f64
 }
 
 impl std::fmt::Display for Weight {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let lb = self.kg * 2.2;
+        let st = lb / 14.0;
         write!(
             f,
             "{:.1}kg {:.1}st {:.1}lb (lost {:.1}kg)",
-            self.value_kg,
-            self.value_st,
-            self.value_lb,
-            START - self.value_kg,
+            self.kg,
+            st,
+            lb,
+            START - self.kg,
         )
     }
 }
@@ -42,11 +42,7 @@ impl Weight {
             "lb" => value / 2.2,
             _ => bail!(format!("unrecognised unit `{}`", unit)),
         };
-        Ok(Weight {
-            value_kg: value_kg,
-            value_lb: value_kg * 2.2,
-            value_st: value_kg * 2.2 / 14.0,
-        })
+        Ok(Weight{kg: value_kg})
     }
 }
 
