@@ -32,8 +32,8 @@ def main():
         queries_to_ignore.extend(Path(args.f).read_text().splitlines())
     files = [
         f
-        for f in Path(".").rglob("*.org")
-        if matches_any(args.q, f) and not matches_any(queries_to_ignore, f)
+        for f in Path(".").rglob("*")
+        if f.suffix in [".txt", ".md", ".org"] and matches_any(args.q, f) and not matches_any(queries_to_ignore, f)
     ]
     files = pd.DataFrame(files, columns=["path"])
     files["kb"] = files["path"].apply(get_kb)
