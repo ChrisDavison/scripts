@@ -3,7 +3,6 @@ import datetime
 import os
 import sys
 from argparse import ArgumentParser
-from pathlib import Path
 
 
 def month_cal(year, month, start_day_of_week=0):
@@ -26,7 +25,7 @@ def month_cal(year, month, start_day_of_week=0):
     headers = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"]
     headerstr = " ".join(headers[start_day_of_week:] + headers[:start_day_of_week])
     N = len(headerstr)
-    topbot_border = f'+{"-"*(N+2)}+'
+    topbot_border = '+' + '-'*(N+2) + '+'
     outstr += headerstr + "\n"
     for i, week in enumerate(by_weekday):
         aligned_week = [str(w.day).rjust(2) for w in week]
