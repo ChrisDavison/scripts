@@ -22,12 +22,12 @@ def month_cal(year, month, start_day_of_week=0):
     if week:
         by_weekday.append(week)
 
-    print(start.strftime("%B %Y").center(20))
+    outstr = start.strftime("%B %Y").center(20) + "\n"
     headers = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"]
     headerstr = " ".join(headers[start_day_of_week:] + headers[:start_day_of_week])
     N = len(headerstr)
     topbot_border = f'+{"-"*(N+2)}+'
-    outstr = headerstr + "\n"
+    outstr += headerstr + "\n"
     for i, week in enumerate(by_weekday):
         aligned_week = [str(w.day).rjust(2) for w in week]
         w = " ".join(aligned_week)
@@ -40,8 +40,14 @@ if __name__ == "__main__":
     p = ArgumentParser()
     p.add_argument("-y", "--year")
     p.add_argument("-m", "--month")
+    p.add_argument("-Y", "--full-year", help="Generate calendar for every month", action='store_true')
     p.add_argument(
         "-s", "--startofweek", default=0, help="Day of week to start (0=Monday)"
     )
     args = p.parse_args()
-    print(month_cal(args.year, args.month, args.startofweek))
+    if args.full_year:
+        divider = "\n" + "-" * 80 + "\n\n"
+        calendars = [month_cal(args.year, month, args.startofweek) for month in range(1, 13)]
+        print(divider.join(calendars))
+    else:
+        print(month_cal(args.year, args.month, args.startofweek))
