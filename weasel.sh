@@ -35,6 +35,6 @@ then
     exit
 fi
 
-egrep -i -n --color "\\b($weasels)\\b" $*
+rg --vimgrep -i -n --color=never "\\b($weasels)\\b" $*
 
 exit $?

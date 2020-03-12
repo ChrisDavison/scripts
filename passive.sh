@@ -61,7 +61,7 @@ then
     exit
 fi
 
-egrep -n -i --color \
+rg --vimgrep -n -i --color=never \
  "\\b(am|are|were|being|is|been|was|be)\
 \\b[ ]*(\w+ed|($irregulars))\\b" $*
 

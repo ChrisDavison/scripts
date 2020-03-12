@@ -10,8 +10,8 @@ then
     exit
 fi
 
-egrep -i -n --color "\\b($firsts)\\b" $*
+rg --vimgrep -i -n --color=never "\\b($firsts)\\b" $*
 
-egrep -i -n --color "\\b($seconds)\\b" $*
+rg --vimgrep -i -n --color=never "\\b($seconds)\\b" $*
 
 exit $?
