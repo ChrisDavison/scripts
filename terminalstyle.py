@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 class Style:
     """Shortcuts to terminal styling escape sequences"""
 

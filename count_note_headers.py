@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import re
 from os.path import basename, splitext
 from argparse import ArgumentParser

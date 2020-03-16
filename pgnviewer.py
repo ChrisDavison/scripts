@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """usage: pgnviewer <PGNfile> [query]"""
 import os
 import shutil

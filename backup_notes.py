@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """Backup all notes (copy to another dir).
 
 May update this in future to also zip."""
