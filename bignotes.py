@@ -21,7 +21,7 @@ def matches_any(queries, path):
 def main():
     """Find largest markdown files under current directory"""
     parser = ArgumentParser("bignotes")
-    parser.add_argument("-n", type=int, default=10, help="Number of notes to list")
+    parser.add_argument("-n", type=int, help="Number of notes to list")
     parser.add_argument("-i", help="Query to ignore", nargs="+", default=["zzzzz"])
     parser.add_argument("-q", help="Query to find", nargs="+", default=[""])
     parser.add_argument("-f", help="File with processed files")
@@ -38,7 +38,10 @@ def main():
     files = pd.DataFrame(files, columns=["path"])
     files["kb"] = files["path"].apply(get_kb)
     files = files.sort_values(by="kb", ascending=False)
-    for _, row in files.iloc[: args.n].iterrows():
+    n = len(files)
+    if args.n:
+        n = min(n, args.n)
+    for _, row in files.iloc[:n].iterrows():
         print(f"{row.kb:3d} kb\t{row.path.parent}/{Style.red(row.path.name)}")
 
 
