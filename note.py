@@ -18,7 +18,7 @@ import sys
 from pathlib import Path
 
 
-DEFAULT_NOTESFILE = Path("~/Dropbox/notes/inbox.txt").expanduser()
+DEFAULT_NOTESFILE = Path("~/Dropbox/notes/inbox.md").expanduser()
 NOTESFILE = Path(os.environ.get("NOTESFILE", DEFAULT_NOTESFILE))
 NOTESDIR = Path(os.environ.get("NOTESDIR", NOTESFILE.parent))
 EDITOR = os.environ.get("EDITOR", "nvim")
