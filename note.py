@@ -15,6 +15,7 @@ Commands:
 import os
 import subprocess
 import sys
+import textwrap
 from pathlib import Path
 
 
@@ -22,7 +23,7 @@ DEFAULT_NOTESFILE = Path("~/Dropbox/notes/inbox.md").expanduser()
 NOTESFILE = Path(os.environ.get("NOTESFILE", DEFAULT_NOTESFILE))
 NOTESDIR = Path(os.environ.get("NOTESDIR", NOTESFILE.parent))
 EDITOR = os.environ.get("EDITOR", "nvim")
-ALL_NOTES = NOTESDIR.rglob("*.txt")
+ALL_NOTES = NOTESDIR.rglob("*.md")
 ALL_NOTE_DIRS = [d for d in NOTESDIR.rglob("*") if d.is_dir()]
 
 if not NOTESFILE.exists():
@@ -31,8 +32,13 @@ if not NOTESFILE.exists():
 
 def add(text):
     """Add whatever text is entered on the commandline to the NOTESFILE"""
+    if not text:
+        return
+    if isinstance(text, list) and len(text) == 1:
+        text = text[0]
     with NOTESFILE.open("a") as notes_file:
-        print("\n{}\n".format(" ".join(text)), file=notes_file)
+        note = textwrap.fill(text, 79)
+        print("\n{}".format(note), file=notes_file)
 
 
 def find_matching_filenames(query):
