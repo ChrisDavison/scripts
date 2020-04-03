@@ -53,7 +53,7 @@ def print_counted_backlinks(files):
 def print_orphans(files):
     backlinks = get_all_backlinks()
     for f in files:
-        if not backlinks[f]:
+        if not backlinks[str(f)]:
             print(f)
 
 
@@ -77,7 +77,7 @@ if __name__ == "__main__":
             help="Show forward-links (links FROM files) instead",
             action="store_true")
     args = parser.parse_args()
-    files = files if args.files else list(Path('.').rglob('*.md'))
+    files = files if args.files else sorted(list(Path('.').rglob('*.md')))
     if args.orphaned:
         print_orphans(files)
     elif args.forward:

@@ -31,7 +31,7 @@ def print_broken_forwardlinks(filename, vimgrep_output):
                 print("{}:{}:{}:{}".format(filename, linum+1, colnum+1, link))
         else:
             print(filename)
-            for link in broken:
+            for linum, colnum, link in broken:
                 print("  >", link)
 
 
