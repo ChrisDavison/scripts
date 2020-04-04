@@ -77,7 +77,7 @@ if __name__ == "__main__":
             help="Show forward-links (links FROM files) instead",
             action="store_true")
     args = parser.parse_args()
-    files = files if args.files else sorted(list(Path('.').rglob('*.md')))
+    files = args.files if args.files else sorted(list(Path('.').rglob('*.md')))
     if args.orphaned:
         print_orphans(files)
     elif args.forward:
