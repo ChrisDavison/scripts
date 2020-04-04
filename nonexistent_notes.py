@@ -14,7 +14,7 @@ args = parser.parse_args()
 def get_links_in_file(filename):
     if not filename.endswith(".md"):
         return []
-    re_file_link = re.compile(r"\((?:\./)*([a-zA-Z0-9\-_]*?\.md)")
+    re_file_link = re.compile(r"\((?:\./)*([a-zA-Z0-9\-_ ]*?\.md)")
     links =  []
     for i, line in enumerate(open(filename)):
         for m in re_file_link.finditer(line.lower()):
