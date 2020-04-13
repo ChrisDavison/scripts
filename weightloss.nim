@@ -5,10 +5,7 @@ import strformat
 const start = 118
 var appname = extractFilename(getAppFilename())
 
-proc print_usage = 
-  echo fmt"usage: {appname} <value> <lb|st|kg>"
-
-proc show_weight(value: float, unit: string) = 
+proc show_weight(value: float, unit: string) =
   var
     value_kg: float
     value_st: float
@@ -21,7 +18,7 @@ proc show_weight(value: float, unit: string) =
     value_kg = value / 2.2
   of "st":
     value_kg = value * 14.0 / 2.2
-  else: 
+  else:
     echo "unknown unit: ", unit
     echo fmt"usage: {appname} <value> <lb|st|kg>"
     quit 1
@@ -37,4 +34,3 @@ if len(arguments) < 2:
   quit 0
 
 show_weight(parseFloat(arguments[0]), arguments[1])
-
