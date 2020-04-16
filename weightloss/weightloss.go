@@ -7,6 +7,12 @@ import (
 	"strconv"
 )
 
+const (
+	errBadUsage int = iota + 1
+	errUnknownUnit
+	errParseValue
+)
+
 // Mass represents a weight in kilos
 type Mass float64
 
@@ -27,16 +33,10 @@ func NewMass(value float64, unit string) (*Mass, error) {
 	} else if unit == "st" {
 		m = Mass(value * 14 / 2.2)
 	} else {
-		return nil, errUnknownUnit
+		return nil, fmt.Errorf("Unknown unit %v", unit)
 	}
-	return m, nil
+	return &m, nil
 }
-
-const (
-	errBadUsage int = iota + 1
-	errUnknownUnit
-	errParseValue
-)
 
 func usage() {
 	appname := path.Base(os.Args[0])
@@ -59,8 +59,8 @@ func main() {
 	m, err := NewMass(value, unit)
 	if err != nil {
 		usage()
-		os.Exit(err)
+		os.Exit(errUnknownUnit)
 	}
-	diff := start - float64(m)
+	diff := start - float64(*m)
 	fmt.Printf("%s (lost %.2fkg)\n", m, diff)
 }
