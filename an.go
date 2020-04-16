@@ -9,12 +9,14 @@ import (
 	"strings"
 )
 
-const usage = `APPNAME <command> [<files>...]
+const usage = `an <command> [<files>...]
+
+AnalyseNotes. Various utilities for summarising notes.
 
 commands:
-    size         -- sorted by wordcount
-    complexity   -- heuristic for number of headers and words per section
+    complexity   -- heuristic for complexity of structure
     headercount  -- how many headers in the file
+    size         -- sorted by wordcount
     structure    -- outline of headers in the file (maybe with wordcount)
 `
 
