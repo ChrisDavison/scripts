@@ -17,6 +17,18 @@ MAX_POLY = 4
 DATED_NUMBER = namedtuple("DatedNumber", "date value")
 
 
+def get_todays_number(last_num):
+    rx_number = re.compile("([0-9,]+).* positive")
+    response = requests.get("https://www.gov.scot/coronavirus-covid-19/").text
+    covid_number = rx_number.search(response)
+    if covid_number:
+        num = int(covid_number.group(1).replace(",", ""))
+        if last_num.value != num:
+            print("Added today:", num)
+            return DATED_NUMBER(datetime.date.today(), num)
+    return None
+
+
 def get_numbers():
     """Return the latest available number of cases in Scotland
 
@@ -31,21 +43,17 @@ def get_numbers():
     for line in open(NUMBER_FILE, "r"):
         date, num = line.split(",")
         numbers.append(DATED_NUMBER(datetime.datetime.strptime(date, "%Y-%m-%d").date(), int(num)))
-    if numbers[-1].date == datetime.date.today():
+    have_todays = numbers[-1].date == datetime.date.today()
+    is_before_2pm = datetime.datetime.now().hour < 14
+    if have_todays or is_before_2pm:
+        print("Website usually updated ~2pm. Check after then.\n")
         return numbers, False
     # Check if a new number exists
-    if VERBOSE:
-        print("Checking for new number...")
-    rx_number = re.compile("([0-9,]+).* positive")
-    response = requests.get("https://www.gov.scot/coronavirus-covid-19/").text
-    covid_number = rx_number.search(response)
+    todays_number = get_todays_number(last_num=numbers[-1])
     new = False
-    if covid_number:
-        num = int(covid_number.group(1).replace(",", ""))
-        if numbers[-1] != num:
-            new = True
-            print("Added today:", num)
-            numbers.append(DATED_NUMBER(dates.append(datetime.date.today()), num))
+    if todays_number:
+        numbers.append(todays_number)
+        new = True
     return numbers, new
 
 
