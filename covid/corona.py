@@ -90,13 +90,10 @@ def predict_growthrate_poly(numbers, degrees):
 
 def index_of_nearest(numbers, actual):
     index_min_diff = 0
-    min_diff = None
+    min_diff = np.infty
     for i, val in enumerate(numbers):
         diff = np.abs(val - actual)
-        if not min_diff:
-            min_diff = diff
-            index_min_diff = i
-        elif diff < min_diff:
+        if diff <= min_diff:
             min_diff = diff
             index_min_diff = i
         else:
