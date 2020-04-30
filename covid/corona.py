@@ -6,8 +6,10 @@ import sys
 import datetime
 from collections import namedtuple
 
+import matplotlib.pyplot as plt
 import numpy as np
 import requests
+import pandas as pd
 
 
 VERBOSE = False
@@ -45,9 +47,11 @@ def get_numbers():
         numbers.append(DATED_NUMBER(datetime.datetime.strptime(date, "%Y-%m-%d").date(), int(num)))
     have_todays = numbers[-1].date == datetime.date.today()
     is_before_2pm = datetime.datetime.now().hour < 14
-    if have_todays or is_before_2pm:
-        print("Website usually updated ~2pm. Check after then.\n")
+    if have_todays:
         return numbers, False
+    # if is_before_2pm:
+    #     print("Website usually updated ~2pm. Check after then.\n")
+    #     return numbers, False
     # Check if a new number exists
     todays_number = get_todays_number(last_num=numbers[-1])
     new = False
@@ -143,6 +147,27 @@ def print_predictions(message, numbers, last, closest_marker):
             print(outfmt.format(closest_marker if i == index_closest else "  ", val, description, growth))
 
 
+def plot_new_cases(data):
+    num_only = [n.value for n in data]
+    diffs = [n - n_prev for n_prev, n in zip(num_only, num_only[1:])]
+    dates = [n.date for n in data[1:]]
+
+    weekends = [d for d in dates if d.weekday() >= 5]
+
+    f = plt.figure(figsize=(12,7))
+    plt.plot_date(dates, diffs, c='b', label='new cases', marker='x')
+    plt.plot_date(dates, pd.Series(diffs).rolling(7).mean(), ls='dashed', marker='.', c='k', label='7 day RM')
+    plt.title('Cases added')
+    plt.xticks(dates)
+    plt.xlabel("Day")
+    plt.xticks(rotation=90)
+    ymin, ymax = plt.ylim()
+    plt.vlines(weekends, ymin, ymax, ls='dashed', label='weekend', colors='r', alpha='0.5')
+    plt.legend(loc='upper right')
+    plt.tight_layout()
+    f.savefig('corona_new_cases.png', dpi=300)
+
+
 def main():
     """Run various coronavirus projections"""
     data, added_today = get_numbers()
@@ -158,6 +183,7 @@ def main():
             for entry in data:
                 print("{},{}".format(entry.date, entry.value), file=f_numbers)
         print("\nWrote new number to file")
+    plot_new_cases(data)
 
 
 if __name__ == "__main__":
