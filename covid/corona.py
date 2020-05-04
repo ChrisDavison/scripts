@@ -168,6 +168,24 @@ def plot_new_cases(data):
     f.savefig('corona_new_cases.png', dpi=300)
 
 
+def plot_total_cases(data):
+    num_only = [n.value for n in data]
+    dates = [n.date for n in data]
+    weekends = [d for d in dates if d.weekday() >= 5]
+
+    f = plt.figure(figsize=(12,7))
+    plt.plot_date(dates, num_only, c='b', ls='solid', label='new cases', marker='x')
+    plt.title('Total cases')
+    plt.xticks(dates)
+    plt.xlabel("Day")
+    plt.xticks(rotation=90)
+    ymin, ymax = plt.ylim()
+    plt.vlines(weekends, ymin, ymax, ls='dashed', label='weekend', colors='r', alpha='0.5')
+    plt.legend(loc='upper right')
+    plt.tight_layout()
+    f.savefig('corona_total_cases.png', dpi=300)
+
+
 def main():
     """Run various coronavirus projections"""
     data, added_today = get_numbers()
@@ -184,6 +202,7 @@ def main():
                 print("{},{}".format(entry.date, entry.value), file=f_numbers)
         print("\nWrote new number to file")
     plot_new_cases(data)
+    plot_total_cases(data)
 
 
 if __name__ == "__main__":
