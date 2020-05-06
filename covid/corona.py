@@ -21,7 +21,7 @@ DATED_NUMBER = namedtuple("DatedNumber", "date value")
 
 def get_todays_number(last_num):
     rx_number = re.compile("([0-9,]+).* positive")
-    response = requests.get("https://www.gov.scot/coronavirus-covid-19/").text
+    response = requests.get("https://www.gov.scot/publications/coronavirus-covid-19-daily-data-for-scotland/").text
     covid_number = rx_number.search(response)
     if covid_number:
         num = int(covid_number.group(1).replace(",", ""))
