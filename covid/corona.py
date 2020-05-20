@@ -73,7 +73,8 @@ def predict_average(numbers):
         print(rates)
         print("{:.3f}".format(growthrate))
         print()
-    return int(numbers[-1].value * growthrate), growthrate
+    last_diff = numbers[-1].value - numbers[-2].value
+    return int(numbers[-1].value + last_diff * growthrate), growthrate
 
 
 def predict_growthrate_poly(numbers, degrees):
@@ -86,10 +87,11 @@ def predict_growthrate_poly(numbers, degrees):
     ratios = np.array([n1.value / n0.value  for n0, n1 in zip(numbers, numbers[1:])])
     rates = [ratio / delta for (delta, ratio) in zip(delta_days, ratios)]
     model = np.poly1d(np.polyfit(days_since_0, rates, degrees))
-    next_growthrate = model(days_since_0[-1] + 1)
+    growthrate = model(days_since_0[-1] + 1)
     if VERBOSE:
-        print(next_growthrate)
-    return int(numbers[-1].value * next_growthrate), next_growthrate
+        print(growthrate)
+    last_diff = numbers[-1].value - numbers[-2].value
+    return int(numbers[-1].value + last_diff * growthrate), growthrate
 
 
 def index_of_nearest(numbers, actual):
