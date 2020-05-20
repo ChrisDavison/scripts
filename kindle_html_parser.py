@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """Parse highlights from a kindle"""
 import sys
 from bs4 import BeautifulSoup
@@ -6,6 +7,7 @@ from bs4 import BeautifulSoup
 data = open(sys.argv[1], 'r').read()
 soup = BeautifulSoup(data, 'html.parser')
 notes_and_highlights = soup.find_all(id=['highlight', 'note'])
+notes_and_highlights = [n for n in notes_and_highlights if n]
 h3 = soup.find('h3').text
 fname = h3.replace(' ', '-') + '.org'
 with open(fname.lower(), 'w') as f:
