@@ -35,4 +35,10 @@ const DIR_CONTENTS_TEMPLATE = `<h2>Dirs</h2>
 <ul>
 %s
 </ul>
+<footer>
+<a href="/">HOME</a>
+<script>
+    document.write('<a href="' + document.referrer + '">Go Back</a>');
+	</script>
+</footer>
 `
