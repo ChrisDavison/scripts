@@ -20,7 +20,7 @@ DATED_NUMBER = namedtuple("DatedNumber", "date value")
 
 
 def get_todays_number(last_num):
-    rx_number = re.compile("([0-9,]+).* positive")
+    rx_number = re.compile("([0-9,]+).*were positive")
     response = requests.get("https://www.gov.scot/publications/coronavirus-covid-19-daily-data-for-scotland/").text
     covid_number = rx_number.search(response)
     if covid_number:
@@ -45,13 +45,7 @@ def get_numbers():
     for line in open(NUMBER_FILE, "r"):
         date, num = line.split(",")
         numbers.append(DATED_NUMBER(datetime.datetime.strptime(date, "%Y-%m-%d").date(), int(num)))
-    have_todays = numbers[-1].date == datetime.date.today()
     is_before_2pm = datetime.datetime.now().hour < 14
-    if have_todays:
-        return numbers, False
-    # if is_before_2pm:
-    #     print("Website usually updated ~2pm. Check after then.\n")
-    #     return numbers, False
     # Check if a new number exists
     todays_number = get_todays_number(last_num=numbers[-1])
     new = False
