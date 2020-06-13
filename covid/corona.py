@@ -65,10 +65,6 @@ def predict_average(numbers):
     ratios = [n1.value / n0.value for n0, n1 in zip(numbers, numbers[1:])]
     rates = [ratio / delta for (delta, ratio) in zip(delta_days, ratios)]
     growthrate = sum(rates) / len(rates)
-    if VERBOSE:
-        print(rates)
-        print("{:.3f}".format(growthrate))
-        print()
     last_diff = numbers[-1].value - numbers[-2].value
     return int(numbers[-1].value + last_diff * growthrate), growthrate
 
@@ -82,8 +78,6 @@ def predict_growthrate_poly(numbers, degrees):
     rates = [ratio / delta for (delta, ratio) in zip(delta_days, ratios)]
     model = np.poly1d(np.polyfit(days_since_0, rates, degrees))
     growthrate = model(days_since_0[-1] + 1)
-    if VERBOSE:
-        print(growthrate)
     last_diff = numbers[-1].value - numbers[-2].value
     return int(numbers[-1].value + last_diff * growthrate), growthrate
 
@@ -175,7 +169,7 @@ def plot_new_cases(data, ax=None):
     ax.vlines(
         weekends, ymin, ymax, ls="dashed", label="weekend", colors="r", alpha=0.5
     )
-    plt.legend(loc="upper right")
+    # plt.legend(loc="upper right")
     plt.tight_layout()
     return plt.gcf()
 
@@ -199,7 +193,7 @@ def plot_total_cases(data, ax=None):
     ax.vlines(
         weekends, ymin, ymax, ls="dashed", label="weekend", colors="r", alpha=0.5
     )
-    plt.legend(loc="upper right")
+    # plt.legend(loc="upper right")
     plt.tight_layout()
     return plt.gcf()
 
@@ -209,21 +203,29 @@ def main():
     data, added_today = get_numbers()
 
     history = ", ".join([str(i[1]) for i in data[-5:]])
-    print("LAST UPDATE\t", data[-1].date)
-    print("...{}".format(history))
-    print_predictions("predicted", data[:-1], data[-1], "* ")
-    print_predictions("next?", data, data[-1], "  ")
+
+    diffs = [b.value - a.value for a, b in zip(data, data[1:])]
+    diff = diffs[-1]
+    dateword = 'TODAY'
+    if data[-1].date != datetime.date.today():
+        dateword = data[-1].date
+    print(f"Last update: {dateword}, {data[-1].value} (+{diff})")
+    if VERBOSE:
+        print("...{}".format(history))
+        print_predictions("predicted", data[:-1], data[-1], "* ")
+        print_predictions("next?", data, data[-1], "  ")
 
     if added_today:
         with open(NUMBER_FILE, "w") as f_numbers:
             for entry in data:
                 print("{},{}".format(entry.date, entry.value), file=f_numbers)
-        print("\nWrote new number to file")
+        if VERBOSE:
+            print("\nWrote new number to file")
 
-    f, (ax1, ax2) = plt.subplots(2, figsize=(12, 7), sharex=True)
-    f = plot_new_cases(data, ax1)
-    f = plot_total_cases(data, ax2)
-    f.savefig("corona.png", dpi=300)
+        f, (ax1, ax2) = plt.subplots(2, figsize=(12, 7), sharex=True)
+        f = plot_new_cases(data, ax1)
+        f = plot_total_cases(data, ax2)
+        f.savefig("corona.png", dpi=300)
 
 
 if __name__ == "__main__":
