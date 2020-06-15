@@ -28,7 +28,6 @@ def get_todays_number(last_num):
     if covid_number:
         num = int(covid_number.group(1).replace(",", ""))
         if last_num.value != num:
-            print("Added today:", num)
             return DATED_NUMBER(datetime.date.today(), num)
     return None
 
