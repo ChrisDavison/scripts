@@ -1,94 +1,128 @@
 #!/usr/bin/env python3
-"""
-usage: 
-    journaling.py show [-s] KEYWORD
-    journaling.py keywords|kw
+"""journaling: command-line journaling, to json
 
-Display all journal entries that are based on KEYWORD,
-or list all possible keywords.
-
-options:
-    -h --help    Show this message
-    -s           Step through entries [default: False]
+Usage:
+    journaling.py add
+    journaling.py search <text>...
+    journaling.py search -t <tags>...
+    journaling.py list|ls [dates|tags]
+    journaling.py show [<date>]
+    journaling.py markdown
 """
-import os
-import re
-import shutil
-import sys
+import datetime
+import json
 import textwrap
 from pathlib import Path
+
 from docopt import docopt
 
 
-JOURNALPATH = Path("~/Dropbox/notes/journal/").expanduser()
+def get_tagmap(journals):
+    tags = {}
+    for date, entry in journals.items():
+        for tag in entry['tags']:
+            if tag in tags:
+                tags[tag].append(date)
+            else:
+                tags[tag] = [date]
+    return tags
 
 
-def paragraphs(data):
-    """Split text into paragraphs.
+def search_tags(journals, tagmap):
+    tags = get_tagmap(journals)
+    for tag in tags:
+        matching = tagmap.get(tag, [])
+        print('Entries matching tag `{}`'.format(tag))
+        for entry in matching:
+            print('    {}'.format(entry))
 
-    Join consecutive lines of text, 
-    yielding text whenever there is a newline"""
-    paragraph = ""
-    for line in data:
-        if line:
-            paragraph += f" {line}"
+
+def matches_all(words, text):
+    text = text.lower()
+    for word in words:
+        if word.lower() not in text:
+            return False
+    return True
+
+
+def search_text(words, journals):
+    print('Searching for entries that matches all of:')
+    print("    '{}'".format(', '.join(words)))
+    for date, entry in journals.items():
+        if matches_all(words, entry['text']):
+            print(date)
+
+
+def wrap_and_listify(entries):
+    spacer = lambda i: '-' if i == 0 else ' '
+    wrapped = [textwrap.wrap(e, width=68) for e in entries]
+    wrapped = [f"{spacer(i)}   {l}"
+               for lines in wrapped 
+               for i, l in enumerate(lines)]
+    return '\n'.join(wrapped)
+
+
+def list(showdates, showtags, journals):
+    if args['dates'] or not showtags:
+        print('dates: ', ', '.join(journals.keys()))
+    if args['tags'] or not showdates:
+        print('tags: ', ', '.join(get_tagmap(journals)))
+
+
+def add(journals):
+    today = str(datetime.date.today())
+    print("Adding to today ({})".format(today))
+    tags = input('Tags: ').strip().split(' ')
+    text = input('Text: ').strip()
+    if today in journals:
+        if tags != ['']:
+            journals[today]['tags'].extend(tags)
+        if text:
+            journals[today]['text'].append(text)
+    else:
+        journals[today] = {'tags': tags, 'text': [text]}
+    json.dump(journals, open(filename, 'w'), indent=2)
+
+
+def show(date, journals, tags_on_sameline=True):
+    if date and date in journals:
+        entry = journals[date]
+        date = date
+    else:
+        print('Showing last journal')
+        print()
+        date = sorted(journal.keys())[-1]
+        entry = journals[date]
+    tagstr = ''
+    if entry['tags']:
+        if tags_on_sameline:
+            tagstr = '@{' + ', '.join(entry['tags']) + '}'
         else:
-            yield paragraph.lstrip()
-            paragraph = ""
-    if paragraph:
-        yield paragraph
+            tagstr = '\n\n' + ' '.join('@'+e for e in entry['tags']) + '\n'
+    print(date, tagstr)
+    print(wrap_and_listify(entry['text']))
 
 
-def display_matching_section(keyword):
-    """Display header'd paragraph containing keyword"""
-    low = keyword.lower()
-    cols = shutil.get_terminal_size()[0] - 4
-
-    def display(path):
-        """Returns None if no section matched, or True on success"""
-        text = path.read_text().splitlines()
-        section = " ".join(
-            [p for p in paragraphs(text) if p.lower().startswith(keyword.lower())]
-        )
-        if not section:
-            return None
-        displayname = " ".join(path.stem.split("-"))
-        header = str(displayname).center(cols, " ")
-        overline = "=" * len(header)
-        underline = "-" * len(header)
-        content = textwrap.fill(section, cols)
-        msg = f"{overline}\n{header}\n{underline}\n{content}\n"
-        print(msg)
-        return True
-
-    return display
-
-
-def keywords():
-    kw = set()
-    for journal in list(JOURNALPATH.glob("*.md")):
-        data = journal.read_text()
-        m = re.findall("\n([a-zA-Z\-]+):", data)
-        for match in m:
-            kw.add(match)
-    print(", ".join(sorted(kw)))
-
-
-def main(keyword, incremental=False):
-    """Print all journals matching keyword"""
-    os.system("clear")
-    display_keyword = display_matching_section(keyword)
-    for journal in list(JOURNALPATH.glob("*.md")):
-        displayed = display_keyword(journal)
-        if incremental and displayed:
-            input()
-            os.system("clear")
+def as_markdown(journals):
+    keys = sorted(journals.keys())
+    for key in keys:
+        print('#', end=' ')
+        show(key, journals, tags_on_sameline=False)
 
 
 if __name__ == "__main__":
     args = docopt(__doc__)
-    incremental = args["-s"]
-    if args["keywords"] or args["kw"]:
-        keywords()
+    filename = Path("~/Dropbox/journal.json").expanduser()
+    journal = json.load(open(filename))
+    if args['search'] and args['-t']:
+        search_tags(args['<tags>'], tags)
+    elif args['search']:
+        search_text(args['<text>'], journal)
+    elif args['list'] or args['ls']:
+        list(args['dates'], args['tags'], journal)
+    elif args['show']:
+        show(args['<date>'], journal)
+    elif args['markdown']:
+        as_markdown(journal)
     else:
-        main(args["KEYWORD"], incremental)
+        add(journal) 
