@@ -2,6 +2,7 @@
 import datetime
 import os
 import sys
+import string
 from argparse import ArgumentParser
 
 
@@ -44,9 +45,14 @@ if __name__ == "__main__":
         "-s", "--startofweek", default=0, help="Day of week to start (0=Monday)"
     )
     args = p.parse_args()
+    months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 
+              'jul', 'aug', 'sep', 'oct', 'nov', 'dec']
+    month = args.month
+    if args.month and args.month[0] in string.ascii_letters:
+        month = months.index(args.month[:3]) + 1
     if args.full_year:
         divider = "\n" + "-" * 80 + "\n\n"
         calendars = [month_cal(args.year, month, args.startofweek) for month in range(1, 13)]
         print(divider.join(calendars))
     else:
-        print(month_cal(args.year, args.month, args.startofweek))
+        print(month_cal(args.year, month, args.startofweek))
