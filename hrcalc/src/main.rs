@@ -14,13 +14,15 @@ struct Cli {
     rhr: u8,
 }
 
+fn heartrate_bpm_for_percent(age: u8, rhr: u8, pct: u8) -> f64 {
+    let whr = (220 - age - rhr) as f64;
+    whr * pct as f64 / 100.0 + rhr as f64
+}
+
 fn main() {
     let args = Cli::from_args();
-    let whr = (220 - args.age - args.rhr) as f64;
-    let bpm_low = whr * args.lower as f64 / 100.0 + args.rhr as f64;
-    let bpm_high = whr * args.upper as f64 / 100.0 + args.rhr as f64;
-    
-    println!("Working Heartrate: {}bpm", whr);
-    println!("    {} to {}%", args.lower, args.upper);
-    println!("    {} to {}bpm", bpm_low as u8, bpm_high as u8);
+    let bpm_lo = heartrate_bpm_for_percent(args.age, args.rhr, args.lower);
+    let bpm_hi = heartrate_bpm_for_percent(args.age, args.rhr, args.upper);
+
+    println!("{} to {}% => {} to {}bpm", args.lower, args.upper, bpm_lo as u8, bpm_hi as u8);
 }
