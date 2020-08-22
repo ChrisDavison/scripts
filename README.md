@@ -9,3 +9,4 @@ etc as required.
 [Test][test] and [inline](https://www.duckduckgo.com) and [bad](https://www.httpstat.us/404) links for testing my `mdlc` script.
 
   [test]: https://www.google.com
+
