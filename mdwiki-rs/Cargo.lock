@@ -964,6 +964,8 @@ dependencies = [
  "actix-web",
  "handlebars",
  "markdown",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]
