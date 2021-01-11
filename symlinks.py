@@ -8,7 +8,6 @@ from pathlib import Path
 from typing import List, Tuple
 from collections import namedtuple
 
-TypedLink = namedtuple('TypedLink', 'linktype name')
 
 def get_links(root: Path) -> Tuple[List[Path], List[Path]]:
     """
@@ -21,6 +20,11 @@ def get_links(root: Path) -> Tuple[List[Path], List[Path]]:
 
 
 def display_links(links: List[Path], preface: str):
+    """
+    Print a list of links, with a preface message/title.
+
+    Links are resolved to ~ if they are a child of $HOME.
+    """
     if links:
         to_fit = 60
         remain = to_fit - (len(preface) + 2)
@@ -38,6 +42,7 @@ def display_links(links: List[Path], preface: str):
             actual = actual.relative_to(home)
         print(f"{str(link):{width}}  >  {home_flag}{actual}")
 
+
 def main():
     """
     Print symlinks and the resolved target in a prettier layout.
@@ -47,7 +52,6 @@ def main():
     print()
     display_links(links_d, "Directories")
 
-    
 
 if __name__ == "__main__":
     main()
