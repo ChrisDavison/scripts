@@ -25,12 +25,13 @@ def display_links(links: List[Path], preface: str):
 
     Links are resolved to ~ if they are a child of $HOME.
     """
-    if links:
-        to_fit = 60
-        remain = to_fit - (len(preface) + 2)
-        n_either_side = int(remain / 2)
-        spacer = "-" * n_either_side
-        print(spacer, preface.upper(), spacer)
+    if not links:
+        return
+    to_fit = 60
+    remain = to_fit - (len(preface) + 2)
+    n_either_side = int(remain / 2)
+    spacer = "-" * n_either_side
+    print(spacer, preface.upper(), spacer)
     width = max([len(str(l.name)) for l in links])
     home = Path('~').expanduser()
 
