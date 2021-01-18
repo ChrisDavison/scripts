@@ -1,40 +1,41 @@
 #!/usr/bin/env python3
 import datetime
-import os
-import sys
-import string
 from argparse import ArgumentParser
 
 
-def month_cal(year, month, start_day_of_week=0, indented=False):
-    start_day_of_week = int(start_day_of_week) % 7
-    today = datetime.date.today()
-    year = int(year) if year else today.year
-    month = int(month) if month else today.month
+def month_cal(year, month, *, indented=False, weekdays_only=False):
     start = datetime.date(year, month, 1)
     by_weekday, week, temp = [], [], start
     while temp.month == start.month:
-        if temp.weekday() == start_day_of_week and week:
+        if temp.weekday() == 0 and week:
             by_weekday.append(week)
             week = []
-        week.append(temp)
+        if not weekdays_only:
+            week.append(temp)
+        elif temp.weekday() not in [5, 6]:
+            week.append(temp)
+        else:
+            # Weekdays only and today is sat or sun
+            pass
         temp += datetime.timedelta(days=1)
     if week:
         by_weekday.append(week)
 
     leading = '    ' if indented else ''
-    outstr = leading + start.strftime("%B %Y").center(20) + "\n"
     headers = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"]
-    headerstr = " ".join(headers[start_day_of_week:] + headers[:start_day_of_week])
-    N = len(headerstr)
-    topbot_border = '+' + '-'*(N+2) + '+'
-    outstr += leading + headerstr + "\n"
+    if weekdays_only:
+        headers = ["Mo", "Tu", "We", "Th", "Fr"]
+    headerstr = " ".join(headers)
+    just = 20 if not weekdays_only else 14
+    out = []
+    out.append(leading + start.strftime("%B %Y").center(just))
+    out.append(leading + headerstr)
     for i, week in enumerate(by_weekday):
         aligned_week = [str(w.day).rjust(2) for w in week]
         w = " ".join(aligned_week)
-        justified = w.ljust(20) if i else w.rjust(20)
-        outstr += leading + justified + "\n"
-    return outstr.splitlines()
+        justified = w.ljust(just) if i else w.rjust(just)
+        out.append(leading + justified)
+    return out
 
 
 def make_journal(year, month):
@@ -58,28 +59,26 @@ def make_journal(year, month):
     print()
 
 
-if __name__ == "__main__":
-    p = ArgumentParser()
-    p.add_argument("-y", "--year")
-    p.add_argument("-m", "--month")
-    p.add_argument("-Y", "--full-year", help="Generate calendar for every month", action='store_true')
-    p.add_argument(
-        "-s", "--startofweek", default=0, help="Day of week to start (0=Monday)"
-    )
-    p.add_argument('-j', '--journal', help="Print in calendar journal-file format", default=False, action='store_true')
-    args = p.parse_args()
-    months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 
-              'jul', 'aug', 'sep', 'oct', 'nov', 'dec']
-    month = args.month
-    if args.month and args.month[0] in string.ascii_letters:
-        month = months.index(args.month[:3]) + 1
-
+def main(year, month, full_year, weekdays_only):
     if args.full_year:
         divider = "\n" + "-" * 80 + "\n\n"
-        calendars = ['\n'.join(month_cal(args.year, month, args.startofweek)) for month in range(1, 13)]
+        calendars = ['\n'.join(month_cal(year, month))
+                     for month in range(1, 13)]
         print(divider.join(calendars))
     else:
-        if args.journal:
-            make_journal(args.year, args.month)
-        else:
-            print('\n'.join(month_cal(args.year, args.month, args.startofweek)))
+        print('\n'.join(month_cal(year, month, weekdays_only=weekdays_only)))
+
+
+if __name__ == "__main__":
+    p = ArgumentParser()
+    p.add_argument("-y", "--year",
+                   default=datetime.date.today().year)
+    p.add_argument("-m", "--month",
+                   default=datetime.date.today().month)
+    p.add_argument("-Y", "--full-year",
+                   help="Generate calendar for every month",
+                   action='store_true',)
+    p.add_argument("-w", "--weekdays",
+                   help="Only show weekdays", action='store_true')
+    args = p.parse_args()
+    main(args.year, args.month, args.full_year, args.weekdays)
