@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """Reverse Polish Notation calculator
 
-Supports operations: +, -, \\, *, **, sin, tan, cos, R (to radians), D (to degrees)
-If wanting divide from command line, must wrap args in '', e.g. ('9 3 \\')
+Supports operations:
+    +, -, \\, *, **, sin, tan, cos, R (to radians), D (to degrees)
+
+If using divide from command line, must wrap args in '', e.g. ('9 3 \\')
 
 usage: rpn.py [-v] CALCULATION...
 
@@ -11,9 +13,7 @@ options:
     -h     Show this message
 """
 import math as m
-import os
 import sys
-from pathlib import Path
 
 
 class RPN:
@@ -29,7 +29,8 @@ class RPN:
         try:
             float(val)
             return True
-        except:
+        except Exception as E:
+            print(E, file=sys.stderr)
             return False
 
     def __iter__(self):
