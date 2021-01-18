@@ -34,7 +34,7 @@ def month_cal(year, month, start_day_of_week=0, indented=False):
         w = " ".join(aligned_week)
         justified = w.ljust(20) if i else w.rjust(20)
         outstr += leading + justified + "\n"
-    return outstr
+    return outstr.splitlines()
 
 
 def make_journal(year, month):
@@ -76,10 +76,10 @@ if __name__ == "__main__":
 
     if args.full_year:
         divider = "\n" + "-" * 80 + "\n\n"
-        calendars = [month_cal(args.year, month, args.startofweek) for month in range(1, 13)]
+        calendars = ['\n'.join(month_cal(args.year, month, args.startofweek)) for month in range(1, 13)]
         print(divider.join(calendars))
     else:
         if args.journal:
             make_journal(args.year, args.month)
         else:
-            print(month_cal(year, month, args.startofweek))
+            print('\n'.join(month_cal(args.year, args.month, args.startofweek)))
