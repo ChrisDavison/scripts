@@ -24,23 +24,20 @@ def get_capture_options():
 def print_capture_options():
     options = get_capture_options()
     for name in options:
-        print(name)
-        print("    {}".format(options[name]['description']))
-        
+        print(f"{name}\n    {options[name]['description']}")
+
 
 def run_capture(choice):
     options = get_capture_options()
     chosen = options.get(choice, None)
     if not chosen:
-        print("'{}' not in options".format(choice))
-        print("Options: ", list(options.keys()))
+        print("'{choice}' not in options")
+        print("Options: {list(options.keys())}")
         return
-    print(choice)
-    print("    {}".format(chosen['description']))
-    print()
-    subprocess.run(str(chosen['filename']), 
-            stdin=sys.stdin,
-            stdout=sys.stdout)
+    print(f"{choice}\n    {chosen['description']}\n")
+    subprocess.run(str(chosen['filename']),
+                   stdin=sys.stdin, stdout=sys.stdout,
+                   check=True)
 
 
 if len(sys.argv) > 1:

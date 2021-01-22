@@ -2,9 +2,11 @@
 import datetime
 from argparse import ArgumentParser
 from cal import month_cal
+from thirtyday import thirtyday
 
 
-def make_journal(year, month, ticker):
+def make_journal(year: int, month: int, ticker: bool):
+    """Create a calendar journal page."""
     today = datetime.date.today()
     year = int(year) if year else today.year
     month = int(month) if month else today.month
@@ -13,7 +15,6 @@ def make_journal(year, month, ticker):
     print('\n'.join(month_cal(year, month, indented=True)))
 
     if ticker:
-        from thirtyday import thirtyday
         print('\n## Ticker\n')
         thirtyday_str = thirtyday(start=today, title=None, dated=True)
         for line in thirtyday_str.splitlines():

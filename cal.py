@@ -8,12 +8,15 @@ import textwrap
 WEEK = List[datetime.date]
 
 
-def justified_week_line(week: WEEK, weekdays_only: bool, justification: int) -> str:
+def justified_week_line(week: WEEK, weekdays_only: bool, justification: int, rjust: bool) -> str:
     """Justify the days in the current week, calendar style."""
     days = [w.strftime("%2d") for w in week
             if not weekdays_only
             or (weekdays_only and w.weekday() < 5)]
-    return " ".join(days).rjust(justification)
+    if rjust:
+        return " ".join(days).rjust(justification)
+    return " ".join(days).ljust(justification)
+
 
 
 def day_iter(start, end=None) -> Iterator[datetime.date]:
@@ -27,11 +30,26 @@ def day_iter(start, end=None) -> Iterator[datetime.date]:
             break
 
 
+def month_end(year: int, month: int):
+    start = datetime.date.today().replace(year=year, month=month, day=1)
+    return (next_month(start) - datetime.timedelta(days=1)).strftime("%Y %B ends %A %d")
+
+
 def next_month(now: datetime.date) -> datetime.date:
     """Get the month after this one."""
     if now.month == 12:
         return now.replace(year=now.year+1, month=1)
     return now.replace(month=now.month+1)
+
+
+def specific_day(year: int, month: int, weekday: str) -> List[str]:
+    start = datetime.date.today().replace(year=year, month=month, day=1)
+    day = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'].index(weekday.lower()[:3])
+    days = []
+    for date in day_iter(start, end=next_month(start)):
+        if date.weekday() == day:
+            days.append(date.strftime("%2d"))
+    return start.strftime(f"%Y %10B ({weekday}) - {' '.join(days)}")
 
 
 def cal(year: int, month: int, *,
@@ -55,8 +73,10 @@ def cal(year: int, month: int, *,
         start.strftime("%B %Y").center(justification),
         " ".join(headers)
     ]
+    first = True
     for week in weeks:
-        out.append(justified_week_line(week, weekdays_only, justification))
+        out.append(justified_week_line(week, weekdays_only, justification, rjust=first))
+        first = False
     if indented:
         return textwrap.indent('\n'.join(out), prefix='    ').splitlines()
     return out
@@ -74,11 +94,24 @@ if __name__ == "__main__":
     p.add_argument("-w", "--weekdays-only",
                    help="Only show weekdays",
                    action='store_true')
+    p.add_argument('-e', '--end-of-month',
+                   help="Show last day of month",
+                   action='store_true')
+    p.add_argument('--weekday', help='Show specific weekday for given month/year',
+                   type=str)
 
     args = p.parse_args()
     months = list(range(1, 13)) if args.full_year else [args.month]
-    calendars = [
-        '\n'.join(cal(args.year, month, weekdays_only=args.weekdays_only))
-        for month in months
-    ]
-    print('\n\n'.join(calendars))
+    if args.end_of_month:
+        calendars = '\n'.join([month_end(args.year, month) for month in months])
+    elif args.weekday:
+        calendars = '\n'.join([
+            specific_day(args.year, month, weekday=args.weekday)
+            for month in months
+        ])
+    else:
+        calendars = '\n\n'.join([
+            '\n'.join(cal(args.year, month, weekdays_only=args.weekdays_only))
+            for month in months
+        ])
+    print(calendars)

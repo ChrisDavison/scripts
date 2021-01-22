@@ -4,11 +4,11 @@ from collections import Counter
 
 excluded_dirs = ['.git', 'target']
 
-suffixes = [
+suffixes = Counter([
     p.suffix for p in Path('.').rglob('*')
-    if p.is_file and 
+    if p.is_file and
     not any([d in list(p.parent.parts) for d in excluded_dirs])
-]
+])
 
-for suffix, count in Counter(suffixes).most_common():
+for suffix, count in suffixes.most_common():
     print(f"{count} {suffix}")

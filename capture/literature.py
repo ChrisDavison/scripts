@@ -1,39 +1,50 @@
 #!/usr/bin/env python3
 """Capture a literature entry"""
 import pyperclip
-import requests
 from doi2bib import crossref
+from typing import Iterator
 
-title = input("Title: ")
 
-authors = []
-while True:
-    author = input("Author: ")
-    if author == "":
-        break
-    authors.append(author)
-authors = [a.title() for a in authors]
-if len(authors) > 1:
-    authors[-1] = 'and ' + authors[-1]
+FORMAT = """## {title}
 
-joined_authors = ' and '.join(authors)
+Authors: {authors}
 
-found, bibtex = crossref.get_bib(input("DOI: "))
-filename = title.lower().replace(' ', '-') + ".pdf"
+```bibtex
+{bibtex}
+```
+"""
 
-print('-'*40)
-msg = "## {}\n".format(title)
-msg += "\nAuthors: {}".format(joined_authors)
-if not found:
-    bibtex = ''
-msg += "\n\n``` bibtex\n{}\n```".format(bibtex)
-print(msg)
-print('-'*40)
-print('...copied entry to clipboard.')
-print('Hit <Enter> to copy filename to clipboard')
-pyperclip.copy(msg)
-print('-'*40)
-print('Filename:', filename)
-input()
-pyperclip.copy(filename)
-print('...copied filename to clipboard')
+
+def get_authors() -> str:
+    """Ask for an author until nothing is entered."""
+    authors = []
+    while True:
+        author = input("Author: ")
+        if not author:
+            break
+        authors.append(author.title())
+    return ' and '.join(authors)
+
+
+def make_literature_entry():
+    """Read a literature entry, with bibtex."""
+    title = input("Title: ")
+    authors = get_authors()
+    found, bibtex = crossref.get_bib(input("DOI: "))
+    print('-'*40)
+    msg = FORMAT.format(title=title, authors=authors, bibtex=bibtex)
+    print(msg)
+    pyperclip.copy(msg)
+    print('-'*40)
+    print('...copied entry to clipboard.')
+    print('-'*40)
+    print('Hit <Enter> to copy filename to clipboard')
+    filename = title.lower().replace(' ', '-') + ".pdf"
+    print('Filename:', filename)
+    input()
+    pyperclip.copy(filename)
+    print('...copied filename to clipboard')
+
+
+if __name__ == "__main__":
+    make_literature_entry()
