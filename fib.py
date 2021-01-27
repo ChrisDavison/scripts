@@ -14,7 +14,10 @@ def fib_gen() -> Iterator[int]:
         yield cur
 
 
-n = int(sys.argv[1])
-n_fibs = list(islice(fib_gen(), n))
-print(' '.join(str(f) for f in n_fibs))
+if len(sys.argv) == 1:
+    print("usage: fib.py <#terms>")
+else:
+    n = int(sys.argv[1])
+    n_fibs = list(islice(fib_gen(), n))
+    print(' '.join(str(f) for f in n_fibs))
 
