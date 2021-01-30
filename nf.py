@@ -75,12 +75,11 @@ def print_matching_files(name_query, contents_query, tags_query, only_filename):
             else:
                 if len(tags) > 5:
                     tags = ["MANY", "TAGS"]
-                to_print.append([file, " ".join(tags)])
-    longest_filename = max([len(str(file)) for file, tags in to_print])
-    for file, tags in to_print:
-        if tags:
-            tags = f"({tags})"
-        print(f"{str(file).ljust(longest_filename)}  {tags}")
+                to_print.append([file, " ".join(['@' + t for t in tags])])
+    if to_print:
+        longest_filename = max([len(str(file)) for file, tags in to_print])
+        for file, tags in to_print:
+            print(f"{str(file).ljust(longest_filename)}  {tags}")
 
 
 if __name__ == "__main__":
