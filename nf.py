@@ -2,7 +2,9 @@
 """
 Filter files based on tags, contents, and filenames.
 
-...where a tag is defined as `@[a-zA-Z1-9\-]`, basically.
+The 'content' search will be split based on whether the word begins with '@'.
+If so, the '@' will be put through a tag search, rather than through a full-file text search.
+A tag is defined as '@' followed by ALPHANUMERIC or '-'.
 """
 from subprocess import run
 from pathlib import Path
@@ -28,7 +30,7 @@ class Filter:
         words_in_name = set(re.split(r"\b", str(path).lower()))
         file_contents = path.read_text().lower()
         words_in_file = set(file_contents.split())
-        tags = tags_in_file(path)
+        tags = set(tags_in_file(path))
         matches_name = self.name.issubset(words_in_name)
         matches_contents = self.contents.issubset(words_in_file)
         matches_tags = self.tags.issubset(tags)
@@ -37,7 +39,8 @@ class Filter:
 
 def tags_in_file(path: Path) -> List[str]:
     """Return all tags in a file."""
-    return [t[1:] for t in re.findall(r'@[a-zA-Z1-9\-]+', path.read_text())]
+    matches = re.findall(r'@([a-zA-Z1-9\-]+)', path.read_text())
+    return matches
 
 
 def print_available_tags():
@@ -63,30 +66,46 @@ def print_matching_files(name_query, contents_query, tags_query, only_filename):
     file_filter = Filter(name=set(w.lower() for w in name_query),
                          contents=set(c.lower() for c in contents_query),
                          tags=set(t.lower() for t in tags_query))
+    to_print = []
     for file in files:
         if file_filter.matches(file):
             tags = tags_in_file(file)
-            print(file)
-            if not only_filename and tags:
-                print(f"tags: {' '.join(tags)}")
-                print()
+            if only_filename:
+                to_print.append([file, ""])
+            else:
+                if len(tags) > 5:
+                    tags = ["MANY", "TAGS"]
+                to_print.append([file, " ".join(tags)])
+    longest_filename = max([len(str(file)) for file, tags in to_print])
+    for file, tags in to_print:
+        if tags:
+            tags = f"({tags})"
+        print(f"{str(file).ljust(longest_filename)}  {tags}")
 
 
 if __name__ == "__main__":
-    parser = ArgumentParser()
-    parser.add_argument('-n', '--name', nargs='+', default=[])
-    parser.add_argument('-c', '--contents', nargs='+', default=[])
-    parser.add_argument('-t', '--tags', nargs='+', default=[])
-    parser.add_argument('-l', '--list-tags', action='store_true')
-    parser.add_argument('-o', '--only-print-filename', action='store_true')
-    parser.add_argument('-u', '--untagged-files', action='store_true')
+    parser = ArgumentParser(description="Filter files based on tags, contents, and filename")
+    parser.add_argument('-n', metavar='WORD',
+                        help='Words to match in FILENAME',
+                        nargs='+', default=[])
+    parser.add_argument('WORD',
+                        help='Words and tags to match in FILE CONTENTS',
+                        nargs='*', default=[])
+    parser.add_argument('-l',
+                        help='List all tags under current dir',
+                        action='store_true')
+    parser.add_argument('-f',
+                        help='Only print filename after filtering',
+                        action='store_true')
+    parser.add_argument('-u',
+                        help='Print files with no tags',
+                        action='store_true')
     args = parser.parse_args()
-    if args.list_tags:
+    if args.l:
         print_available_tags()
-    elif args.untagged_files:
-        print_untagged_files(args.only_print_filename)
+    elif args.u:
+        print_untagged_files(args.f)
     else:
-        print_matching_files(args.name,
-                             args.contents,
-                             args.tags,
-                             args.only_print_filename)
+        tags = [w[1:] for w in args.WORD if w.startswith('@')]
+        words = [w for w in args.WORD if not w.startswith('@')]
+        print_matching_files(args.n, words, tags, args.f)
