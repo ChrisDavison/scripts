@@ -8,25 +8,22 @@ import re
 re_tag = re.compile(r'@[a-zA-Z1-9\-]+')
 
 
-def matches_all_words(*, ls: List[str], query: List[str]) -> bool:
-    if not query:
-        return True
-    query = [q.lower() for q in query]
-    words = set(w.lower() for w in ls)
-    return set(query).issubset(words)
-
-
-def print_if_matches(*, filename, name_query, contents_query, tags_query):
-    file_str = f"file: {filename}"
+def print_if_matches(*, filename, name_query=[], contents_query=[], tags_query=[]):
+    # Tidy up the queries (make them lowercase sets)
     tags_query = [t if not t.startswith('@') else t[1:] for t in tags_query]
-    words_in_name = re.split(r"\b", str(filename).lower())
-    file_contents = filename.read_text()
-    words_in_file = file_contents.split()
-    tags_in_file = [t[1:] for t in re_tag.findall(file_contents)]
+    tags_query = set(t.lower() for t in tags_query)
+    contents_query = set(c.lower() for c in contents_query)
+    name_query = set(n.lower() for n in name_query)
+    # ===================
+    file_str = f"file: {filename}"
+    words_in_name = set(re.split(r"\b", str(filename).lower()))
+    file_contents = filename.read_text().lower()
+    words_in_file = set(file_contents.split())
+    tags_in_file = set(t[1:] for t in re_tag.findall(file_contents))
     tag_str = f"tags_query: {' '.join(tags_in_file)}"
-    if matches_all_words(ls=words_in_name, query=name_query) and \
-       matches_all_words(ls=words_in_file, query=contents_query) and \
-       matches_all_words(ls=tags_in_file, query=tags_query):
+    if name_query.issubset(words_in_name) and \
+       contents_query.issubset(words_in_file) and \
+       tags_query.issubset(tags_in_file):
         print(file_str)
         if tags_in_file:
             print(tag_str)
@@ -38,12 +35,23 @@ if __name__ == "__main__":
     parser.add_argument('-n', '--name', nargs='+', default=[])
     parser.add_argument('-c', '--contents', nargs='+', default=[])
     parser.add_argument('-t', '--tags', nargs='+', default=[])
+    parser.add_argument('-l', '--list-tags', action='store_true')
+    parser.add_argument('-u', '--untagged-files', action='store_true')
     args = parser.parse_args()
-    files = list(Path('.').rglob('*.md'))
-    for file in files:
-        print_if_matches(filename=file,
-                         name_query=args.name,
-                         contents_query=args.contents,
-                         tags_query=args.tags)
+    if args.list_tags:
+        print('AVAILABLE TAGS')
+        print('==============')
+        print(run(['tagsearch', '-l'], capture_output=True).stdout.decode())
+    elif args.untagged_files:
+        print('UNTAGGED FILES')
+        print('==============')
+        print(run(['tagsearch', '-u'], capture_output=True).stdout.decode())
+    else:
+        files = list(Path('.').rglob('*.md'))
+        for file in files:
+            print_if_matches(filename=file,
+                             name_query=args.name,
+                             contents_query=args.contents,
+                             tags_query=args.tags)
 
 
