@@ -39,12 +39,12 @@ if __name__ == "__main__":
     parser.add_argument('-u', '--untagged-files', action='store_true')
     args = parser.parse_args()
     if args.list_tags:
-        print('AVAILABLE TAGS')
-        print('==============')
+        # print('AVAILABLE TAGS')
+        # print('==============')
         print(run(['tagsearch', '-l'], capture_output=True).stdout.decode())
     elif args.untagged_files:
-        print('UNTAGGED FILES')
-        print('==============')
+        # print('UNTAGGED FILES')
+        # print('==============')
         print(run(['tagsearch', '-u'], capture_output=True).stdout.decode())
     else:
         files = list(Path('.').rglob('*.md'))
