@@ -8,7 +8,7 @@ import re
 re_tag = re.compile(r'@[a-zA-Z1-9\-]+')
 
 
-def print_if_matches(*, filename, name_query=[], contents_query=[], tags_query=[]):
+def print_if_matches(*, filename, name_query=[], contents_query=[], tags_query=[], only_filename=False):
     # Tidy up the queries (make them lowercase sets)
     tags_query = [t if not t.startswith('@') else t[1:] for t in tags_query]
     tags_query = set(t.lower() for t in tags_query)
@@ -24,10 +24,13 @@ def print_if_matches(*, filename, name_query=[], contents_query=[], tags_query=[
     if name_query.issubset(words_in_name) and \
        contents_query.issubset(words_in_file) and \
        tags_query.issubset(tags_in_file):
-        print(file_str)
-        if tags_in_file:
-            print(tag_str)
-        print()
+        if only_filename:
+            print(filename)
+        else:
+            print(file_str)
+            if tags_in_file:
+                print(tag_str)
+            print()
 
 
 if __name__ == "__main__":
@@ -36,15 +39,17 @@ if __name__ == "__main__":
     parser.add_argument('-c', '--contents', nargs='+', default=[])
     parser.add_argument('-t', '--tags', nargs='+', default=[])
     parser.add_argument('-l', '--list-tags', action='store_true')
+    parser.add_argument('-o', '--only-print-filename', action='store_true')
     parser.add_argument('-u', '--untagged-files', action='store_true')
     args = parser.parse_args()
     if args.list_tags:
-        # print('AVAILABLE TAGS')
-        # print('==============')
+        print('AVAILABLE TAGS')
+        print('==============')
         print(run(['tagsearch', '-l'], capture_output=True).stdout.decode())
     elif args.untagged_files:
-        # print('UNTAGGED FILES')
-        # print('==============')
+        if not args.only_print_filename:
+            print('UNTAGGED FILES')
+            print('==============')
         print(run(['tagsearch', '-u'], capture_output=True).stdout.decode())
     else:
         files = list(Path('.').rglob('*.md'))
@@ -52,6 +57,7 @@ if __name__ == "__main__":
             print_if_matches(filename=file,
                              name_query=args.name,
                              contents_query=args.contents,
-                             tags_query=args.tags)
+                             tags_query=args.tags,
+                             only_filename=args.only_print_filename)
 
 
