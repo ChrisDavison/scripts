@@ -1,0 +1,12 @@
+[package]
+authors = ["Chris Davison <c.jr.davison@gmail.com>"]
+edition = "2018"
+name = "last7days"
+version = "0.1.0"
+
+# definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+glob = "0.3"
+chrono = "~0.4"
+shellexpand = "1.0"
