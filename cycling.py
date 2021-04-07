@@ -56,10 +56,12 @@ def speed_to_cadence(speed, ratio, wheel_diameter_inch=26.5):
 CASSETTE_GRAVEL = np.array([11, 13, 15, 17, 19, 21, 23, 25, 27, 30, 34])
 CASSETTE_FIXIE = np.array([16])
 
+CHAINRING_ROAD = np.array([52, 36]).reshape((2, 1))
 CHAINRING_GRAVEL = np.array([46, 30]).reshape((2, 1))
 CHAINRING_FIXIE = np.array([44])
 
 GI_GRAVEL = gearinches(CHAINRING_GRAVEL, CASSETTE_GRAVEL)
+GI_ROAD = gearinches(CHAINRING_ROAD, CASSETTE_GRAVEL)
 GI_FIXIE = gearinches(CHAINRING_FIXIE, CASSETTE_FIXIE)
 
 
@@ -67,6 +69,11 @@ def main():
     print("Gearinches, with 'crosschain' pairs removed")
     print("46t\n", GI_GRAVEL[0][:-2])
     print("30t\n", GI_GRAVEL[1][2:])
+
+    print()
+    print("Gearinches for 'road' chainrings")
+    print("46t\n", GI_ROAD[0][:-2])
+    print("30t\n", GI_ROAD[1][2:])
 
     print()
     print("Compared to singlespeed (ratio)")
