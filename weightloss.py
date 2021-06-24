@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import os
 import sys
+from argparse import ArgumentParser
 
 import pandas as pd
 
@@ -26,14 +27,20 @@ def display(now_kg, start_kg=117):
     print(f"LOST {diff}kg\n\t{pct_lost}%")
 
 
-if __name__ == "__main__":
-    if len(sys.argv) < 3:
-        print(f"usage: {os.path.basename(sys.argv[0])} <value> <lb|st|kg>")
-        sys.exit(1)
+def main():
+    parser = ArgumentParser("Weightloss calculator")
+    parser.add_argument("value", type=float)
+    parser.add_argument("unit", help="The unit of the value given (lb|st|kg)")
+    args = parser.parse_args()
 
-    kg = parse_weight(float(sys.argv[1]), sys.argv[2])
+    start_weight = 117
+    kg = parse_weight(args.value, args.unit)
     df = pd.DataFrame([kg], columns=["kg"])
     df["lb"] = df["kg"] * 2.2
     df["st"] = df["lb"] / 14
-    df["lost (kg)"] = 117.0 - df["kg"]
-    print(df)
+    df["lost (kg)"] = start_weight - df["kg"]
+    df["bmi"] = df["kg"] / 1.8 / 1.8
+    print(df.to_markdown(index=False, floatfmt=".2f"))
+
+if __name__ == "__main__":
+    main()
