@@ -7,10 +7,10 @@ struct Cli {
     /// Upper % heartrate zone
     upper: u8,
     /// Age, for calculating max HR
-    #[structopt(default_value="30")]
+    #[structopt(default_value = "30")]
     age: u8,
     /// Resting heartrate, for calculating 'working' heartrate
-    #[structopt(default_value="64")]
+    #[structopt(default_value = "64")]
     rhr: u8,
 }
 
@@ -24,5 +24,8 @@ fn main() {
     let bpm_lo = heartrate_bpm_for_percent(args.age, args.rhr, args.lower);
     let bpm_hi = heartrate_bpm_for_percent(args.age, args.rhr, args.upper);
 
-    println!("{} to {}% => {} to {}bpm", args.lower, args.upper, bpm_lo as u8, bpm_hi as u8);
+    println!(
+        "{} to {}% => {} to {}bpm",
+        args.lower, args.upper, bpm_lo as u8, bpm_hi as u8
+    );
 }

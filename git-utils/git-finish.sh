@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 branch=${1:-$(git branch-name)}
 if [ "${branch}" == "master" ]; then
     echo "Cannot finish from 'master'"

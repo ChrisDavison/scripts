@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 git rev-list --all --objects | \
     sed -n $(git rev-list --objects --all | \
     cut -f1 -d' ' | \
