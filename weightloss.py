@@ -36,10 +36,12 @@ def main():
     start_weight = 117
     kg = parse_weight(args.value, args.unit)
     df = pd.DataFrame([kg], columns=["kg"])
+    height_ft = (5,9)
+    height_m = (12 * height_ft[0] + height_ft[1]) * 2.54 / 100
     df["lb"] = df["kg"] * 2.2
     df["st"] = df["lb"] / 14
     df["lost (kg)"] = start_weight - df["kg"]
-    df["bmi"] = df["kg"] / 1.8 / 1.8
+    df["bmi"] = df["kg"] / (height_m ** 2)
     print(df.to_markdown(index=False, floatfmt=".2f"))
 
 if __name__ == "__main__":

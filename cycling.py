@@ -66,20 +66,17 @@ GI_FIXIE = gearinches(CHAINRING_FIXIE, CASSETTE_FIXIE)
 
 
 def main():
-    print("Gearinches, with 'crosschain' pairs removed")
-    print("46t\n", GI_GRAVEL[0][:-2])
-    print("30t\n", GI_GRAVEL[1][2:])
+    print("Gearinches of gravel bike\n")
+    as_ints = lambda xs: list(map(int, xs))
+    print("46t -- ", as_ints(GI_GRAVEL[0][:-2]))
+    print("30t -- ", as_ints(GI_GRAVEL[1][2:]))
 
-    print()
-    print("Gearinches for 'road' chainrings")
-    print("46t\n", GI_ROAD[0][:-2])
-    print("30t\n", GI_ROAD[1][2:])
-
-    print()
-    print("Compared to singlespeed (ratio)")
-    print("46t\n", GI_GRAVEL[0][:-2] / GI_FIXIE)
-    print("30t\n", GI_GRAVEL[1][2:] / GI_FIXIE)
+    # print()
+    # print("Gearinches for 'road' chainrings")
+    # print("46t -- ", as_ints(GI_ROAD[0][:-2]))
+    # print("30t -- ", as_ints(GI_ROAD[1][2:]))
 
 
 if __name__ == "__main__":
     main()
+

@@ -16,7 +16,7 @@ def word_check(line, word_list, word_type) -> Optional[str]:
 
 def main(filename):
     script_path = Path(op.dirname(op.realpath(__file__))).resolve()
-    word_path = script_path / "words"
+    word_path = script_path / "critic-words"
     words_weasels = (word_path / "bw-weasel.txt").read_text().splitlines()
     words_passive = (word_path / "bw-passive.txt").read_text().splitlines()
     with open(filename, "r") as f:
