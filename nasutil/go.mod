@@ -1,3 +1,3 @@
-module github.com/chrisdavison/dotfiles/bin
+module github.com/chrisdavison/scripts/nasutil
 
 go 1.17
