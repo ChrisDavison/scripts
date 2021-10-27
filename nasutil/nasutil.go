@@ -8,15 +8,16 @@ import (
 
 const USAGE = `usage:
     nasutil list
+    nasutil failed
     nasutil download
     nasutil add <url>|<md_link>`
 const USAGE_LONG = `usage: nasutil CMD
 
-command               alias   description
----------------------------------------------
-list                  l       show urls waiting to be downloaded
-download              dl,d    use youtube-dl to download each url
-add <url>|<md_link>   a       add a url to the list`
+commands ([shortalias]):
+    list [l]                  show urls waiting to be downloaded
+    failed [f]                show urls that have failed
+    download [dl,d]           use youtube-dl to download each url
+    add <url>|<md_link> [a]   add a url to the list`
 
 const (
 	ERR_NO_COMMAND = iota + 1
@@ -36,12 +37,16 @@ func main() {
 	}
 
 	dls := GetDownloadList()
-	fmt.Printf("%d URLs to download. %d previously failed.\n", len(dls.urls), len(dls.failures))
 
 	command := args[0]
 	if inList(command, []string{"list", "l"}) {
+		dls.summary()
 		dls.list()
+	} else if inList(command, []string{"failed", "f"}) {
+		dls.summary()
+		dls.listFailed()
 	} else if inList(command, []string{"download", "dl", "d"}) {
+		dls.summary()
 		dls.downloadEach()
 		dls.SaveFiles()
 	} else if inList(command, []string{"help", "h", "--help"}) {
@@ -49,6 +54,7 @@ func main() {
 	} else if inList(command, []string{"v", "version", "--version"}) {
 		fmt.Printf("nasutil %v\n", VERSION)
 	} else if inList(command, []string{"add", "a"}) {
+		dls.summary()
 		if len(args) == 1 {
 			fmt.Fprintln(os.Stderr, "USAGE: nasutil add <url>|<mdlink>")
 			os.Exit(ERR_ADD_NO_URL)
@@ -59,7 +65,6 @@ func main() {
 			os.Exit(ERR_ADD_BAD_URL)
 		}
 		dls.add(url.String())
-		dls.SaveFiles()
 	} else {
 		fmt.Println(USAGE)
 	}

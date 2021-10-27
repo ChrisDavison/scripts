@@ -20,8 +20,18 @@ type DownloadList struct {
 	failures map[string]bool
 }
 
+func (d *DownloadList) summary() {
+	fmt.Printf("%d URLs to download. %d previously failed.\n", len(d.urls), len(d.failures))
+}
+
 func (d *DownloadList) list() {
 	for url := range d.urls {
+		fmt.Println(url)
+	}
+}
+
+func (d *DownloadList) listFailed() {
+	for url := range d.failures {
 		fmt.Println(url)
 	}
 }
@@ -51,6 +61,7 @@ func (d *DownloadList) downloadEach() {
 			}
 		}
 	}
+	d.urls = make(map[string]bool)
 }
 
 func downloadFromYoutube(url string) error {
