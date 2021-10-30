@@ -48,7 +48,6 @@ func main() {
 	} else if inList(command, []string{"download", "dl", "d"}) {
 		dls.summary()
 		dls.downloadEach()
-		dls.SaveFiles()
 	} else if inList(command, []string{"help", "h", "--help"}) {
 		fmt.Println(USAGE_LONG)
 	} else if inList(command, []string{"v", "version", "--version"}) {
@@ -68,4 +67,5 @@ func main() {
 	} else {
 		fmt.Println(USAGE)
 	}
+	dls.SaveFiles()
 }
