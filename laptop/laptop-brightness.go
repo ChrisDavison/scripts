@@ -91,6 +91,16 @@ func (b *Brightness) Decrease() {
 	}
 }
 
+func (b *Brightness) Set(pct int64) {
+    b.current = b.max * pct / 100
+	if b.current < 0 {
+		b.current = 0
+	}
+    if b.current > b.max {
+        b.current = b.max
+    }
+}
+
 func (b *Brightness) WriteToFile() {
 	brightnessPath := path.Join(DEVICE_DIR, "brightness")
 	f, err := os.Create(brightnessPath)
@@ -122,6 +132,18 @@ func main() {
 	} else if operation == "down" {
 		brightness.Decrease()
 		brightness.WriteToFile()
+    } else if operation == "set" {
+        if len(os.Args) < 2 {
+            fmt.Fprintln(os.Stderr, "usage: laptop-brightness set <0..100>\n")
+            return
+        }
+        num, err := strconv.ParseInt(os.Args[2], 10, 64)
+        if err != nil {
+            fmt.Fprintln(os.Stderr, err)
+            return
+        }
+        brightness.Set(num)
+        brightness.WriteToFile()
 	} else {
 		fmt.Fprintf(os.Stderr, "Argument $1 must be either 'up', 'down', or 'current'.")
 		os.Exit(ERR_CLI_ARGS)
