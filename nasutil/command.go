@@ -43,7 +43,7 @@ func (d *DownloadList) add(url string) {
 	if len(matches) > 0 {
 		toAdd = matches[1]
 	} else {
-		toAdd = url
+		toAdd = strings.Split(url, "&")[0]
 	}
 	if _, ok := d.urls[toAdd]; !ok {
 		d.urls[toAdd] = true
