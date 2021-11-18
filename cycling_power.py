@@ -7,12 +7,14 @@ def main(ftp, weight):
     def pct_range(ftp, pct1, pct2):
         lower = int(ftp * pct1 / 100)
         upper = int(ftp * pct2 / 100)
-        return f"{lower:3d}W to {upper:3d}W ({pct1} to {pct2} %)"
-    print(f"     Recovery    {pct_range(ftp, 0, 55)}")
-    print(f"     Endurance   {pct_range(ftp, 55, 75)}")
-    print(f"     Sweetspot   {pct_range(ftp, 75, 90)}")
-    print(f"     Threshold   {pct_range(ftp, 90, 105)}")
-    print(f"     VO2Max      {pct_range(ftp, 105, 120)}")
+        return f"{lower:3d}W to {upper:3d}W ({pct1} to {pct2   } %)"
+    print(f"     Recovery       {pct_range(ftp, 0, 55)}")
+    print(f"     Endurance      {pct_range(ftp, 55, 75)}")
+    print(f"     Sweetspot      {pct_range(ftp, 75, 90)}")
+    print(f"     Threshold      {pct_range(ftp, 90, 105)}")
+    print(f"     VO2Max         {pct_range(ftp, 105, 120)}")
+    print(f"     Anaerobic      {pct_range(ftp, 120, 150)}")
+    print(f"     Neuromuscular  >{ftp * 150 / 100}W (150%)")
 
     print(f"\nTheoretical W/kg")
     print(f"    Current -- {ftp / weight:.1f} W/kg")
