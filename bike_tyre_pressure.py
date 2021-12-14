@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 from argparse import ArgumentParser
+import edifice as ed
+from edifice import Label, TextInput, View
+
 
 def pressure(weight, tyre_width, front_wheel_load=0.45):
     # Weight should be weight of rider + bike + extras (water bottles etc)
@@ -18,9 +21,12 @@ parser.add_argument("--bike-weight", type=float)
 parser.add_argument("--tyre-width", type=float)
 args = parser.parse_args()
 
-bodyweight = args.bodyweight if args.bodyweight else float(input("Bodyweight (kg): "))
-bikeweight = args.bike_weight if args.bike_weight else float(input("Bike weight (kg): "))
-tyrewidth = args.tyre_width if args.tyre_width else float(input("Tyre width (mm): "))
+bodyweight = args.bodyweight if args.bodyweight else float(
+    input("Bodyweight (kg): "))
+bikeweight = args.bike_weight if args.bike_weight else float(
+    input("Bike weight (kg): "))
+tyrewidth = args.tyre_width if args.tyre_width else float(
+    input("Tyre width (mm): "))
 
 pressure(
     weight=bodyweight + bikeweight,  # bike, me, water
