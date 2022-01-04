@@ -3,22 +3,19 @@ from argparse import ArgumentParser
 
 
 def main(ftp, weight):
-    print(f"Power zones for ftp of {ftp:.0f}W")
-    def pct_range(ftp, pct1, pct2):
-        lower = int(ftp * pct1 / 100)
-        upper = int(ftp * pct2 / 100)
-        return f"{lower:3d}W to {upper:3d}W ({pct1} to {pct2   } %)"
-    print(f"     Recovery       {pct_range(ftp, 0, 55)}")
-    print(f"     Endurance      {pct_range(ftp, 55, 75)}")
-    print(f"     Sweetspot      {pct_range(ftp, 75, 90)}")
-    print(f"     Threshold      {pct_range(ftp, 90, 105)}")
-    print(f"     VO2Max         {pct_range(ftp, 105, 120)}")
-    print(f"     Anaerobic      {pct_range(ftp, 120, 150)}")
-    print(f"     Neuromuscular  >{ftp * 150 / 100}W (150%)")
+    norm_ftp = ftp / 100
 
-    print(f"\nTheoretical W/kg")
-    print(f"    Current -- {ftp / weight:.1f} W/kg")
-    print()
+    print(f"Power zones at {ftp:.0f}W FTP")
+    print(f"    Recovery       {norm_ftp * 0:3.0f} to {norm_ftp * 55:3.0f}W")
+    print(f"    Endurance      {norm_ftp * 55:3.0f} to {norm_ftp * 75:3.0f}W")
+    print(f"    Sweetspot      {norm_ftp * 75:3.0f} to {norm_ftp * 90:3.0f}W")
+    print(f"    Threshold      {norm_ftp * 90:3.0f} to {norm_ftp * 105:3.0f}W")
+    print(f"    VO2Max         {norm_ftp * 105:3.0f} to {norm_ftp * 120:3.0f}W")
+    print(f"    Anaerobic      {norm_ftp * 120:3.0f} to {norm_ftp * 150:3.0f}W")
+    print(f"    Neuromuscular  >{norm_ftp * 150:3.0f}W")
+
+    print(f"\nTheoretical W/kg ")
+    print(f"    NOW {ftp / weight:.1f} W/kg")
     print(f"    for 4   W/kg, need {4 * weight:.0f} W")
     print(f"    for 3.5 W/kg, need {3.5 * weight:.0f} W")
     print(f"    for 3   W/kg, need {3 * weight:.0f} W")
