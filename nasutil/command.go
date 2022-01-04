@@ -16,23 +16,34 @@ const (
 )
 
 type DownloadList struct {
-	urls     map[string]bool
-	failures map[string]bool
+	urls map[string]bool
 }
 
 func (d *DownloadList) summary() {
-	fmt.Printf("%d URLs to download. %d previously failed.\n", len(d.urls), len(d.failures))
+	n_failed, n_to_download := 0, 0
+	for _, failed := range d.urls {
+		if failed {
+			n_failed += 1
+		} else {
+			n_to_download += 1
+		}
+	}
+	fmt.Printf("%d URLs to download. %d previously failed.\n", n_to_download, n_failed)
 }
 
 func (d *DownloadList) list() {
-	for url := range d.urls {
-		fmt.Println(url)
+	for url, failed := range d.urls {
+		if !failed {
+			fmt.Println(url)
+		}
 	}
 }
 
 func (d *DownloadList) listFailed() {
-	for url := range d.failures {
-		fmt.Println(url)
+	for url, failed := range d.urls {
+		if failed {
+			fmt.Println(url)
+		}
 	}
 }
 
@@ -46,18 +57,21 @@ func (d *DownloadList) add(url string) {
 		toAdd = strings.Split(url, "&")[0]
 	}
 	if _, ok := d.urls[toAdd]; !ok {
-		d.urls[toAdd] = true
+		d.urls[toAdd] = false
 		fmt.Printf("Added `%v`\n", toAdd)
 	}
 }
 
 func (d *DownloadList) downloadEach() {
-	for url := range d.urls {
+	for url, failed := range d.urls {
+		if failed {
+			continue
+		}
 		if strings.Contains(url, "youtube") || strings.Contains(url, "youtu.be") {
 			err := downloadFromYoutube(url)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "Failed to download `%v`: %v\n", url, err)
-				d.failures[url] = true
+				d.urls[url] = true
 			}
 		}
 	}
@@ -110,7 +124,6 @@ func downloadFromYoutube(url string) error {
 	if err != nil {
 		return fmt.Errorf("couldn't start download: %v", err)
 	}
-	// }
 
 	err = cmd.Wait()
 	if err != nil {
@@ -119,43 +132,50 @@ func downloadFromYoutube(url string) error {
 	return nil
 }
 
-func (d *DownloadList) SaveFiles() {
+func (d *DownloadList) Save() {
 	writeListOfUrls(d.urls, path.Join(nasRoot(), fnDownloads))
-	writeListOfUrls(d.failures, path.Join(nasRoot(), fnFailed))
 }
 
 func (d *DownloadList) EmptyDownloads() {
 	blank := make(map[string]bool)
-	writeListOfUrls(blank, path.Join(nasRoot(), fnDownloads))
+	d.urls = blank
 }
 
 func (d *DownloadList) EmptyFailures() {
-	blank := make(map[string]bool)
-	writeListOfUrls(blank, path.Join(nasRoot(), fnFailed))
+	newUrls := make(map[string]bool)
+	for url, failed := range d.urls {
+		if !failed {
+			newUrls[url] = false
+		}
+	}
+	d.urls = newUrls
 }
 
 func GetDownloadList() DownloadList {
-	return DownloadList{
-		getContentsOfNasFile(fnDownloads),
-		getContentsOfNasFile(fnFailed),
-	}
-}
-
-// Rather than a slice, return a map of string -> true
-// so that we reject duplicates.
-func getContentsOfNasFile(filename string) map[string]bool {
-	f, err := os.Open(path.Join(nasRoot(), filename))
+	f, err := os.Open(path.Join(nasRoot(), fnDownloads))
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Couldn't open `%v`: %v\n", filename, err)
+		fmt.Fprintf(os.Stderr, "Couldn't open `%v`: %v\n", fnDownloads, err)
 		os.Exit(ERR_COULDNT_OPEN_FILE)
 	}
 	defer f.Close()
 	bufreader := bufio.NewScanner(f)
 	lines := make(map[string]bool)
 	for bufreader.Scan() {
-		lines[bufreader.Text()] = true
+		line := bufreader.Text()
+		parts := strings.Split(line, " ")
+		url := line
+		failed := false
+		if len(parts) > 1 {
+			url = strings.Join(parts[:len(parts)-1], " ")
+			failed = parts[len(parts)-1] == "FAILED"
+		}
+		if didfail, exists := lines[url]; exists {
+			lines[url] = didfail || failed
+		} else {
+			lines[url] = failed
+		}
 	}
-	return lines
+	return DownloadList{lines}
 }
 
 func writeListOfUrls(urls map[string]bool, filename string) {
@@ -167,8 +187,12 @@ func writeListOfUrls(urls map[string]bool, filename string) {
 	defer f.Close()
 	fbuf := bufio.NewWriter(f)
 	defer fbuf.Flush()
-	for url := range urls {
-		_, err := fbuf.WriteString(url + "\n")
+	for url, failed := range urls {
+		msg := url
+		if failed {
+			msg += " FAILED"
+		}
+		_, err := fbuf.WriteString(msg + "\n")
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Couldn't write url `%v` to file: %v", url, err)
 			os.Exit(ERR_COULDNT_WRITE_FILE)
