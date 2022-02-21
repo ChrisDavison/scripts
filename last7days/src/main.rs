@@ -12,6 +12,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     .expect("Failed to read filename")
                     .to_string_lossy()
                     .to_string();
+                if stem.len() < 10 {
+                    continue;
+                }
                 let y = stem[..4].parse()?;
                 let m = stem[5..7].parse()?;
                 let d = stem[8..10].parse()?;
