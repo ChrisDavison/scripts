@@ -4,6 +4,9 @@ from pathlib import Path
 from argparse import ArgumentParser
 
 
+child_char = "├"
+last_child_char = "└"
+
 def parse_heirarchy(line, *, delim):
     return line.split(delim)
 
@@ -28,8 +31,8 @@ def display_as_tree(heirarchies, assume_sorted=False):
             stem = path[-1]
             line = f"{indent}{stem}"
             print(line)
-            # output.append()
-    # return '\n'.join(output)
+            output.append((len(path), stem))
+    return output
 
 if __name__ == "__main__":
     parser = ArgumentParser()
@@ -45,6 +48,15 @@ if __name__ == "__main__":
         for line in sys.stdin:
             lines.append(line.strip())
     heirarchy=[parse_heirarchy(line, delim=args.delimiter) for line in lines]
-    display_as_tree(heirarchy, args.assume_sorted)
+    output = display_as_tree(heirarchy, args.assume_sorted)
 
+    # for (pathlen, name), (pathlen2, _) in zip(output, output[1:]):
+    #     if pathlen == 1:
+    #         print(child_char, name)
+    #     elif pathlen2 > pathlen:
+    #         print("| ", "  " * (pathlen-2), last_child_char, name)
+    #     elif pathlen2 == pathlen:
+    #         print("| ", "  " * (pathlen-2), child_char, name)
+    #     else:
+    #         print("| ", "  " * (pathlen-2), last_child_char, name)
 
