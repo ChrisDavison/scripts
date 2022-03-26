@@ -88,7 +88,7 @@ func downloadFromYoutube(url string) error {
 		"mp4",
 		url,
 		"-o",
-		"%(uploader)s/%(title)s.%(ext)s",
+		"%(uploader)s---%(title)s.%(ext)s",
 		"--restrict-filenames",
 	}
 	// cmd := exec.Command("youtube-dl", args...)

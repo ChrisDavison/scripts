@@ -33,7 +33,7 @@ const (
 	ERR_COULDNT_WRITE_FILE
 )
 
-const VERSION = "2021-10-16"
+const VERSION = "2022-03-26"
 
 func main() {
 	args := os.Args[1:]
