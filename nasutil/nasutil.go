@@ -31,15 +31,23 @@ const (
 	ERR_ADD_NO_URL
 	ERR_COULDNT_OPEN_FILE
 	ERR_COULDNT_WRITE_FILE
+	ERR_NO_FILENAME
 )
 
-const VERSION = "2022-03-26"
+const VERSION = "2022-03-27"
+
+var fnDownloads = os.ExpandEnv("$HOME/.nasutil-to-download.txt")
 
 func main() {
 	args := os.Args[1:]
 	if len(args) == 0 {
 		fmt.Println(USAGE)
 		os.Exit(ERR_NO_COMMAND)
+	}
+
+	if fnDownloads == "" {
+		fmt.Println("Download file not set.")
+		os.Exit(ERR_NO_FILENAME)
 	}
 
 	dls := GetDownloadList()

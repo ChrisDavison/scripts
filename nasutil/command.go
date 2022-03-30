@@ -10,11 +10,6 @@ import (
 	"strings"
 )
 
-const (
-	fnDownloads = "to-download.txt"
-	fnFailed    = "failed-downloads.txt"
-)
-
 type DownloadList struct {
 	urls map[string]bool
 }
@@ -133,7 +128,7 @@ func downloadFromYoutube(url string) error {
 }
 
 func (d *DownloadList) Save() {
-	writeListOfUrls(d.urls, path.Join(nasRoot(), fnDownloads))
+	writeListOfUrls(d.urls, fnDownloads)
 }
 
 func (d *DownloadList) EmptyDownloads() {
@@ -152,7 +147,7 @@ func (d *DownloadList) EmptyFailures() {
 }
 
 func GetDownloadList() DownloadList {
-	f, err := os.Open(path.Join(nasRoot(), fnDownloads))
+	f, err := os.Open(fnDownloads)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Couldn't open `%v`: %v\n", fnDownloads, err)
 		os.Exit(ERR_COULDNT_OPEN_FILE)
