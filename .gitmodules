@@ -25,3 +25,6 @@
 [submodule "timer"]
 	path = timer
 	url = git@github.com:chrisdavison/timer
+[submodule "an"]
+	path = an
+	url = git@github.com:chrisdavison/an
