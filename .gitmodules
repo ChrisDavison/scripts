@@ -28,3 +28,6 @@
 [submodule "an"]
 	path = an
 	url = git@github.com:chrisdavison/an
+[submodule "kindleclip"]
+	path = kindleclip
+	url = git@github.com:chrisdavison/kindleclip
