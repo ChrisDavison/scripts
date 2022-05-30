@@ -1,0 +1,27 @@
+[submodule "animalhash"]
+	path = animalhash
+	url = git@github.com:chrisdavison/animalhash
+[submodule "dupfinder"]
+	path = dupfinder
+	url = git@github.com:chrisdavison/dupfinder
+[submodule "git-branchstat"]
+	path = git-branchstat
+	url = git@github.com:chrisdavison/git-branchstat
+[submodule "nf"]
+	path = nf
+	url = git@github.com:chrisdavison/nf
+[submodule "repoutil"]
+	path = repoutil
+	url = git@github.com:chrisdavison/repoutil
+[submodule "seqname"]
+	path = seqname
+	url = git@github.com:chrisdavison/seqname
+[submodule "tagsearch"]
+	path = tagsearch
+	url = git@github.com:chrisdavison/tagsearch
+[submodule "ziputil"]
+	path = ziputil
+	url = git@github.com:chrisdavison/ziputil
+[submodule "timer"]
+	path = timer
+	url = git@github.com:chrisdavison/timer
