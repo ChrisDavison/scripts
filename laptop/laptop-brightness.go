@@ -87,14 +87,14 @@ func (b *Brightness) Increase() {
 func (b *Brightness) Decrease() {
 	b.current -= b.step
 	if b.current < 0 {
-		b.current = 0
+		b.current = 1
 	}
 }
 
 func (b *Brightness) Set(pct int64) {
     b.current = b.max * pct / 100
 	if b.current < 0 {
-		b.current = 0
+		b.current = 1
 	}
     if b.current > b.max {
         b.current = b.max
