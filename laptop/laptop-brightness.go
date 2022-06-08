@@ -34,18 +34,20 @@ const (
 	ERR_NO_HARDWARE
 )
 
+const MINIMUM_BRIGHTNESS uint64 = 1
+
 type Brightness struct {
-	current int64
-	max     int64
-	step    int64
+	current uint64
+	max     uint64
+	step    uint64
 }
 
-func parseIntFromFile(path string) (int64, error) {
+func parseIntFromFile(path string) (uint64, error) {
 	brightness, err := ioutil.ReadFile(path)
 	if err != nil {
 		return 0, err
 	}
-	brightnessVal, err := strconv.ParseInt(strings.TrimSpace(string(brightness)), 10, 64)
+	brightnessVal, err := strconv.ParseUint(strings.TrimSpace(string(brightness)), 10, 64)
 	if err != nil {
 		return 0, err
 	}
@@ -86,19 +88,19 @@ func (b *Brightness) Increase() {
 
 func (b *Brightness) Decrease() {
 	b.current -= b.step
-	if b.current < 0 {
-		b.current = 1
+	if b.current < MINIMUM_BRIGHTNESS {
+		b.current = MINIMUM_BRIGHTNESS
 	}
 }
 
-func (b *Brightness) Set(pct int64) {
-    b.current = b.max * pct / 100
-	if b.current < 0 {
-		b.current = 1
+func (b *Brightness) Set(pct uint64) {
+	b.current = b.max * pct / 100
+	if b.current < MINIMUM_BRIGHTNESS {
+		b.current = MINIMUM_BRIGHTNESS
 	}
-    if b.current > b.max {
-        b.current = b.max
-    }
+	if b.current > b.max {
+		b.current = b.max
+	}
 }
 
 func (b *Brightness) WriteToFile() {
@@ -132,18 +134,18 @@ func main() {
 	} else if operation == "down" {
 		brightness.Decrease()
 		brightness.WriteToFile()
-    } else if operation == "set" {
-        if len(os.Args) < 2 {
-            fmt.Fprintln(os.Stderr, "usage: laptop-brightness set <0..100>\n")
-            return
-        }
-        num, err := strconv.ParseInt(os.Args[2], 10, 64)
-        if err != nil {
-            fmt.Fprintln(os.Stderr, err)
-            return
-        }
-        brightness.Set(num)
-        brightness.WriteToFile()
+	} else if operation == "set" {
+		if len(os.Args) < 2 {
+			fmt.Fprintln(os.Stderr, "usage: laptop-brightness set <0..100>\n")
+			return
+		}
+		num, err := strconv.ParseUint(os.Args[2], 10, 64)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			return
+		}
+		brightness.Set(num)
+		brightness.WriteToFile()
 	} else {
 		fmt.Fprintf(os.Stderr, "Argument $1 must be either 'up', 'down', or 'current'.")
 		os.Exit(ERR_CLI_ARGS)
