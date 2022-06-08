@@ -20,6 +20,17 @@ def main(ftp, weight):
     print(f"    for 3.5 W/kg, need {3.5 * weight:.0f} W")
     print(f"    for 3   W/kg, need {3 * weight:.0f} W")
 
+    wkg = 4
+    print(f"\nFor {wkg} W/kg...")
+    for sub in range(1, 5):
+        print(f"...at {weight-sub} kg, need {wkg * (weight-sub):.0f} W")
+
+    wkg = 3.75
+    print(f"\nFor {wkg} W/kg...")
+    for sub in range(1, 5):
+        print(f"...at {weight-sub} kg, need {wkg * (weight-sub):.0f} W")
+
+
 
 if __name__ == "__main__":
     parser = ArgumentParser("cycling power")

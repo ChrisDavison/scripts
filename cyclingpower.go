@@ -1,11 +1,14 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 func main() {
-	ftp := 271.0
+	ftp := 259.0
 	ftp_norm := ftp / 100.0
-	weight := 73.0
+	weight := 74.0
 
 	fmt.Printf("Cycling Power Zones at %.0fW FTP\n", ftp)
 	fmt.Printf("    Recovery      %3.0f to %3.0fW\n", ftp_norm*0.0, ftp_norm*55.0)
