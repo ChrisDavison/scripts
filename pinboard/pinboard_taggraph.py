@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pinboard
 import networkx as nx
+from pathlib import Path
 
 
 def label_sum(graph, label):
@@ -13,7 +14,7 @@ def label_sum(graph, label):
 
 
 def main():
-    token = open('/home/cdavison/.pinboard').read().strip()
+    token = Path("~/.pinboard").expanduser().read_text().strip()
     pb = pinboard.Pinboard(token)
 
     tag_to_find = sys.argv[1]
