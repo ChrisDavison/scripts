@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 """
-Prettyprint symlinks in the current directory.
+Prettyprint symlinks in the current (or specified) directory.
 
 Basically, 'ls -lah | grep "\->"', with some formatting.
 """
 from pathlib import Path
 from typing import List, Tuple
 from collections import namedtuple
+from argparse import ArgumentParser
 
 
 def get_links(root: Path) -> Tuple[List[Path], List[Path]]:
@@ -44,15 +45,18 @@ def display_links(links: List[Path], preface: str):
         print(f"{str(link):{width}}  >  {home_flag}{actual}")
 
 
-def main():
+def main(directory):
     """
     Print symlinks and the resolved target in a prettier layout.
     """
-    links_f, links_d = get_links('.')
+    links_f, links_d = get_links(directory)
     display_links(links_f, "Files")
     print()
     display_links(links_d, "Directories")
 
 
 if __name__ == "__main__":
-    main()
+    parser = ArgumentParser()
+    parser.add_argument("directory", nargs='?', default=".")
+    args = parser.parse_args()
+    main(args.directory)
