@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import numpy as np
+from argparse import ArgumentParser
 
 
 def gearinches(chainring, cassette_range, wheel_diameter_inch=26.5):
@@ -8,8 +9,8 @@ def gearinches(chainring, cassette_range, wheel_diameter_inch=26.5):
 
 def cadence_to_speed(cadence, ratio, wheel_diameter_inch=26.5):
     """Calculate approximate speed for a given cadence, gear ratio, and wheel size
-    
-    This is an approximation that does not consider tyre size, however it 
+
+    This is an approximation that does not consider tyre size, however it
     shouldn't be too far off.
 
     Arguments
@@ -31,8 +32,8 @@ def cadence_to_speed(cadence, ratio, wheel_diameter_inch=26.5):
 
 def speed_to_cadence(speed, ratio, wheel_diameter_inch=26.5):
     """Calculate approximate cadence for a given speed, gear ratio, and wheel size
-    
-    This is an approximation that does not consider tyre size, however it 
+
+    This is an approximation that does not consider tyre size, however it
     shouldn't be too far off.
 
     Arguments
@@ -65,18 +66,40 @@ GI_ROAD = gearinches(CHAINRING_ROAD, CASSETTE_GRAVEL)
 GI_FIXIE = gearinches(CHAINRING_FIXIE, CASSETTE_FIXIE)
 
 
-def main():
-    print("Gearinches of gravel bike\n")
-    as_ints = lambda xs: list(map(int, xs))
-    print("46t -- ", as_ints(GI_GRAVEL[0][:-2]))
-    print("30t -- ", as_ints(GI_GRAVEL[1][2:]))
+def main(which):
+    cassette = None
+    chainring = None
+    if which == 'gravel':
+        cassette = CASSETTE_GRAVEL
+        chainring = CHAINRING_GRAVEL
+    elif which == 'fixie':
+        cassette = CASSETTE_FIXIE
+        chainring = CHAINRING_FIXIE
+    else: #which == 'road'
+        cassette = CASSETTE_GRAVEL
+        chainring = CHAINRING_ROAD
 
-    # print()
-    # print("Gearinches for 'road' chainrings")
-    # print("46t -- ", as_ints(GI_ROAD[0][:-2]))
-    # print("30t -- ", as_ints(GI_ROAD[1][2:]))
+    gear_inches = gearinches(chainring, cassette)
+    def as_ints(xs):
+        if not any([isinstance(xs, list), isinstance(xs, np.ndarray)]):
+            xs = [xs]
+        return ' '.join(f"{x:4.1f}" for x in xs)
 
+    combined_gearinches = sorted([
+        (f"{str(int(val)):>4}", i) for i, row in enumerate(gear_inches) for val in row
+    ])
+    print(f"Gearinches of {which} bike")
+    for i, teeth in enumerate(chainring):
+        gi_for_teeth = [gi if j == i else '  --' for gi, j in combined_gearinches][::-1]
+        if isinstance(teeth, np.int64):
+            teeth = [teeth]
+        median = np.abs(np.median(np.diff([int(val.strip()) for val in gi_for_teeth if val != '  --'])))
+        stats = f"Median gap: {median}"
+        print(f"  {teeth[0]}t: {''.join(gi_for_teeth)} ({stats})")
 
 if __name__ == "__main__":
-    main()
+    parser = ArgumentParser()
+    parser.add_argument('which', choices=['gravel', 'fixie', 'road'])
+    args = parser.parse_args()
+    main(args.which)
 
