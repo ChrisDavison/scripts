@@ -1,6 +1,6 @@
 #!/bin/sh
 lock() {
-    i3lock -c 26023a
+    i3lock -c 320038
 }
 
 case "$1" in
@@ -11,10 +11,10 @@ case "$1" in
         i3-msg exit
         ;;
     suspend)
-        lock && dbus-send --system --print-reply --dest="org.freedesktop.UPower" /org/freedesktop/UPower org.freedesktop.UPower.Suspend 
+        lock && sudo systemctl suspend
         ;;
     hibernate)
-        lock && systemctl hibernate
+        lock && sudo systemctl hibernate
         ;;
     reboot)
         systemctl reboot
