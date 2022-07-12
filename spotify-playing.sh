@@ -1,9 +1,13 @@
 #!/usr/bin/env bash
 
-title=`playerctl metadata --format "{{ title }}, by {{ artist }} ({{ album }})"`
+title=`playerctl --player spotify metadata --format "{{ title }}, by {{ artist }} ({{ album }})"`
 if [ -z "$title" ] || [ "$(playerctl status)" = 'Stopped' ] ; then
     echo "No music playing"
 else
-    status=`playerctl status`
-    echo "$status: $title"
+    status=`playerctl --player spotify status`
+    case $status in
+        Playing) echo "$title" ;;
+        Paused) echo "(PAUSE) $title" ;;
+        *) echo "$status: $title" ;;
+    esac
 fi
