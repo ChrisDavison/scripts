@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+
+ij_file=$HOME/.interstitial
+
+view() {
+    cat $ij_file | bat --language=markdown --style=numbers
+}
+
+view_3() {
+    tail -n3 $ij_file | bat --language=markdown --style=numbers
+}
+
+case $@ in
+    '') 
+        view ;;
+    -t|today|t)  # show only today 
+        has_today=$(rg -q `date +%F` $ij_file)
+        if [[ $? -eq 1 ]]; then
+            echo "nothing today."
+        else
+            awk "/$(date +%F)/{start=1} start==1{print}" ~/.interstitial
+        fi
+        ;;
+    -c|clear|c)   # Clear the journal
+        echo "cleared."
+        true > $ij_file
+        ;;
+    *)   # append to interstitial journal
+        has_today=$(rg -q `date +%F` $ij_file)
+        if [[ $? -eq 1 ]]; then
+            echo -ne $(date +'\n\n**%F**\n\n') >> $ij_file
+        fi
+        echo $(date +'- `%H:%M`')" $@" >> $ij_file
+        view
+        ;;
+esac
+
+unset ij_file
