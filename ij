@@ -10,16 +10,20 @@ view_3() {
     tail -n3 $ij_file | bat --language=markdown --style=numbers --color=always
 }
 
+view_today() {
+    has_today=$(rg -q `date +%F` $ij_file)
+    if [[ $? -eq 1 ]]; then
+        echo "nothing today."
+    else
+        awk "/$(date +%F)/{start=1} start==1{print}" ~/.interstitial | bat --language=markdown --style=plain --color=always
+    fi
+}
+
 case $@ in
     '') 
         view ;;
     -t|today|t)  # show only today 
-        has_today=$(rg -q `date +%F` $ij_file)
-        if [[ $? -eq 1 ]]; then
-            echo "nothing today."
-        else
-            awk "/$(date +%F)/{start=1} start==1{print}" ~/.interstitial | bat --language=markdown --style=plain --color=always
-        fi
+        view_today
         ;;
     -c|clear|c)   # Clear the journal
         echo "cleared."
@@ -31,7 +35,7 @@ case $@ in
             echo -ne $(date +'\n\n**%F**\n\n') >> $ij_file
         fi
         echo $(date +'- `%H:%M`')" $@" >> $ij_file
-        view
+        view_today
         ;;
 esac
 
