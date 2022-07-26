@@ -3,11 +3,11 @@
 ij_file=$HOME/.interstitial
 
 view() {
-    cat $ij_file | bat --language=markdown --style=numbers
+    cat $ij_file | bat --language=markdown --style=numbers --color=always
 }
 
 view_3() {
-    tail -n3 $ij_file | bat --language=markdown --style=numbers
+    tail -n3 $ij_file | bat --language=markdown --style=numbers --color=always
 }
 
 case $@ in
@@ -18,7 +18,7 @@ case $@ in
         if [[ $? -eq 1 ]]; then
             echo "nothing today."
         else
-            awk "/$(date +%F)/{start=1} start==1{print}" ~/.interstitial
+            awk "/$(date +%F)/{start=1} start==1{print}" ~/.interstitial | bat --language=markdown --style=plain --color=always
         fi
         ;;
     -c|clear|c)   # Clear the journal
