@@ -1,13 +1,16 @@
 #!/usr/bin/env bash
 
 ij_file=$HOME/.interstitial
+splitchar='--'
+
+color="--color=always"
 
 view() {
-    cat $ij_file | bat --language=markdown --style=numbers --color=always
+    cat $ij_file | column -s'…' -t 
 }
 
 view_3() {
-    tail -n3 $ij_file | bat --language=markdown --style=numbers --color=always
+    tail -n3 $ij_file | column -s'…' -t 
 }
 
 view_today() {
@@ -15,7 +18,7 @@ view_today() {
     if [[ $? -eq 1 ]]; then
         echo "nothing today."
     else
-        awk "/$(date +%F)/{start=1} start==1{print}" ~/.interstitial | bat --language=markdown --style=plain --color=always
+        awk "/$(date +%F)/{start=1} start==1{print}" ~/.interstitial | column -s'…' -t 
     fi
 }
 
@@ -29,12 +32,18 @@ case $@ in
         echo "cleared."
         true > $ij_file
         ;;
+    -cp)   # Clear previous entries
+        echo "Cleared previous entries"
+        view_today > $ij_file".bak"
+        mv $ij_file".bak" $ij_file
+        ;;
     *)   # append to interstitial journal
         has_today=$(rg -q `date +%F` $ij_file)
         if [[ $? -eq 1 ]]; then
-            echo -ne $(date +'\n\n**%F**\n\n') >> $ij_file
+            echo $(date +'%F %H:%M')" $splitchar $@" >> $ij_file
+        else
+            echo "           "$(date +'%H:%M')" $splitchar $@" >> $ij_file
         fi
-        echo $(date +'- `%H:%M`')" $@" >> $ij_file
         view_today
         ;;
 esac
