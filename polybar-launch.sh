@@ -1,7 +1,12 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 pkill polybar
-# for m in `polybar --list-monitors | cut -d':' -f1`; do
-#     MONITOR=$m polybar -r internal &
-# done
+i=0
 MONITOR=eDP-1 polybar -r internal &
-MONITOR=DP-1 polybar -r external &
+
+for m in `polybar --list-monitors | cut -d':' -f1`; do
+    if [[ $m -eq "eDP-1" ]]; then
+        continue
+    else
+        MONITOR=$m polybar -r external &
+    fi
+done
