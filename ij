@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 
 ij_file=$HOME/.interstitial
+[[ ! -f $ij_file ]] && touch $ij_file
+
 splitchar='--'
 
 color="--color=always"
