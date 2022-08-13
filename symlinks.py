@@ -14,13 +14,25 @@ def get_links(root: Path) -> Tuple[List[Path], List[Path]]:
     """
     Get symlinks under root.
     """
-    links_to_files = [p for p in Path(root).glob('*') if p.is_symlink() and p.is_file()]
-    links_to_dirs = [p for p in Path(root).glob('*') if p.is_symlink() and p.is_dir()]
+    links_to_files = []
+    links_to_dirs = []
+    for p in Path(root).glob('*'):
+        print(p)
+        if 'refile' in str(p):
+            print(p, p.is_symlink(), p.stat())
+        if not p.is_symlink():
+            continue
+        if p.is_file():
+            links_to_files.append(p)
+        elif p.is_dir():
+            links_to_dirs.append(p)
+        else:
+            print(p, 'is symlink, but not file or dir???')
 
     return sorted(links_to_files), sorted(links_to_dirs)
 
 
-def display_links(links: List[Path], preface: str):
+def display_links(links: List[Path], preface: str, width: int, trim_prefix: None):
     """
     Print a list of links, with a preface message/title.
 
@@ -33,30 +45,36 @@ def display_links(links: List[Path], preface: str):
     n_either_side = int(remain / 2)
     spacer = "-" * n_either_side
     print(spacer, preface.upper(), spacer)
-    width = max([len(str(l.name)) for l in links])
-    home = Path('~').expanduser()
 
     for link in links:
         actual = link.resolve()
-        home_flag = ''
-        if str(home) in str(actual):
-            home_flag = '~/'
-            actual = actual.relative_to(home)
-        print(f"{str(link):{width}}  >  {home_flag}{actual}")
+        linkstr = str(link)
+        actualstr = str(actual)
+        if trim_prefix:
+            linkstr = str(trim_prefix(link))
+            try:
+                actualstr = str(trim_prefix(actual))
+            except:
+                actualstr = str(actual)
+        print(f"{linkstr:{width + 5}}{actualstr}")
 
 
-def main(directory):
+def main(directory, trim_prefix):
     """
     Print symlinks and the resolved target in a prettier layout.
     """
     links_f, links_d = get_links(directory)
-    display_links(links_f, "Files")
+    longest = max(len(str(f)) for l in [links_f, links_d] for f in l)
+    if trim_prefix:
+        trim_prefix = lambda x: x.relative_to(directory)
+    display_links(links_f, "Files", longest, trim_prefix)
     print()
-    display_links(links_d, "Directories")
+    display_links(links_d, "Directories", longest, trim_prefix)
 
 
 if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument("directory", nargs='?', default=".")
+    parser.add_argument("--trim-prefix", action='store_true')
     args = parser.parse_args()
-    main(args.directory)
+    main(args.directory, args.trim_prefix)
