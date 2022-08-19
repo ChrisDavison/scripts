@@ -1,7 +1,9 @@
+#!/usr/bin/env python3
 from collections import Counter, defaultdict
 from datetime import datetime, timedelta
 from pathlib import Path
 from wordcloud import WordCloud
+import pickle
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -14,25 +16,34 @@ def bookmarkhash(self):
 def bookmark_show(self):
     return f"{self.description}\n{self.url}\n{' '.join('#' + t for t in self.tags)}"
 
-posts = []
-last_updated = None
+cache_path = Path('~/.pinboard_cache').expanduser()
+if cache_path.exists():
+    cache = pickle.load(open(cache_path, 'rb'))
+else:
+    cache = {'posts': [], 'last_updated': None}
+    pickle.dump(cache, open(cache_path, 'wb'))
 
+pbutil_verbose = True
 pinboard.Bookmark.__hash__ = bookmarkhash
 pinboard.Bookmark.__str__ = bookmark_show
 
 def refresh_posts(if_older_than=timedelta(minutes=30), force=False):
-    global posts
-    global last_updated
-    if not posts or (datetime.now() - last_updated) > if_older_than or force:
-        print("REFRESHING POSTS")
+    global cache
+    global pbutil_verbose
+    if not cache['posts'] or (datetime.now() - cache['last_updated']) > if_older_than or force:
+        if pbutil_verbose:
+            print("REFRESHING POSTS")
         token = Path("~/.pinboard").expanduser().read_text().strip()
         pb = pinboard.Pinboard(token)
-        posts = pb.posts.all()
-        last_updated = datetime.now()
-        print("New post refresh threshold:", last_updated.strftime("%H:%M"))
+        cache['posts'] = pb.posts.all()
+        cache['last_updated'] = datetime.now()
+        if pbutil_verbose:
+            print("New post refresh threshold:", cache['last_updated'].strftime("%H:%M"))
+        pickle.dump(cache, open(cache_path, 'wb'))
     else:
-        print("USING `OLD` POSTS TILL", (last_updated + if_older_than).strftime("%H:%M"))
-    return posts
+        if pbutil_verbose:
+            print("USING `OLD` POSTS TILL", (cache['last_updated'] + if_older_than).strftime("%H:%M"))
+
 
 
 def fuzzy_find_posts(which='all', *, terms, excluded_tags=[]):
@@ -46,7 +57,7 @@ def fuzzy_find_posts(which='all', *, terms, excluded_tags=[]):
         return True
 
     refresh_posts()
-    local_posts = posts
+    local_posts = cache['posts']
     if which == 'unread':
         local_posts = [p for p in local_posts if p.toread]
     for p in local_posts:
@@ -61,7 +72,7 @@ def fuzzy_find_posts(which='all', *, terms, excluded_tags=[]):
 
 def count_tags(which='all', excludes=None, exclude_entire_post=True):
     refresh_posts()
-    local_posts = posts
+    local_posts = cache['posts']
     if which == 'unread':
         local_posts = [p for p in local_posts if p.toread]
     counts = Counter()
@@ -75,7 +86,8 @@ def count_tags(which='all', excludes=None, exclude_entire_post=True):
                 tags = [tag for tag in tags if tag not in excludes]
         counts.update(tags)
         n_matching += 1
-    print(f"{n_matching} matching posts")
+    if pbutil_verbose:
+        print(f"{n_matching} matching posts")
     return counts
 
 def count_tags_matching(which='all', includes=None, excludes=None, exclude_entire_post=True):
@@ -92,14 +104,15 @@ def count_tags_matching(which='all', includes=None, excludes=None, exclude_entir
                 tags = [tag for tag in tags if tag not in excludes]
         counts.update(tags)
         n_matching += 1
-    print(f"{n_matching} matching posts")
+    if pbutil_verbose:
+        print(f"{n_matching} matching posts")
     return counts
 
 def related_tags(which='all'):
     refresh_posts()
 
     collocated_tags = defaultdict(Counter)
-    local_posts = posts
+    local_posts = cache['posts']
 
     if which == 'unread':
         local_posts = [p for p in local_posts if p.toread]
@@ -162,3 +175,21 @@ def heatmap_of_related_tags(tag, which='all', excludes=[]):
     sns.heatmap(grid_df, ax=ax)
     plt.title(f'Collocation of tags related to {tag}')
     plt.tight_layout()
+
+
+if __name__ == '__main__':
+    from argparse import ArgumentParser
+    from typing import List
+    pbutil_verbose=False
+    parser = ArgumentParser()
+    parser.add_argument("includes", nargs="*", type=str)
+    parser.add_argument("--excludes", nargs="*", type=str)
+    parser.add_argument("--show", action='store_true')
+    args = parser.parse_args()
+    if args.show:
+        display_n_fuzzy_matches(which='unread', n=10, terms=args.includes, excluded_tags=args.excludes)
+    else:
+        unreads = count_tags_matching('unread', args.includes, args.excludes)
+        print("UNREAD")
+        for k, v in unreads.most_common(30):
+            print(v, k)
