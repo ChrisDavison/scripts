@@ -40,7 +40,7 @@ def modified(path):
 def status(path):
     out = git_output(["diff", "--stat", "--cached"], path)
     if out:
-        return f"Staged {out.len()}"
+        return f"Staged {len(out)}"
     return None
 
 

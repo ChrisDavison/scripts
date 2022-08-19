@@ -11,4 +11,4 @@ suffixes = Counter([
 ])
 
 for suffix, count in suffixes.most_common():
-    print(f"{count} {suffix}")
+    print(f"{count:>5} {suffix}")
