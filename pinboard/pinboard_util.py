@@ -17,12 +17,6 @@ def bookmark_show(self):
     return f"{self.description}\n{self.url}\n{' '.join('#' + t for t in self.tags)}"
 
 cache_path = Path('~/.pinboard_cache').expanduser()
-if cache_path.exists():
-    cache = pickle.load(open(cache_path, 'rb'))
-else:
-    cache = {'posts': [], 'last_updated': None}
-    pickle.dump(cache, open(cache_path, 'wb'))
-
 pbutil_verbose = True
 pinboard.Bookmark.__hash__ = bookmarkhash
 pinboard.Bookmark.__str__ = bookmark_show
@@ -30,6 +24,12 @@ pinboard.Bookmark.__str__ = bookmark_show
 def refresh_posts(if_older_than=timedelta(minutes=30), force=False):
     global cache
     global pbutil_verbose
+    if cache_path.exists():
+        cache = pickle.load(open(cache_path, 'rb'))
+    else:
+        cache = {'posts': [], 'last_updated': None}
+        pickle.dump(cache, open(cache_path, 'wb'))
+
     if not cache['posts'] or (datetime.now() - cache['last_updated']) > if_older_than or force:
         if pbutil_verbose:
             print("REFRESHING POSTS")
@@ -183,8 +183,8 @@ if __name__ == '__main__':
     pbutil_verbose=False
     parser = ArgumentParser()
     parser.add_argument("includes", nargs="*", type=str)
-    parser.add_argument("--excludes", nargs="*", type=str)
-    parser.add_argument("--show", action='store_true')
+    parser.add_argument("-e", "--excludes", nargs="*", type=str)
+    parser.add_argument("-s", "--show", action='store_true')
     args = parser.parse_args()
     if args.show:
         display_n_fuzzy_matches(which='unread', n=10, terms=args.includes, excluded_tags=args.excludes)
