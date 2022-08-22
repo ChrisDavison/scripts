@@ -6,7 +6,7 @@ set -e
 
 # Usage
 if [ "$#" -eq 0 ]; then
-cat <<-EOF
+    cat <<-EOF
 Usage: $0 [command]
 Increase or decrease screen brightness at hardware level by steps of 5% of
 max, as determined by the values under /sys/class/backlight/**. Limit values
@@ -27,44 +27,53 @@ EOF
 exit 1
 fi
 
+SHORT_USAGE="laptop-brightness up|down|show"
+
 # Gather information
 backlight_dir='/sys/class/backlight'
 # device_dir=$(ls "${backlight_dir}" | head -n 1)
 device_dir=intel_backlight
 if [ -z "$device_dir" ]; then
-echo 'No backlight hardware is listed in /sys/class/backlight! Quitting.'
-exit 1
+    echo 'No backlight hardware is listed in /sys/class/backlight! Quitting.'
+    exit 1
 fi
 device_dir="${backlight_dir}/${device_dir}"
 brightness_file="${device_dir}/brightness"
 curr_brightness=$(cat "${brightness_file}")
 max_brightness=$(cat "${device_dir}/max_brightness")
-# echo $brightness_file
-
-if [ "$1" == 'current' ]; then
-    now=$( echo "(${curr_brightness} / ${max_brightness}) * 100" | bc -l | cut -d'.' -f 1)
-echo  $now%
-else
-direction=$1
-
-# Calculate
 step=$(( $max_brightness / 20 ))
-if [ $direction == 'up' ]; then
-new_brightness=$(( $curr_brightness + $step ))
-elif [ $direction == 'down' ]; then
-new_brightness=$(( $curr_brightness - $step ))
-else
-echo 'Argument $1 must be either "up" or "down". Quitting.'
-exit 1
-fi
-# Limit range
-if [ "$new_brightness" -gt "$max_brightness" ]; then
-new_brightness="$max_brightness"
-fi
-if [ "$new_brightness" -lt 0 ]; then
-new_brightness=0
-fi
 
-# "Do it" - the emperor
-echo $new_brightness > "${brightness_file}"
-fi
+function write_brightness() {
+    echo $1 > "${brightness_file}"
+}
+
+function increase_brightness() {
+    new_brightness=$(( $curr_brightness + $step ))
+    if [ "$new_brightness" -gt "$max_brightness" ]; then
+        new_brightness="$max_brightness"
+    fi
+    write_brightness $new_brightness
+}
+
+function decrease_brightness() {
+    new_brightness=$(( $curr_brightness - $step ))
+    if [ "$new_brightness" -lt 0 ]; then
+        new_brightness=0
+    fi
+    write_brightness $new_brightness
+}
+
+function show_current_brightness() {
+    echo "SHOWING"
+    now=$( echo "(${curr_brightness} / ${max_brightness}) * 100" | bc -l | cut -d'.' -f 1)
+    echo  $now%
+}
+
+command=$1
+
+case $command in
+    up|increase|--up|u) increase_brightness ;;
+    down|decrease|--down|d) decrease_brightness ;;
+    show|s|--show) show_current_brightness ;;
+    *) echo $SHORT_USAGE ;;
+esac
