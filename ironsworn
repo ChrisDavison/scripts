@@ -1,0 +1,32 @@
+#!/usr/bin/env python
+
+import numpy as np
+from argparse import ArgumentParser
+
+parser = ArgumentParser()
+parser.add_argument("plus", help="Stats / bonuses", type=int, default=0)
+parser.add_argument("description", nargs="*")
+args = parser.parse_args()
+
+rolls = np.random.randint(0, 10, 2)
+myroll = np.random.randint(1, 6)
+total = myroll + args.plus
+
+successes = sum(total > rolls)
+crit = rolls[0] == rolls[1]
+
+hittype = ""
+if successes == 0:
+    hittype = "FAIL"
+    if crit:
+        hittype = "CRIT FAIL"
+elif successes == 1:
+    hittype = "WEAK HIT"
+else: #successes == 2
+    hittype = "STRONG HIT"
+    if crit:
+        hittype = "CRIT HIT"
+
+if args.description:
+    print(' '.join(args.description))
+print(f"{hittype} ... {total} ({myroll}+{args.plus}) vs ({rolls[0]},{rolls[1]})")
