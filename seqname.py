@@ -38,21 +38,17 @@ def name_matches_pattern_tester(prefix, suffix, keep_filename):
         has_suffix = False
 
         filepath = filepath.stem
-        # print(filepath)
         if prefix and filepath.startswith(prefix):
             has_prefix = True
             filepath =  filepath[len(prefix):]
-            # print("->", filepath)
 
         if suffix and filepath.endswith(suffix):
             has_suffix = True
             filepath = filepath[:-len(suffix)]
-            # print("->", filepath)
 
         if (has_prefix or not prefix) and (has_suffix or not suffix):
             return True
-        else:
-            return False
+        return False
     return _tester
 
 def largest_matching_index(files):
@@ -89,7 +85,7 @@ def main(prefix, suffix, keep_filename, sort, dryrun, verbose, separator):
     name_matches_pattern = name_matches_pattern_tester(prefix, suffix, keep_filename)
 
     files_matching = (f for f in files if name_matches_pattern(f))
-    files_not_matching =(f for f in files if not name_matches_pattern(f))
+    files_not_matching = (f for f in files if not name_matches_pattern(f))
 
     mover = lambda old, new: None
     if not dryrun:
