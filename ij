@@ -1,5 +1,18 @@
 #!/usr/bin/env bash
 
+HELP() {
+    echo "ij: interstitial journal"
+    echo
+    echo "usage:"
+    echo "       ij <journal message to record>"
+    echo "       ij [flag|command]"
+    echo
+    echo "Flags"
+    echo "    -t|t|today     Show only today"
+    echo "    -c|c|clear     Clear all journal entries"
+    echo "    -cp            Clear previous entries, keeping today"
+}
+
 ij_file=$HOME/.interstitial
 [[ ! -f $ij_file ]] && touch $ij_file
 
@@ -8,11 +21,11 @@ splitchar='--'
 color="--color=always"
 
 view() {
-    cat $ij_file | column -s'…' -t 
+    cat $ij_file | column -s'…' -t
 }
 
 view_3() {
-    tail -n3 $ij_file | column -s'…' -t 
+    tail -n3 $ij_file | column -s'…' -t
 }
 
 view_today() {
@@ -20,14 +33,14 @@ view_today() {
     if [[ $? -eq 1 ]]; then
         echo "nothing today."
     else
-        awk "/$(date +%F)/{start=1} start==1{print}" ~/.interstitial | column -s'…' -t 
+        awk "/$(date +%F)/{start=1} start==1{print}" ~/.interstitial | column -s'…' -t
     fi
 }
 
 case $@ in
-    '') 
+    '')
         view ;;
-    -t|today|t)  # show only today 
+    -t|today|t)  # show only today
         view_today
         ;;
     -c|clear|c)   # Clear the journal
@@ -39,6 +52,7 @@ case $@ in
         view_today > $ij_file".bak"
         mv $ij_file".bak" $ij_file
         ;;
+    -h|h|--help|help) HELP ;;
     *)   # append to interstitial journal
         has_today=$(rg -q `date +%F` $ij_file)
         if [[ $? -eq 1 ]]; then
