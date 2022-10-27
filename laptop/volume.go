@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"strconv"
 	"strings"
 )
 
@@ -29,21 +30,30 @@ func muteVolume() {
 }
 
 func currentVolume() int64 {
-	out, err := exec.Command("pactl", "list", "sinks")
+	out, err := exec.Command("pactl", "list", "sinks").Output()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
+		os.Exit(3)
 	}
 	start := false
 	startLine := "Name: " + activeSink()
+	volume := int64(0)
 	for _, line := range out {
+		line := string(line)
 		if strings.Contains(line, startLine) {
 			start = true
 		}
 		if start && strings.Contains(line, "Volume") {
-			val, err := strconv.ParseInt()
-			// TODO
+			val, err := strconv.ParseInt(line, 64, 10)
+			if err != nil {
+				fmt.Fprintln(os.Stderr, err)
+				os.Exit(4)
+			}
+			volume = val
+		}
+		// TODO
 	}
+	return volume
 }
 
 func changeVolume(increase bool) {
