@@ -15,13 +15,15 @@ class Volume:
 
     def __init__(self) -> None:
         start = False
+        cmd = subprocess.run(['pactl', 'list', 'short', 'sinks'], capture_output = True)
         active_out = [line for line in
-                      subprocess.run(['pactl', 'list', 'short', 'sinks'], capture_output = True).stdout
+                      cmd.stdout.decode().splitlines()
                       if 'RUNNING' in line and not 'Pulse' in line]
         if not active_out:
             raise Exception("NO SINKS")
         active_out = active_out[0][2]
-        for line in subprocess.run(['pactl','list','sinks'], capture_output=True).stdout:
+        for line in subprocess.run(['pactl','list','sinks'], capture_output=True).stdout.splitlines():
+            line = line.decode()
             if 'Name ' + active_out in line:
                 start = True
             if start and 'Volume' in line and not 'Base' in line:
@@ -32,7 +34,7 @@ class Volume:
         subprocess.run('pactl set-sink-volume {} {}dB'.format(self.sink, delta))
 
     def mute(self) -> None:
-        subprocess.Run('pactl set-sink-volume {} 0dB'.format(self.sink))
+        subprocess.run('pactl set-sink-volume {} 0dB'.format(self.sink))
 
     def increase(self, delta) -> None:
         self.change('+' + delta)
@@ -87,7 +89,7 @@ class Brightness:
         (Path(DEVICE_DIR) / "brightness").write_text(self.current)
 
 
-Volume()
+v = Volume()
 # if __name__ == '__main__':
 #     parser = argparse.ArgumentParser()
 #     commands = parser.add_subparsers(dest='command')
