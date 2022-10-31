@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+	fmt.Println(getMaxBrightness())
 set -euo pipefail
 
 active=`pactl list short sinks | rg RUNNING | rg -v Pulse | cut -f2`
@@ -11,7 +12,7 @@ start==1 && /^Sink/{exit}"
     activeVol=`pactl list sinks | awk "$awk_cmd" | sed -e 's/.* \(-*[0-9.]* dB\).*/\1/g' | sed -e 's/.[0-9]\+ dB.*//g' `
 }
 
-cmd="$1"
+cmd="${1:-help}"
 
 case "$cmd" in
     --up)
@@ -25,6 +26,9 @@ case "$cmd" in
         ;;
     --down) pactl set-sink-volume $active -3dB ;;
     --mute) pactl set-sink-mute $active toggle ;;
-    *) echo "Unknown volume.sh command: $cmd" ;;
+    *)
+        echo "Unknown volume.sh command: $cmd"
+        echo "usage: laptop-volume.sh --up|--down|--mute"
+        ;;
 esac
 

@@ -6,8 +6,16 @@ import (
 	"strings"
 )
 
+const brightnessFile string = "/sys/class/backlight/intel_backlight/brightness"
+const maxBrightnessFile string = "/sys/class/backlight/intel_backlight/max_brightness"
+
+func brightnessHelp() {
+	fmt.Println("xps15-util brightness show|increase|decrease")
+	os.Exit(1)
+}
+
 func getCurrentBrightness() int64 {
-	val, err := readIntFromFile("/sys/class/backlight/brightness")
+	val, err := readIntFromFile(brightnessFile)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error getting current brightness: %s\n", err)
 		os.Exit(1)
@@ -16,7 +24,7 @@ func getCurrentBrightness() int64 {
 }
 
 func getMaxBrightness() int64 {
-	val, err := readIntFromFile("/sys/class/backlight/brightness")
+	val, err := readIntFromFile(maxBrightnessFile)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error getting current brightness: %s\n", err)
 		os.Exit(1)
@@ -29,7 +37,7 @@ func changeBrightness(increase bool) {
 	maxBrightness := getMaxBrightness()
 	step := maxBrightness / 20
 	if increase {
-		newBrightness += newBrightness + step
+		newBrightness += step
 		if newBrightness > maxBrightness {
 			newBrightness = maxBrightness
 		}
@@ -39,14 +47,23 @@ func changeBrightness(increase bool) {
 			newBrightness = 0
 		}
 	}
+	err := os.WriteFile(brightnessFile, []byte(fmt.Sprintf("%d", newBrightness)), 0644)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(3)
+	}
 }
 
 func showBrightness() {
-	pct := float64(getCurrentBrightness()/getMaxBrightness()) * 100
-	fmt.Printf("Brightness: %.2f %%\n", pct)
+	pct := float64(getCurrentBrightness()) / float64(getMaxBrightness()) * 100
+	fmt.Printf("Brightness: %.0f%%\n", pct)
 }
+
 func brightness(args []string) {
-	bCmd := strings.ToLower(string(args[0]))
+	bCmd := "help"
+	if len(args) > 0 {
+		bCmd = strings.ToLower(string(args[0]))
+	}
 	if inList(bCmd, []string{"show", "s", "--show"}) {
 		showBrightness()
 	} else if inList(bCmd, []string{"up", "increase", "--up", "u"}) {
@@ -54,6 +71,6 @@ func brightness(args []string) {
 	} else if inList(bCmd, []string{"down", "d", "--down", "decrease"}) {
 		changeBrightness(false)
 	} else {
-		help()
+		brightnessHelp()
 	}
 }

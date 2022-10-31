@@ -5,18 +5,19 @@ import (
 	"io/ioutil"
 	"os"
 	"strconv"
+	"strings"
 )
 
 const helpStr string = `xps15-util
 utilities for my xps15 laptop
 
 usage:
-	xps15-util brightness up|down|show
-	xps15-util volume up|down|show|mute
+	%s brightness up|down|show
+	%s volume up|down|show|mute
 `
 
 func help() {
-	fmt.Println(helpStr)
+	fmt.Printf(helpStr, os.Args[0], os.Args[0])
 	os.Exit(1)
 }
 
@@ -26,7 +27,11 @@ func readIntFromFile(filename string) (int64, error) {
 		return 0, err
 	}
 	valBytes, err := ioutil.ReadAll(f)
-	val, err := strconv.ParseInt(string(valBytes), 64, 10)
+	val, err := strconv.ParseInt(strings.TrimSpace(string(valBytes)), 10, 64)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Reading int from %s: %s\n", filename, err)
+		os.Exit(2)
+	}
 	return val, nil
 }
 
