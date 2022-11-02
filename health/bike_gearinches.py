@@ -57,7 +57,17 @@ def speed_to_cadence(speed, ratio, wheel_diameter_inch=26.5):
 CASSETTE_GRAVEL = np.array([11, 13, 15, 17, 19, 21, 23, 25, 27, 30, 34])
 CASSETTE_FIXIE = np.array([16])
 
+CASSETTES = {
+    "11-28": np.array([11, 12, 13, 14, 15, 17, 19, 21, 23, 25, 28]),
+    "11-30": np.array([11, 12, 13, 14, 15, 17, 19, 21, 24, 27, 30]),
+    "11-32": np.array([11, 12, 13, 14, 16, 18, 20, 22, 25, 28, 32]),
+    "11-34": np.array([11, 13, 15, 17, 19, 21, 23, 25, 27, 30, 34]),
+    "12-25": np.array([12, 13, 14, 15, 16, 17, 18, 19, 21, 23, 25]),
+}
+
+CHAINRING_ROAD_LARGE = np.array([53, 39]).reshape((2, 1))
 CHAINRING_ROAD = np.array([52, 36]).reshape((2, 1))
+CHAINRING_ROAD_COMPACT = np.array([50, 34]).reshape((2, 1))
 CHAINRING_GRAVEL = np.array([46, 30]).reshape((2, 1))
 CHAINRING_FIXIE = np.array([44])
 
@@ -70,13 +80,19 @@ def main(which):
     cassette = None
     chainring = None
     if which == 'gravel':
-        cassette = CASSETTE_GRAVEL
+        cassette = CASSETTES["11-34"]
         chainring = CHAINRING_GRAVEL
     elif which == 'fixie':
         cassette = CASSETTE_FIXIE
         chainring = CHAINRING_FIXIE
+    elif which == "road_compact":
+        cassette = CASSETTES["11-28"]
+        chainring = CHAINRING_ROAD_COMPACT
+    elif which == "road_large":
+        cassette = CASSETTES["11-28"]
+        chainring = CHAINRING_ROAD_LARGE
     else: #which == 'road'
-        cassette = CASSETTE_GRAVEL
+        cassette = CASSETTES["11-28"]
         chainring = CHAINRING_ROAD
 
     gear_inches = gearinches(chainring, cassette)
@@ -99,7 +115,7 @@ def main(which):
 
 if __name__ == "__main__":
     parser = ArgumentParser()
-    parser.add_argument('which', choices=['gravel', 'fixie', 'road'])
+    parser.add_argument('which', choices=['gravel', 'fixie', 'road', 'road_compact', 'road_large'])
     args = parser.parse_args()
     main(args.which)
 
