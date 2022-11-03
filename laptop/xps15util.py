@@ -100,6 +100,24 @@ class Brightness:
         (Path(DEVICE_DIR) / "brightness").write_text(str(self.current))
 
 
+@dataclass
+class Microphone:
+    def set_volume(self, db):
+        subprocess.run(['pactl', 'set-source-volume', '@DEFAULT_SOURCE@', '{}dB'.format(db)])
+
+    def change(self, delta) -> None:
+        self.set_volume(delta)
+
+    def mute(self) -> None:
+        self.set_volume('-100')
+
+    def increase(self, delta) -> None:
+        self.change('+' + str(delta))
+
+    def decrease(self, delta) -> None:
+        self.change('-' + str(delta))
+
+
 def volume_main(action, delta):
     v = Volume()
     if action == 'up':
@@ -124,28 +142,51 @@ def brightness_main(action, delta):
     else:
         print('Unrecognised action:', action)
 
+def mic_main(action, delta, value):
+    m = Microphone()
+    if action == 'up':
+        m.increase(delta)
+    elif action == 'down':
+        m.decrease(delta)
+    elif action == 'mute':
+        m.mute()
+    elif action == 'set':
+        m.set_volume(value)
+    else:
+        print('Unrecognised action:', action)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     commands = parser.add_subparsers(dest='command')
     cmd_vol = commands.add_parser('volume')
     cmd_brightness = commands.add_parser('brightness')
+    cmd_mic = commands.add_parser('mic')
 
     parser_vol = cmd_vol.add_subparsers(dest='action', required=True)
     vol_up = parser_vol.add_parser('up')
-    delta = vol_up.add_argument('delta', type=int, default=5, nargs='?')
+    delta = vol_up.add_argument('delta', type=int, default=3, nargs='?')
     vol_down = parser_vol.add_parser('down')
-    delta = vol_up.add_argument('delta', type=int, default=5, nargs='?')
+    delta = vol_up.add_argument('delta', type=int, default=3, nargs='?')
     vol_mute = parser_vol.add_parser('mute')
     vol_show = parser_vol.add_parser('show')
 
     parser_brightness = cmd_brightness.add_subparsers(dest='action', required=True)
     brightness_up = parser_brightness.add_parser('up')
-    delta = brightness_up.add_argument('delta', type=int, default=3, nargs='?')
+    delta = brightness_up.add_argument('delta', type=int, default=5, nargs='?')
     brightness_down = parser_brightness.add_parser('down')
-    delta = brightness_down.add_argument('delta', type=int, default=3, nargs='?')
+    delta = brightness_down.add_argument('delta', type=int, default=5, nargs='?')
     brightness_show = parser_brightness.add_parser('show')
     brightness_mute = parser_brightness.add_parser('mute')
+
+    parser_mic = cmd_mic.add_subparsers(dest='action', required=True)
+    mic_up = parser_mic.add_parser('up')
+    delta = mic_up.add_argument('delta', type=int, default=5, nargs='?')
+    mic_down = parser_mic.add_parser('down')
+    delta = mic_up.add_argument('delta', type=int, default=5, nargs='?')
+    mic_mute = parser_mic.add_parser('mute')
+    mic_set = parser_mic.add_parser('set')
+    mic_set_val = mic_set.add_argument('value', type=int)
+
 
     kwargs = vars(parser.parse_args())
 
@@ -155,6 +196,8 @@ if __name__ == '__main__':
         if command == 'brightness':
             brightness_main(kwargs['action'], kwargs.get('delta', 0))
         elif kwargs['command'] == 'volume':
-                volume_main(kwargs['action'], kwargs.get('delta', 0))
+            volume_main(kwargs['action'], kwargs.get('delta', 0))
+        elif kwargs['command'] == 'mic':
+            mic_main(kwargs['action'], kwargs.get('delta', 0), kwargs.get('value', 100))
     except Exception as E:
         print(E)
