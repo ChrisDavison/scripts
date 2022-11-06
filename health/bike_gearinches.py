@@ -54,68 +54,47 @@ def speed_to_cadence(speed, ratio, wheel_diameter_inch=26.5):
     return cadence
 
 
-CASSETTE_GRAVEL = np.array([11, 13, 15, 17, 19, 21, 23, 25, 27, 30, 34])
-CASSETTE_FIXIE = np.array([16])
-
 CASSETTES = {
     "11-28": np.array([11, 12, 13, 14, 15, 17, 19, 21, 23, 25, 28]),
     "11-30": np.array([11, 12, 13, 14, 15, 17, 19, 21, 24, 27, 30]),
     "11-32": np.array([11, 12, 13, 14, 16, 18, 20, 22, 25, 28, 32]),
     "11-34": np.array([11, 13, 15, 17, 19, 21, 23, 25, 27, 30, 34]),
     "12-25": np.array([12, 13, 14, 15, 16, 17, 18, 19, 21, 23, 25]),
+    "fixie": np.array([16])
 }
 
-CHAINRING_ROAD_LARGE = np.array([53, 39]).reshape((2, 1))
-CHAINRING_ROAD = np.array([52, 36]).reshape((2, 1))
-CHAINRING_ROAD_COMPACT = np.array([50, 34]).reshape((2, 1))
-CHAINRING_GRAVEL = np.array([46, 30]).reshape((2, 1))
-CHAINRING_FIXIE = np.array([44])
+CHAINRINGS = {
+    'large':   np.array([53, 39]).reshape((2, 1)),
+    'road':    np.array([52, 36]).reshape((2, 1)),
+    'compact': np.array([50, 34]).reshape((2, 1)),
+    'gravel':  np.array([46, 30]).reshape((2, 1)),
+    'fixie':   np.array([44])
+}
 
-GI_GRAVEL = gearinches(CHAINRING_GRAVEL, CASSETTE_GRAVEL)
-GI_ROAD = gearinches(CHAINRING_ROAD, CASSETTE_GRAVEL)
-GI_FIXIE = gearinches(CHAINRING_FIXIE, CASSETTE_FIXIE)
-
-
-def main(which):
-    cassette = None
-    chainring = None
-    if which == 'gravel':
-        cassette = CASSETTES["11-34"]
-        chainring = CHAINRING_GRAVEL
-    elif which == 'fixie':
-        cassette = CASSETTE_FIXIE
-        chainring = CHAINRING_FIXIE
-    elif which == "road_compact":
-        cassette = CASSETTES["11-28"]
-        chainring = CHAINRING_ROAD_COMPACT
-    elif which == "road_large":
-        cassette = CASSETTES["11-28"]
-        chainring = CHAINRING_ROAD_LARGE
-    else: #which == 'road'
-        cassette = CASSETTES["11-28"]
-        chainring = CHAINRING_ROAD
+def main(chainring, cassette):
+    cassette = CASSETTES[cassette]
+    chainring = CHAINRINGS[chainring]
 
     gear_inches = gearinches(chainring, cassette)
-    def as_ints(xs):
-        if not any([isinstance(xs, list), isinstance(xs, np.ndarray)]):
-            xs = [xs]
-        return ' '.join(f"{x:4.1f}" for x in xs)
 
     combined_gearinches = sorted([
         (f"{str(int(val)):>4}", i) for i, row in enumerate(gear_inches) for val in row
     ])
-    print(f"Gearinches of {which} bike")
+    low = min(cassette)
+    high = max(cassette)
+    print(f"Chainring: {[v for x in chainring.tolist() for v in x]}")
+    print(f"Cassette:  {low}..{high}")
+    print()
     for i, teeth in enumerate(chainring):
         gi_for_teeth = [gi if j == i else '  --' for gi, j in combined_gearinches][::-1]
         if isinstance(teeth, np.int64):
             teeth = [teeth]
-        median = np.abs(np.median(np.diff([int(val.strip()) for val in gi_for_teeth if val != '  --'])))
-        stats = f"Median gap: {median}"
-        print(f"  {teeth[0]}t: {''.join(gi_for_teeth)} ({stats})")
+        print(f"{''.join(gi_for_teeth)}")
 
 if __name__ == "__main__":
     parser = ArgumentParser()
-    parser.add_argument('which', choices=['gravel', 'fixie', 'road', 'road_compact', 'road_large'])
+    parser.add_argument('chainring', choices=[k for k in CHAINRINGS.keys()])
+    parser.add_argument('cassette', choices=[k for k in CASSETTES.keys()])
     args = parser.parse_args()
-    main(args.which)
+    main(args.chainring, args.cassette)
 
