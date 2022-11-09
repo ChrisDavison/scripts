@@ -9,6 +9,7 @@ import numpy as np
 import pandas as pd
 import pinboard
 import seaborn as sns
+import sys
 
 def bookmarkhash(self):
     return self.url.__hash__()
@@ -16,6 +17,7 @@ def bookmarkhash(self):
 def bookmark_show(self):
     return f"{self.description}\n{self.url}\n{' '.join('#' + t for t in self.tags)}"
 
+cache = None
 cache_path = Path('~/.pinboard_cache').expanduser()
 pbutil_verbose = True
 pinboard.Bookmark.__hash__ = bookmarkhash
@@ -44,94 +46,13 @@ def refresh_posts(if_older_than=timedelta(minutes=30), force=False):
         if pbutil_verbose:
             print("USING `OLD` POSTS TILL", (cache['last_updated'] + if_older_than).strftime("%H:%M"))
 
-
-
-def fuzzy_find_posts(which='all', *, terms, excluded_tags=[]):
-    matches = []
-
-    def matches_terms(terms, post):
-        for t in terms:
-            lower_tags = map(lambda x: x.lower(), post.tags)
-            if not any([t in lower_tags, t in post.description.lower(), t in post.url]):
-                return False
-        return True
-
-    refresh_posts()
-    local_posts = cache['posts']
-    if which == 'unread':
-        local_posts = [p for p in local_posts if p.toread]
-    for p in local_posts:
-        if excluded_tags and any(tag in excluded_tags for tag in p.tags):
-            continue
-        if matches_terms(terms, p):
-            matches.append(p)
-
-    if not matches:
-        print("NO MATCHES")
-    return matches
-
-def count_tags(which='all', excludes=None, exclude_entire_post=True):
-    refresh_posts()
-    local_posts = cache['posts']
-    if which == 'unread':
-        local_posts = [p for p in local_posts if p.toread]
-    counts = Counter()
-    n_matching = 0
-    for bookmark in local_posts:
-        tags = bookmark.tags
-        if excludes:
-            if exclude_entire_post and any(tag in tags for tag in excludes):
-                continue
-            else:
-                tags = [tag for tag in tags if tag not in excludes]
-        counts.update(tags)
-        n_matching += 1
-    if pbutil_verbose:
-        print(f"{n_matching} matching posts")
-    return counts
-
-def count_tags_matching(which='all', includes=None, excludes=None, exclude_entire_post=True):
-    refresh_posts()
-    local_posts = fuzzy_find_posts(which, terms=includes, excluded_tags=excludes)
-    counts = Counter()
-    n_matching = 0
-    for bookmark in local_posts:
-        tags = bookmark.tags
-        if excludes:
-            if exclude_entire_post and any(tag in tags for tag in excludes):
-                continue
-            else:
-                tags = [tag for tag in tags if tag not in excludes]
-        counts.update(tags)
-        n_matching += 1
-    if pbutil_verbose:
-        print(f"{n_matching} matching posts")
-    return counts
-
-def related_tags(which='all'):
-    refresh_posts()
-
+def related_tags(posts):
     collocated_tags = defaultdict(Counter)
-    local_posts = cache['posts']
 
-    if which == 'unread':
-        local_posts = [p for p in local_posts if p.toread]
-    for bookmark in local_posts:
+    for bookmark in posts:
         for tag in bookmark.tags:
             collocated_tags[tag].update(set(bookmark.tags) - set([tag]))
     return collocated_tags
-
-def display_n_fuzzy_matches(which='all', n=10, terms=[], excluded_tags=[]):
-    found = fuzzy_find_posts(which, terms=terms, excluded_tags=excluded_tags)
-    if not found:
-        print("No matches.")
-        return
-    chosen = set(np.random.choice(found, n))
-    if len(chosen) < n:
-        print(f"Asked for {n}; found {len(chosen)}")
-    for bm in chosen:
-        print(bm)
-        print()
 
 
 def tag_counts_to_word_cloud(counted_tags, excludes=None):
@@ -151,11 +72,10 @@ def tag_counts_to_word_cloud(counted_tags, excludes=None):
     plt.axis("off")
     plt.tight_layout(pad = 0)
 
-def heatmap_of_related_tags(tag, which='all', excludes=[]):
-    related = related_tags(which)
+
+def heatmap_of_related_tags(tag, posts):
+    related = related_tags(posts)
     tags_to_consider = list(related[tag].keys()) + [tag]
-    if excludes:
-        tags_to_consider = [t for t in tags_to_consider if t not in excludes]
     print(f"{len(tags_to_consider)} tags related to '{tag}'\n")
     grid = np.zeros((len(tags_to_consider), len(tags_to_consider)))
 
@@ -177,19 +97,80 @@ def heatmap_of_related_tags(tag, which='all', excludes=[]):
     plt.tight_layout()
 
 
+class Filter:
+    def __init__(self, query):
+        self.tags_include = []
+        self.tags_exclude = []
+        self.words_include = []
+        self.words_exclude = []
+        for p in query:
+            if p.startswith('-t:'):
+                self.tags_exclude.append(p[3:])
+            elif p.startswith('-#'):
+                self.tags_exclude.append(p[2:])
+            elif p.startswith('t:'):
+                self.tags_include.append(p[2:])
+            elif p.startswith('#'):
+                self.tags_include.append(p[1:])
+                self.words_include.append(p[1:])
+            elif p.startswith('-'):
+                self.words_exclude.append(p[1:])
+            else:
+                self.words_include.append(p)
+
+    def is_match(self, bookmark):
+        d = bookmark.description.lower()
+        u = bookmark.url
+        t = bookmark.tags
+        has_words = not self.words_include or all(w in d or w in u for w in self.words_include)
+        has_no_bad_words = not self.words_exclude or not any(w in d or w in u for w in self.words_exclude)
+        has_tags = not self.tags_include or all(w in t for w in self.tags_include)
+        has_no_bad_tags = not self.tags_exclude or not any(w in t for w in self.tags_exclude)
+        return all([has_words, has_tags, has_no_bad_words, has_no_bad_tags])
+
+
 if __name__ == '__main__':
     from argparse import ArgumentParser
     from typing import List
     pbutil_verbose=False
+
     parser = ArgumentParser()
-    parser.add_argument("includes", nargs="*", type=str)
-    parser.add_argument("-e", "--excludes", nargs="*", type=str)
-    parser.add_argument("-s", "--show", action='store_true')
+    commands = parser.add_subparsers(title='command', dest='command', required=True)
+    tags = commands.add_parser('tags', aliases=['t'])
+    posts = commands.add_parser('posts', aliases=['p'])
+
+    tags.add_argument("query", nargs="*", type=str)
+    tags.add_argument("-u", "--unread", action='store_true')
+    tags.add_argument("-r", "--refresh", action='store_true')
+
+    posts.add_argument("query", nargs="*", type=str)
+    posts.add_argument("-u", "--unread", action='store_true')
+    posts.add_argument("-r", "--refresh", action='store_true')
+
     args = parser.parse_args()
-    if args.show:
-        display_n_fuzzy_matches(which='unread', n=10, terms=args.includes, excluded_tags=args.excludes)
-    else:
-        unreads = count_tags_matching('unread', args.includes, args.excludes)
-        print("UNREAD")
-        for k, v in unreads.most_common(30):
+
+    refresh_posts(force=args.refresh)
+    post_filter = Filter(args.query)
+
+    posts = cache['posts']
+    if args.unread:
+        posts = (p for p in posts if p.toread)
+    posts = [p for p in posts if post_filter.is_match(p)]
+    if not posts:
+        print('NO MATCHING POSTS')
+        sys.exit(1)
+
+    if args.command in ['tags', 't']:
+        counts = Counter()
+        for bm in posts:
+            counts.update(bm.tags)
+        for k, v in counts.most_common(30):
             print(v, k)
+    elif args.command in ['posts', 'p']:
+        n = 10
+        chosen = set(np.random.choice(posts, n))
+        if len(chosen) < n:
+            print(f"Asked for {n}; found {len(chosen)}")
+        for bm in chosen:
+            print(bm)
+            print()
