@@ -17,6 +17,16 @@ def bookmarkhash(self):
 def bookmark_show(self):
     return f"{self.description}\n{self.url}\n{' '.join('#' + t for t in self.tags)}"
 
+def as_dict(bookmark):
+    d = {}
+    d['url'] = bookmark.url
+    d['description'] = bookmark.description
+    d['tags'] = bookmark.tags
+    d['unread'] = bookmark.toread
+    d['hash'] = bookmark.hash
+    return d
+
+
 cache = None
 cache_path = Path('~/.pinboard_cache').expanduser()
 pbutil_verbose = True
