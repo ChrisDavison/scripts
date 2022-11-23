@@ -108,25 +108,27 @@ def heatmap_of_related_tags(tag, posts):
 
 
 class Filter:
-    def __init__(self, query):
+    def __init__(self, query, exclude):
         self.tags_include = []
         self.tags_exclude = []
         self.words_include = []
         self.words_exclude = []
-        for p in query:
-            if p.startswith('-t:'):
-                self.tags_exclude.append(p[3:])
-            elif p.startswith('-#'):
-                self.tags_exclude.append(p[2:])
-            elif p.startswith('t:'):
-                self.tags_include.append(p[2:])
-            elif p.startswith('#'):
-                self.tags_include.append(p[1:])
-                self.words_include.append(p[1:])
-            elif p.startswith('-'):
-                self.words_exclude.append(p[1:])
-            else:
-                self.words_include.append(p)
+        if query:
+            for p in query:
+                if p.startswith('t:'):
+                    self.tags_include.append(p[2:])
+                elif p.startswith('#'):
+                    self.tags_include.append(p[1:])
+                else:
+                    self.words_include.append(p)
+        if exclude:
+            for thing in exclude:
+                if thing.startswith('t:'):
+                    self.tags_exclude.append(thing[2:])
+                elif thing.startswith('#'):
+                    self.tags_exclude.append(thing[1:])
+                else:
+                    self.words_exclude.append(thing)
 
     def is_match(self, bookmark):
         d = bookmark.description.lower()
@@ -149,18 +151,20 @@ if __name__ == '__main__':
     tags = commands.add_parser('tags', aliases=['t'])
     posts = commands.add_parser('posts', aliases=['p'])
 
-    tags.add_argument("query", nargs="*", type=str)
+    tags.add_argument("--has", nargs="*", type=str)
+    tags.add_argument("--exclude", nargs="*", type=str)
     tags.add_argument("-u", "--unread", action='store_true')
     tags.add_argument("-r", "--refresh", action='store_true')
 
-    posts.add_argument("query", nargs="*", type=str)
+    posts.add_argument("--has", nargs="*", type=str)
+    posts.add_argument("--exclude", nargs="*", type=str)
     posts.add_argument("-u", "--unread", action='store_true')
     posts.add_argument("-r", "--refresh", action='store_true')
 
     args = parser.parse_args()
 
     refresh_posts(force=args.refresh)
-    post_filter = Filter(args.query)
+    post_filter = Filter(args.has, args.exclude)
 
     posts = cache['posts']
     if args.unread:
